@@ -4,25 +4,27 @@
 * Seoul, Republic of Korea
 * All Rights Reserved.
 
-* Description : myProcess.h
+* Description : prototype.h
 *		head file for *.c : XXX
 *
 ***************************************************************************/
-#ifndef _MY_PROCESS_H
-#define _MY_PROCESS_H
+#ifndef _PRINT_LOG_H
+#define _PRINT_LOG_H
 
 /*************** Header files *********************************************/
-#include "../../printLog/printLog.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+#include <time.h>
+#include <stdarg.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
 
-#define BUF_SIZE		4096
-#define MAX_CLIENT		1024
-
-#define PROCESS_MANAGER_PORT	7999
-#define MAIN_PROCESS_PORT		8000
+//#define LOG_VIEW
+//#define LOG_FILE
 
 /*************** Definitions / Macros *************************************/
 
@@ -34,9 +36,12 @@
 
 /*************** Prototypes ***********************************************/
 
-#endif /*_MY_PROCESS_H */
-/*************** END OF FILE **********************************************/
+void printView(char *buf);
+void printFile(char *buf);
+void printLog(const char *Format, ...);
 
+#endif /* _PRINT_LOG_H */
+/*************** END OF FILE **********************************************/
 
 
 

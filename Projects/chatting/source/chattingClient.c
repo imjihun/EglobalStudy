@@ -1,3 +1,15 @@
+/* 2017-04-04 : created by JHLim */
+/***************************************************************************
+* Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.
+* Seoul, Republic of Korea
+* All Rights Reserved.
+*
+* Description : chttingClient.c
+*		xxxx
+*
+***************************************************************************/
+
+/*************** Header files *********************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +22,16 @@
 #include <asm-generic/errno-base.h>
 #include <errno.h>
 
+/*************** New Data Types *******************************************/
 
+/*************** Definitions / Macros  ************************************/
 #define BUF_SIZE		1024
 
+/*************** Global Variables *****************************************/
 char IP[20] = "127.0.0.1";
 int PORT = 8000;
 
+/*************** Prototypes ***********************************************/
 void nonblock(int sockfd);
 
 void printMessage(const char *Format, ...);
@@ -24,6 +40,7 @@ int initClient(int *sockfd);
 int transferMessage(int srcfd, int dstfd, char *buffer);
 int main_chattingClient();
 
+/*************** Function *************************************************/
 int main(int argc, char** argv)
 {
 	if(argc == 3)
@@ -134,6 +151,16 @@ void printMessage(const char *Format, ...)
 	
 	puts(buf);
 }
+
+
+/*************** END OF FILE **********************************************/
+
+
+
+
+
+
+
 
 
 

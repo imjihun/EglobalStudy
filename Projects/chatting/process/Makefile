@@ -15,14 +15,15 @@ THREAD = -pthread
 SRC_DIR = source
 OBJ_DIR = obj
 
-OUT		=	mainProc processManager
+OBJS	=	$(OBJ_DIR)/printLog.o
+OUT		=	processManager processMain
 
 
 .SUFFIXES:
 .SUFFIXES: .o .c
 
 
-all: $(OBJ_DIR) $(OUT)
+all: $(OBJ_DIR) $(OBJS) $(OUT)
 
 exec: $(OUT)
 	./processManager&
@@ -33,8 +34,11 @@ $(OBJ_DIR) :
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $<
 
-% : $(OBJ_DIR)/%.o
-	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS)
+$(OBJS): ../printLog/printLog.c
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $<
+
+% : $(OBJ_DIR)/%.o $(OBJS)
+	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS) $(OBJS)
 
 clean:
 	$(RM) $(OBJ_DIR) $(OUT)

@@ -1,3 +1,15 @@
+/* 2017-04-04 : created by JHLim */
+/***************************************************************************
+* Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.
+* Seoul, Republic of Korea
+* All Rights Reserved.
+*
+* Description : processMain.c
+*		xxxx
+*
+***************************************************************************/
+
+/*************** Header files *********************************************/
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
@@ -7,16 +19,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
 #include <fcntl.h>
 
 #include "myProcess.h"
+/*************** New Data Types *******************************************/
 
-char IP[20] = "127.0.0.1";
+/*************** Definitions / Macros  ************************************/
+
+/*************** Global Variables *****************************************/
+
 int PORT = MAIN_PROCESS_PORT;
+char MANAGER_IP[20] = "127.0.0.1";
 int MANAGER_PORT = PROCESS_MANAGER_PORT;
 
+/*************** Prototypes ***********************************************/
 int mainListenProc();
 int initServer(int *listenfd, int port);
 void childHandler(int signum);
@@ -26,6 +42,7 @@ int initClient(int *sockfd, int port);
 int transferMessage(int srcfd, int dstfd, char *buffer);
 void nonblock(int sockfd);
 
+/*************** Function *************************************************/
 int main(int argc, char **argv)
 {
 	if(argc == 2)
@@ -44,23 +61,23 @@ void childHandler(int signum)
 #ifdef DEBUG
         if (WIFEXITED(childstatus))
         {
-            printf("PID %d exited normally.  Exit number:  %d\n", childpid, WEXITSTATUS(childstatus));
+            printLog("PID %d exited normally.  Exit number:  %d\n", childpid, WEXITSTATUS(childstatus));
         }
         else
         {
             if (WIFSTOPPED(childstatus))
             {
-                printf("PID %d was stopped by %d\n", childpid, WSTOPSIG(childstatus));
+                printLog("PID %d was stopped by %d\n", childpid, WSTOPSIG(childstatus));
             }
             else
             {
                 if (WIFSIGNALED(childstatus))
                 {
-                    printf("PID %d exited due to signal %d\n.", childpid, WTERMSIG(childstatus));
+                    printLog("PID %d exited due to signal %d\n.", childpid, WTERMSIG(childstatus));
                 }
                 else
                 {
-                    perror("waitpid");
+                    printLog("waitpid");
                 }
             }
         }
@@ -73,6 +90,7 @@ int mainListenProc()
 	int listenfd, sockfd;
 	socklen_t socklen;
 	struct sockaddr_in sockaddr;
+	int i;
 
 	int pid;
 	
@@ -80,10 +98,11 @@ int mainListenProc()
 		return -1;
 
 	signal(SIGCHLD, childHandler);
-	while(1)
+	for(i = 0; ; i++)
 	{
 		socklen = sizeof(sockaddr);
 		sockfd = accept(listenfd, (struct sockaddr *)&sockaddr, &socklen);
+		printLog("processMain accept()\n");
 		if(sockfd > 0)
 		{
 			// child
@@ -91,7 +110,7 @@ int mainListenProc()
 	        {
 	        	close(listenfd);
 
-	        	readWriteProcFunc(sockfd);
+	        	return readWriteProcFunc(sockfd);
 	        }
 
 	        // parent
@@ -102,13 +121,13 @@ int mainListenProc()
 	        }
 	        else
 	        {
-	        	perror("fork() error");
+	        	printLog("fork() error");
 	        	return -1;
 	        }
 		}
 		else if(sockfd == -1 && errno != EAGAIN)
 		{
-			perror("accept() error");
+			printLog("accept() error");
 			return -1;
 		}
 	}
@@ -117,18 +136,27 @@ int mainListenProc()
 
 int transferMessage(int srcfd, int dstfd, char *buffer)
 {
-	int retval;
+	int retval, recv_cnt, send_cnt = 0;
 
-	if((retval = read(srcfd, buffer, BUF_SIZE - 1)) > 1)
+	if((recv_cnt = read(srcfd, buffer, BUF_SIZE - 1)) > 1)
 	{
-		buffer[retval] = 0;
-		write(dstfd, buffer, retval);
-		fflush(stdin);
+		buffer[recv_cnt] = '\0';
+		printLog("[%d]recv %s", srcfd, buffer);
+		while(send_cnt < recv_cnt)
+		{
+			retval = write(dstfd, buffer + send_cnt, recv_cnt - send_cnt);
+			if(retval > 0)
+				send_cnt += retval;
+		}
+		printLog("send_cnt = %d, recv_cnt = %d", send_cnt, recv_cnt);
+		printLog("[%d]send %s", dstfd, buffer);
 	}
-	
-	else if(retval <= 0 && errno != EAGAIN)
-	{
+	else if(recv_cnt == 0)
 		return -1;
+	else if(recv_cnt < 0)
+	{
+		if(errno != EAGAIN)
+			return -1;
 	}
 	return 0;
 }
@@ -141,9 +169,10 @@ int readWriteProcFunc(int sockfd)
 	nonblock(sockfd);
 
 	if(initClient(&proc_manager_fd, MANAGER_PORT) == -1)
-		perror("initClient error");
+		printLog("initClient error");
 	nonblock(proc_manager_fd);
 
+	printLog("readwriteProcFunc while() start");
 	while(1)
 	{
 		if(transferMessage(proc_manager_fd, sockfd, buffer) != 0)
@@ -165,7 +194,7 @@ int initClient(int *sockfd, int port)
 
 	memset(&server_address, 0, sizeof(server_address));
 	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = inet_addr(IP);
+	server_address.sin_addr.s_addr = inet_addr(MANAGER_IP);
 	server_address.sin_port = htons(port);
 
 	(*sockfd) = socket(AF_INET, SOCK_STREAM, 0);
@@ -174,7 +203,7 @@ int initClient(int *sockfd, int port)
 				sizeof(server_address));
 	if(retval == -1)
 	{
-		perror("connect error\n");
+		printLog("connect error\n");
 		return -1;
 	}
 
@@ -186,7 +215,7 @@ int initServer(int *listenfd, int port)
 
 	if(((*listenfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		perror("socket() error");
+		printLog("socket() error");
 		return -1;
 	}
 
@@ -197,13 +226,13 @@ int initServer(int *listenfd, int port)
 
 	if( bind((*listenfd), (struct sockaddr *)&sockaddr, sizeof(sockaddr)) == -1)
 	{
-		perror("bind() error");
+		printLog("bind() error");
 		return -1;
 	}
 
 	if(listen((*listenfd), 5) == -1)
 	{
-		perror("listen() error");
+		printLog("listen() error");
 		return -1;
 	}
 
@@ -217,13 +246,20 @@ void nonblock(int sockfd)
     opts = fcntl(sockfd, F_GETFL);
     if(opts < 0)
     {
-        perror("fcntl(F_GETFL)\n");
+        printLog("fcntl(F_GETFL)\n");
         exit(1);
     }
     opts = (opts | O_NONBLOCK);
     if(fcntl(sockfd, F_SETFL, opts) < 0)
     {
-        perror("fcntl(F_SETFL)\n");
+        printLog("fcntl(F_SETFL)\n");
         exit(1);
     }
 }
+
+
+/*************** END OF FILE **********************************************/
+
+
+
+

@@ -15,17 +15,17 @@ THREAD = -pthread
 SRC_DIR = source
 OBJ_DIR = obj
 
-OUT		=	chattingServerThr
+OBJS	=	$(OBJ_DIR)/printLog.o
+OUT		=	threadServer
 
 .SUFFIXES:
 .SUFFIXES: .o .c
 
 	
-all: $(OBJ_DIR) $(OUT)
+all: $(OBJ_DIR) $(OBJS) $(OUT)
 
 exec: $(OUT)
-	./chattingServerThr&
-
+	./$(OUT)&
 
 $(OBJ_DIR) :
 	mkdir $@
@@ -33,8 +33,11 @@ $(OBJ_DIR) :
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $<
 
+$(OBJS): ../printLog/printLog.c
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ $<
+
 % : $(OBJ_DIR)/%.o
-	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS)
+	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS) $(OBJS)
 
 clean:
 	$(RM) $(OBJ_DIR) $(OUT)

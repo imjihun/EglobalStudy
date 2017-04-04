@@ -1,3 +1,15 @@
+/* 2017-04-04 : created by JHLim */
+/***************************************************************************
+* Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.
+* Seoul, Republic of Korea
+* All Rights Reserved.
+*
+* Description : threadServer.c
+*		xxxx
+*
+***************************************************************************/
+
+/*************** Header files *********************************************/
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
@@ -9,31 +21,43 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
+#include <time.h>
+#include <stdarg.h>
 
+#include "../../printLog/printLog.h"
+
+/*************** New Data Types *******************************************/
+
+/*************** Definitions / Macros  ************************************/
 #define BUF_SIZE	1024
 #define SOCKET_MAX	1024
 
+/*************** Global Variables *****************************************/
 int PORT = 8100;
 int g_arr_sockfd[SOCKET_MAX];
 
+/*************** Prototypes ***********************************************/
 void *recvSendFunc(void *arg);
 int initServer();
-int main_threadServer();
+int mainThread();
 
 int initArr(int *arr_sockfd);
 int insertSockfd(int sockfd, int *arr_sockfd);
 int deleteSockfd(int sockfd, int *arr_sockfd);
 int transferMessage(const char *msg, int len, int *arr_sockfd);
 
+/*************** Function *************************************************/
+
 int main(int argc, char **argv)
 {
 	if(argc == 2)
 		PORT = atoi(argv[1]);
 
-	return main_threadServer();
+	return mainThread();
 }
 
-int main_threadServer()
+int mainThread()
 {
 	int listenfd, sockfd;
 	socklen_t socklen;
@@ -51,7 +75,7 @@ int main_threadServer()
 		sockfd = accept(listenfd, (struct sockaddr *)&sockaddr, &socklen);
 		if(sockfd == -1)
 		{
-			perror("accept() error");
+			printLog("accept() error");
 			return -1;
 		}
 
@@ -61,12 +85,12 @@ int main_threadServer()
 		th_id = pthread_create(&thread_t, NULL, recvSendFunc, (void *)&sockfd);
 		if(th_id != 0)
 		{
-			perror("pthread_create() Error");
+			printLog("pthread_create() Error");
 			return -1;
 		}
 		if(pthread_detach(thread_t) != 0)
 		{
-			perror("pthread_detach() Error");
+			printLog("pthread_detach() Error");
 			return -1;
 		}
 	}
@@ -85,7 +109,7 @@ void *recvSendFunc(void *arg)
 		readn = read(sockfd, buf, BUF_SIZE);
 		if(readn <= 0)
 		{
-			printf("close = %d\n", sockfd);
+			printLog("close = %d\n", sockfd);
 			break;
 		}
 		if(transferMessage(buf, readn, g_arr_sockfd) != 0)
@@ -114,7 +138,7 @@ int insertSockfd(int sockfd, int *arr_sockfd)
 	}
 	if(i == SOCKET_MAX)
 	{
-		printf("socket full\n");
+		printLog("socket full\n");
 		return -1;
 	}
 
@@ -133,7 +157,7 @@ int deleteSockfd(int sockfd, int *arr_sockfd)
 			return 0;
 		}
 	}
-	printf("not found\n");
+	printLog("not found\n");
 	return -1;
 }
 int transferMessage(const char *msg, int len, int *arr_sockfd)
@@ -150,7 +174,7 @@ int transferMessage(const char *msg, int len, int *arr_sockfd)
 			{
 				if(prev_retval == retval)
 				{
-					printf("write() error\n");
+					printLog("write() error\n");
 					return -1;
 				}
 				prev_retval = retval;
@@ -166,7 +190,7 @@ int initServer(int *listenfd)
 
 	if(((*listenfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		perror("socket() error");
+		printLog("socket() error");
 		return -1;
 	}
 
@@ -177,20 +201,22 @@ int initServer(int *listenfd)
 
 	if( bind((*listenfd), (struct sockaddr *)&sockaddr, sizeof(sockaddr)) == -1)
 	{
-		perror("bind() error");
+		printLog("bind() error");
 		return -1;
 	}
 
 	if(listen((*listenfd), 5) == -1)
 	{
-		perror("listen() error");
+		printLog("listen() error");
 		return -1;
 	}
 
 	initArr(g_arr_sockfd);
 	return 0;
 }
+/*************** END OF FILE **********************************************/
 
 
 
-///////////////////////////////////////////////////////////////////////////////
+
+

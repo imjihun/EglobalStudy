@@ -30,9 +30,6 @@ proc: $(OUT)
 thr:
 	cd thread; $(MAKE) exec
 
-stop:
-	pkill -9 Server
-
 $(LOG_DIR):
 	mkdir $@
 
@@ -52,5 +49,5 @@ threadDir:
 
 clean:
 	$(RM) $(OBJ_DIR) $(OUT)
-	cd parallelProcessing; $(MAKE) clean
-	cd multiPlexing; $(MAKE) clean
+	cd process; $(MAKE) clean
+	cd thread; $(MAKE) clean
