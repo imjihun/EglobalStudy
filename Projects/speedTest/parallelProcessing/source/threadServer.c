@@ -49,7 +49,7 @@ int initServer(int *listenfd)
 		return -1;
 	}
 
-	if(listen((*listenfd), 5) == -1)
+	if(listen((*listenfd), SOMAXCONN) == -1)
 	{
 		perror("listen error");
 		return -1;
@@ -73,6 +73,7 @@ int threadServer()
 	{
 		socklen = sizeof(sockaddr);
 		sockfd = accept(listenfd, (struct sockaddr *)&sockaddr, &socklen);
+		//printf("accept = %d\n", sockfd);
 		if(sockfd == -1)
 		{
 			perror("accept error");
@@ -102,14 +103,16 @@ void *myFunc(void *arg)
 		if(readn <= 0)
 		{
 			//printf("close = %d\n", sockfd);
-			close(sockfd);
-			return NULL;
+			break;
 		}
 		writen = write(sockfd, buf, readn);
 		if(readn != writen)
 		{
 			printf("write error %d : %d\n", readn, writen);
-			return NULL;
+			break;
 		}
+		printf("[%d] read write\n", sockfd);
 	}
+	close(sockfd);
+	return NULL;
 }

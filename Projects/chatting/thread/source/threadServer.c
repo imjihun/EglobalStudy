@@ -47,14 +47,29 @@ int insertSockfd(int sockfd, int *arr_sockfd);
 int deleteSockfd(int sockfd, int *arr_sockfd);
 int transferMessage(const char *msg, int len, int *arr_sockfd);
 
+int reuse(int sockfd);
+
 /*************** Function *************************************************/
+
 
 int main(int argc, char **argv)
 {
+	printf("useage : %s <port>\n", argv[0]);
 	if(argc == 2)
 		PORT = atoi(argv[1]);
 
 	return mainThread();
+}
+
+int reuse(int sockfd)
+{
+	int enable = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+	{
+		printLog("setsockopt(SO_REUSEADDR) failed");
+		return -1;
+	}
+	return 0;
 }
 
 int mainThread()
@@ -193,6 +208,8 @@ int initServer(int *listenfd)
 		printLog("socket() error");
 		return -1;
 	}
+	if(reuse((*listenfd)) != 0)
+		return -1;
 
 	memset((void *)&sockaddr,0x00,sizeof(sockaddr));
 	sockaddr.sin_family = AF_INET;
@@ -205,13 +222,15 @@ int initServer(int *listenfd)
 		return -1;
 	}
 
-	if(listen((*listenfd), 5) == -1)
+	if(listen((*listenfd), SOMAXCONN) == -1)
 	{
 		printLog("listen() error");
 		return -1;
 	}
 
 	initArr(g_arr_sockfd);
+
+	printLog("[Server] port = %d Start", PORT);
 	return 0;
 }
 /*************** END OF FILE **********************************************/

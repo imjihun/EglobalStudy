@@ -23,10 +23,6 @@ OUT		=	threadServer processServer
 	
 all: $(OBJ_DIR) $(OUT)
 
-exec: $(OUT)
-	./processServer&
-	./threadServer&
-
 
 $(OBJ_DIR) :
 	mkdir $@

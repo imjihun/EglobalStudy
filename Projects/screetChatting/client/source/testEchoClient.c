@@ -29,7 +29,7 @@
 
 /*************** Global Variables *****************************************/
 char IP[20] = "127.0.0.1";
-int PORT = 8000;
+int PORT = 9000;
 
 /*************** Prototypes ***********************************************/
 void nonblock(int sockfd);
@@ -43,13 +43,11 @@ int main_chattingClient();
 /*************** Function *************************************************/
 int main(int argc, char** argv)
 {
-	if(argc != 3)
+	if(argc == 3)
 	{
-		printf("useage : %s <ip> <port>\n", argv[0]);
-		return -1;
+		strcpy(IP, argv[1]);
+		PORT = atoi(argv[2]);
 	}
-	strcpy(IP, argv[1]);
-	PORT = atoi(argv[2]);
 
 	return main_chattingClient();
 }

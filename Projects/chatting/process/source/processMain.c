@@ -41,6 +41,7 @@ int readWriteProcFunc(int sockfd);
 int initClient(int *sockfd, int port);
 int transferMessage(int srcfd, int dstfd, char *buffer);
 void nonblock(int sockfd);
+int reuse(int sockfd);
 
 /*************** Function *************************************************/
 int main(int argc, char **argv)
@@ -49,6 +50,17 @@ int main(int argc, char **argv)
 		PORT = atoi(argv[1]);
 
 	return mainListenProc();
+}
+
+int reuse(int sockfd)
+{
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        printLog("setsockopt(SO_REUSEADDR) failed");
+        return -1;
+    }
+    return 0;
 }
 
 void childHandler(int signum)
@@ -141,15 +153,15 @@ int transferMessage(int srcfd, int dstfd, char *buffer)
 	if((recv_cnt = read(srcfd, buffer, BUF_SIZE - 1)) > 1)
 	{
 		buffer[recv_cnt] = '\0';
-		printLog("[%d]recv %s", srcfd, buffer);
+//		printLog("[%d]recv %s", srcfd, buffer);
 		while(send_cnt < recv_cnt)
 		{
 			retval = write(dstfd, buffer + send_cnt, recv_cnt - send_cnt);
 			if(retval > 0)
 				send_cnt += retval;
 		}
-		printLog("send_cnt = %d, recv_cnt = %d", send_cnt, recv_cnt);
-		printLog("[%d]send %s", dstfd, buffer);
+//		printLog("send_cnt = %d, recv_cnt = %d", send_cnt, recv_cnt);
+//		printLog("[%d]send %s", dstfd, buffer);
 	}
 	else if(recv_cnt == 0)
 		return -1;
@@ -219,6 +231,9 @@ int initServer(int *listenfd, int port)
 		return -1;
 	}
 
+	if(reuse((*listenfd)) != 0)
+		return -1;
+
 	memset((void *)&sockaddr,0x00,sizeof(sockaddr));
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -236,6 +251,7 @@ int initServer(int *listenfd, int port)
 		return -1;
 	}
 
+	printLog("[Server] port = %d Start", PORT);
 	return 0;
 }
 

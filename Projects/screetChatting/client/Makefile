@@ -14,17 +14,19 @@ OFLAGS =
 THREAD = -pthread
 SRC_DIR = source
 OBJ_DIR = obj
+LOG_DIR = log
 
-OUT		=	selectServer pollServer epollServer
+OUT		=	testEchoClient
 
 .SUFFIXES:
 .SUFFIXES: .o .c
 
-	
-all: $(OBJ_DIR) $(OUT)
-	
 
-$(OBJ_DIR) :
+all: $(OBJ_DIR) $(OUT) $(LOG_DIR)
+
+$(OBJ_DIR):
+	mkdir $@
+$(LOG_DIR):
 	mkdir $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c

@@ -44,16 +44,29 @@ int initServer(int *listenfd, int port);
 int acceptSockfd(int listenfd, struct pollfd *arr_client);
 int readWrite(struct pollfd *arr_client);
 int mainProcessManager(int port_mainproc);
+int reuse(int sockfd);
 
 /*************** Function *************************************************/
 int main(int argc, char **argv)
 {
     int port_mainproc = MAIN_PROCESS_PORT;
 
+    printf("useage : %s <port>\n", argv[0]);
     if(argc == 2)
         port_mainproc = atoi(argv[1]);
 
     return mainProcessManager(port_mainproc);
+}
+
+int reuse(int sockfd)
+{
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        printLog("setsockopt(SO_REUSEADDR) failed");
+        return -1;
+    }
+    return 0;
 }
 
 int mainProcessManager(int port_mainproc)
@@ -112,7 +125,11 @@ int initServer(int *listenfd, int port)
     {
         printLog("socket error");
         return -1;
-    }   
+    }
+
+    if(reuse((*listenfd)) != 0)
+        return -1;
+
     memset((void *)&server_addr, 0x00, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -183,16 +200,13 @@ int readWrite(struct pollfd *arr_client)
         {
             if( (recv_cnt = read(cur_sockfd, buf, BUF_SIZE-1)) <= 0)
             {
-                printLog("close [%d]\n", cur_sockfd);
                 close(cur_sockfd);
                 arr_client[i].fd = -1;
             }
             else
             {
                 buf[recv_cnt] = '\0';
-                printLog("[%d]recv = %s", cur_sockfd, buf);
                 writeAll(arr_client, buf);
-                printLog("send = %s", buf);
             }
         }
     }

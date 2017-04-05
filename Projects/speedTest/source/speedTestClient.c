@@ -17,7 +17,7 @@
 #define TEST_CNT		10
 
 //#define DEBUG
-#define LOG
+//#define LOG
 
 
 char IP[20] = "127.0.0.1";
@@ -28,6 +28,25 @@ int g_connected_cnt = 0;
 
 char g_testname[256];
 
+void printResult(const char *Format, ...)
+{
+	FILE *fp;
+	char buf[512] = {0,}; 
+	char filename[256];
+	va_list ap; 
+	
+	strcpy (buf, "[Client] : "); 
+	
+	va_start(ap, Format); 
+	vsprintf(buf + strlen(buf), Format, ap); 
+	va_end(ap);
+
+
+	sprintf(filename, "log/%s_log.txt", g_testname);
+	fp = fopen(filename, "a");
+	fprintf(fp, "%s\n", buf);
+	fclose(fp);
+}
 void viewPrint(const char *str)
 {
 	puts(str);
@@ -88,7 +107,8 @@ double transferTest(int cur_socket, int send_cnt, int send_size)
 	{
 		if(send_size > 0)
 		{
-			send(cur_socket, buffer, send_size, 0);
+			retval = send(cur_socket, buffer, send_size, 0);
+			printLog("transfer send [cur_socket = %d] [size = %d]", cur_socket, retval);
 			retval = recv(cur_socket, buffer, sizeof(buffer), 0);
 			if(send_size != retval)
 			{
@@ -96,6 +116,7 @@ double transferTest(int cur_socket, int send_cnt, int send_size)
 				return -1;
 			}
 			buffer[retval] = '\0';
+			printLog("transfer recv [cur_socket = %d] [size = %d]", cur_socket, retval);
 		}
 	}
 	gettimeofday(&end_point, NULL);
@@ -159,6 +180,7 @@ double closingTest(int close_cnt)
 			perror("");
 			continue;
 		}
+		g_arr_socket[i] = -1;
 		printLog("close success [connect cnt = %d]\n", g_connected_cnt - i - 1);
 	}
 	gettimeofday(&end_point, NULL);
@@ -216,7 +238,8 @@ double test(int connecting_cnt)
 		//printLog("%5d Test [Cur Socket = %5d, Send Count = %5d, Send Size = %5d] Time = %.3lf sec", i_test, cur_socket, SEND_CNT, SEND_SIZE, operating_time);
 		time_connect += operating_time;
 
-		cur_socket = g_arr_socket[rand() % g_connected_cnt];
+		cur_socket = g_arr_socket[30];
+		printf("client [%d] transferr\n", cur_socket);
 		operating_time = transferTest(cur_socket, SEND_SIZE, SEND_CNT);
 		if(operating_time == -1)
 		{
@@ -235,11 +258,11 @@ double test(int connecting_cnt)
 		//printLog("%5d Test [Cur Socket = %5d, Send Count = %5d, Send Size = %5d] Time = %.3lf sec", i_test, cur_socket, SEND_CNT, SEND_SIZE, operating_time);	
 		time_connect += operating_time;
 
-		printLog("[%3d Test] Time Trasnfer = %.3lf ms / Time Connect = %.3lf ms / Total Time = %.3lf ms", i, time_transfer * 1000, time_connect * 1000, (time_transfer + time_connect) * 1000);
+		printResult("[%3d Test] Time Trasnfer = %.3lf ms / Time Connect = %.3lf ms / Total Time = %.3lf ms", i, time_transfer * 1000, time_connect * 1000, (time_transfer + time_connect) * 1000);
 		average_time += time_transfer + time_connect;
 	}
 
-	printLog("[%-15s] total average time = %.3lf ms\n", g_testname, average_time / TEST_CNT * 1000);
+	printResult("[%-15s] total average time = %.3lf ms\n", g_testname, average_time / TEST_CNT * 1000);
 
 	return average_time / TEST_CNT;
 }

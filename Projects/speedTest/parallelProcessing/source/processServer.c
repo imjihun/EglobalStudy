@@ -53,7 +53,7 @@ int main(int argc, char **argv)
         error_handler("bind() error");
  
     /* Listen (Wait Clients) */
-    if (listen(server_sock, 5) == -1)
+    if (listen(server_sock, SOMAXCONN) == -1)
         error_handler("listen() error");
  
     /* Ignore the signal SIGCHLD        */
@@ -90,7 +90,14 @@ int main(int argc, char **argv)
  
             /* Receive & Send */
             while ((message_len = read(client_sock, message, BUF_SIZE)) > 0)
-                write(client_sock, message, message_len);
+            {
+                if(message_len != write(client_sock, message, message_len))
+                {
+                    printf("write error\n");
+                    return -1;
+                }
+                printf("[%d] read write\n", client_sock);
+            }
  
             close(client_sock);
             return 0;

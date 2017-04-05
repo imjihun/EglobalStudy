@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     struct sockaddr_in srv;
     int clifd;
     int i;
-    int n;
+    int read_cnt, write_cnt;
     int res;
     char buffer[BUF_SIZE];
 
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    listen(listenfd, 5);
+    listen(listenfd, SOMAXCONN);
 
     epfd = epoll_create(MAX_CLIENT);
     if(!epfd)
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
         perror("epoll_create\n");
         exit(1);
     }
-    ev.events = EPOLLIN | EPOLLHUP | EPOLLET;
+    ev.events = EPOLLIN | EPOLLHUP;
     ev.data.fd = listenfd;
     if(epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &ev) < 0)
     {
@@ -97,20 +97,23 @@ int main(int argc, char **argv)
                 clifd = accept(listenfd, NULL, NULL);
                 if(clifd > 0)
                 {
-                    nonblock(clifd);
-                    ev.events = EPOLLIN | EPOLLET;
+                    //nonblock(clifd);
+                    ev.events = EPOLLIN;
                     ev.data.fd = clifd;
                     if(epoll_ctl(epfd, EPOLL_CTL_ADD, clifd, &ev) < 0)
                     {
                         perror("epoll_ctl ADD\n");
                         exit(1);
                     }
+#ifdef DEBUG 
+                    printf("%d connected\n", ++connect_cnt);
+#endif
                 }
             }
             else {
-                memset(buffer, 0x00, BUF_SIZE);
-                n = recv(events[i].data.fd, buffer, BUF_SIZE-1, 0);
-                if(n == 0)
+                //memset(buffer, 0x00, BUF_SIZE);
+                read_cnt = recv(events[i].data.fd, buffer, BUF_SIZE-1, 0);
+                if(read_cnt == 0)
                 {
                     close(events[i].data.fd);
                     epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
                     printf("%d closed connection\n", events[i].data.fd);
 #endif
                 }
-                else if(n < 0)
+                else if(read_cnt < 0)
                 {
 #ifdef DEBUG 
                     printf("%d error occured, errno: %d\n",
@@ -126,9 +129,15 @@ int main(int argc, char **argv)
 #endif
                 }
                 else {
-                    send(events[i].data.fd, buffer, strlen(buffer), 0);
-                    bzero(&buffer, strlen(buffer));
+                    write_cnt = send(events[i].data.fd, buffer, read_cnt, 0);
+                    if(read_cnt != write_cnt)
+                    {
+                        printf("[recv %d : send %d] write error\n", read_cnt, write_cnt);
+                        return -1;
+                    }
+                    printf("[%d] read write\n", events[i].data.fd);
 #ifdef DEBUG 
+                    bzero(&buffer, strlen(buffer));
                     printf("%d data received: %s\n",
                             events[i].data.fd, buffer);
 #endif

@@ -54,7 +54,7 @@ int createServerSocket()
         perror("bind error");
         return -1;
     }   
-    if(listen(listen_fd, 5) == -1)
+    if(listen(listen_fd, SOMAXCONN) == -1)
     {
         perror("listen error");
         return -1;
@@ -134,8 +134,13 @@ int main(int argc, char **argv)
                 else
                 {
                     buf[readn] = '\0';
-                    write(sockfd, buf, strlen(buf));
+                    if(readn != write(sockfd, buf, strlen(buf)))
+                    {
+                        printf("write error\n");
+                        return -1;
+                    }
                 }
+                printf("[%d] read write\n", sockfd);
                 if (--fd_num <= 0)
                     break;
             }
