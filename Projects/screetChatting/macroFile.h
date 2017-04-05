@@ -24,18 +24,18 @@
 /***********************protocol***********************/
 /* CMD[2] : LENGTH[4] : DATA */
 
-#define TYPE_CMD					(unsigned short)
-#define LENGTH_CMD					2
-#define TYPE_TOTAL_LENGTH			(unsigned int)
-#define LENGTH_TOTAL_LENGTH			4
+#define TYPE_CMD					unsigned short
+#define SIZE_CMD					2
+#define TYPE_PACKET_LENGTH			unsigned int
+#define SIZE_PACKET_LENGTH			4
 
-#define LENGTH_HEADER				LENGTH_CMD + LENGTH_TOTAL_LENGTH
+#define SIZE_HEADER					SIZE_CMD + SIZE_PACKET_LENGTH
 
 
 
 #define CMD_FAIL					1
 
-#define LENGTH_ELEMENT_LENGTH		1
+#define SIZE_ID						16
 #define MAX_ONCE_LOAD_CHATTING_LOG	1024
 
 /*

@@ -16,7 +16,7 @@ SRC_DIR = source
 OBJ_DIR = obj
 LOG_DIR = log
 
-OBJS	=
+OBJS	=		
 
 OUT		=	
 SUB_MAKE_DIR =	clientDir serverDir

@@ -30,6 +30,7 @@
 /*************** Global Variables *****************************************/
 char IP[20] = "127.0.0.1";
 int PORT = 9000;
+int g_cnt_recv = 0;
 
 /*************** Prototypes ***********************************************/
 void nonblock(int sockfd);
@@ -37,7 +38,8 @@ void nonblock(int sockfd);
 void printMessage(const char *Format, ...);
 
 int initClient(int *sockfd);
-int transferMessage(int srcfd, int dstfd, char *buffer);
+int sendMessage(int srcfd, int dstfd, char *buffer);
+int recvMessage(int srcfd, int dstfd, char *buffer);
 int main_chattingClient();
 
 /*************** Function *************************************************/
@@ -64,9 +66,9 @@ int main_chattingClient()
 
 	while(1)
 	{
-		if(transferMessage(0, sockfd, buffer) != 0)
+		if(sendMessage(0, sockfd, buffer) != 0)
 			break;
-		if(transferMessage(sockfd, 1, buffer) != 0)
+		if(recvMessage(sockfd, 1, buffer) != 0)
 			break;
 	}
 
@@ -118,14 +120,47 @@ void nonblock(int sockfd)
     }
 }
 
-int transferMessage(int srcfd, int dstfd, char *buffer)
+int sendMessage(int srcfd, int dstfd, char *buffer)
 {
 	int retval;
+	unsigned short cmd = 80;
 
-	if((retval = read(srcfd, buffer, BUF_SIZE - 1)) > 1)
+	if((retval = read(srcfd, buffer + 6, BUF_SIZE - g_cnt_recv - 1)) > 1)
 	{
+		memcpy(buffer, &cmd, 2);
+		retval += 6;
+		memcpy(buffer + 2, &retval, 4);
 		buffer[retval] = 0;
 		write(dstfd, buffer, retval);
+		fflush(stdin);
+	}
+	
+	else if(retval <= 0 && errno != EAGAIN)
+	{
+		return -1;
+	}
+	return 0;
+}
+int recvMessage(int srcfd, int dstfd, char *buffer)
+{
+	int retval;
+	int size_packet;
+
+	if((retval = read(srcfd, buffer + g_cnt_recv, BUF_SIZE - g_cnt_recv - 1)) > 1)
+	{
+		g_cnt_recv += retval;
+		if(g_cnt_recv < 6)
+			return 0;
+		size_packet = *(unsigned int *)(buffer + 2);
+		//memcpy(&size_packet, buffer + 2, 4);
+		if(g_cnt_recv < size_packet)
+			return 0;
+
+		buffer[g_cnt_recv] = 0;
+
+		memcpy(buffer, "cli : ", 6);
+		write(dstfd, buffer + 6, g_cnt_recv - 6);
+		g_cnt_recv = 0;
 		fflush(stdin);
 	}
 	
