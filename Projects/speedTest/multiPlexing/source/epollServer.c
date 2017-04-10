@@ -38,6 +38,16 @@ void nonblock(int sockfd)
     }
 }
 
+int reuse(int sockfd)
+{
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        perror("setsockopt(SO_REUSEADDR) failed");
+        return -1;
+    }
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -59,6 +69,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    reuse(listenfd);
     events = malloc(sizeof(struct epoll_event) * MAX_CLIENT);
 
     bzero(&srv, sizeof(srv));
@@ -135,7 +146,7 @@ int main(int argc, char **argv)
                         printf("[recv %d : send %d] write error\n", read_cnt, write_cnt);
                         return -1;
                     }
-                    printf("[%d] read write\n", events[i].data.fd);
+                    //printf("[%d] read write\n", events[i].data.fd);
 #ifdef DEBUG 
                     bzero(&buffer, strlen(buffer));
                     printf("%d data received: %s\n",

@@ -28,6 +28,16 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+int reuse(int sockfd)
+{
+	int enable = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+	{
+		printf("setsockopt(SO_REUSEADDR) failed\n");
+		return -1;
+	}
+	return 0;
+}
 int initServer(int *listenfd)
 {
 	struct sockaddr_in sockaddr;
@@ -38,6 +48,7 @@ int initServer(int *listenfd)
 		return -1;
 	}
 
+    reuse(*listenfd);
 	memset((void *)&sockaddr,0x00,sizeof(sockaddr));
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -111,7 +122,7 @@ void *myFunc(void *arg)
 			printf("write error %d : %d\n", readn, writen);
 			break;
 		}
-		printf("[%d] read write\n", sockfd);
+		//printf("[%d] read write\n", sockfd);
 	}
 	close(sockfd);
 	return NULL;

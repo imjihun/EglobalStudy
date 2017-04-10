@@ -34,6 +34,16 @@ void printLog(const char *Format, ...)
 #endif
 }
 
+int reuse(int sockfd)
+{
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        printLog("setsockopt(SO_REUSEADDR) failed");
+        return -1;
+    }
+    return 0;
+}
 int createServerSocket()
 {
     int listen_fd;
@@ -82,6 +92,7 @@ int main(int argc, char **argv)
     if((listen_fd = createServerSocket()) < 0)
         return -1;
     
+    reuse(listen_fd);
     FD_ZERO(&readfds);
     FD_SET(listen_fd, &readfds);
 
@@ -140,7 +151,7 @@ int main(int argc, char **argv)
                         return -1;
                     }
                 }
-                printf("[%d] read write\n", sockfd);
+                //printf("[%d] read write\n", sockfd);
                 if (--fd_num <= 0)
                     break;
             }

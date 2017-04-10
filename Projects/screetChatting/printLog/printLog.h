@@ -18,13 +18,15 @@
 #include <errno.h>
 #include <time.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <limits.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
 
 #define LOG_VIEW
-//#define LOG_FILE
+#define LOG_FILE
 
 /*************** Definitions / Macros *************************************/
 

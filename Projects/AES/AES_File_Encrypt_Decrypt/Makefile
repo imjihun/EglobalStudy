@@ -8,7 +8,7 @@ SYS_LIB =
 INCLUDE = -I../lib/
 LIBS = $(SYS_LIB)
 MYLIB_NAMES = aes
-MYLIB_DIRS = -L../lib
+MYLIB_DIRS = -L/home/user1/lib
 MYLIB_OPTION = $(MYLIB_DIRS)/ -l$(MYLIB_NAMES)
 LFLAGS = -fPIC
 

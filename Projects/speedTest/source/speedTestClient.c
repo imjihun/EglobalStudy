@@ -11,12 +11,14 @@
 
 
 #define BUF_SIZE		4096
-#define SEND_CNT		1000
+#define SEND_CNT		10000
 #define SEND_SIZE 		4095
 #define SOCKET_MAX		1024
 #define TEST_CNT		10
+#define CNT_CONNECTING	300
+#define CNT_DYNAMIC_CONNECT 200
 
-//#define DEBUG
+#define DEBUG
 //#define LOG
 
 
@@ -46,6 +48,8 @@ void printResult(const char *Format, ...)
 	fp = fopen(filename, "a");
 	fprintf(fp, "%s\n", buf);
 	fclose(fp);
+
+	puts(buf);
 }
 void viewPrint(const char *str)
 {
@@ -92,7 +96,7 @@ void printLog(const char *Format, ...)
 #endif
 }
 
-double transferTest(int cur_socket, int send_cnt, int send_size)
+double transferTest(int send_cnt, int size_send)
 {
 	int i;
 	struct timeval start_point, end_point;
@@ -100,23 +104,43 @@ double transferTest(int cur_socket, int send_cnt, int send_size)
 	char buffer[BUF_SIZE];
 	int retval;
 
+	int cnt_send, cnt_recv;
+	int cur_socket;
+
 	memset(buffer, '1', BUF_SIZE);
 
+	cur_socket = g_arr_socket[rand() % g_connected_cnt];
 	gettimeofday(&start_point, NULL);
 	for(i = 0; i < send_cnt; i++)
 	{
-		if(send_size > 0)
+		if(size_send > 0)
 		{
-			retval = send(cur_socket, buffer, send_size, 0);
-			printLog("transfer send [cur_socket = %d] [size = %d]", cur_socket, retval);
-			retval = recv(cur_socket, buffer, sizeof(buffer), 0);
-			if(send_size != retval)
+			cnt_send = cnt_recv = 0;
+			while(cnt_send >= size_send)
 			{
-				perror("Not Equal!");
-				return -1;
+				retval = send(cur_socket, buffer + cnt_send, size_send - cnt_send, 0);
+				if(retval < 1)
+				{
+					printLog("client send()\n");
+					return -1;
+				}
+				cnt_send += retval;
 			}
-			buffer[retval] = '\0';
-			printLog("transfer recv [cur_socket = %d] [size = %d]", cur_socket, retval);
+
+			//printLog("transfer send [cur_socket = %d] [size = %d]", cur_socket, retval);
+			
+			while(cnt_recv >= size_send)
+			{
+				retval = recv(cur_socket, buffer + cnt_recv, BUF_SIZE - cnt_recv, 0);
+				if(retval < 1)
+				{
+					printLog("client recv()\n");
+					return -1;
+				}
+				cnt_recv += retval;
+			}
+			buffer[cnt_recv] = '\0';
+			//printLog("transfer recv [cur_socket = %d] [size = %d]", cur_socket, retval);
 		}
 	}
 	gettimeofday(&end_point, NULL);
@@ -133,6 +157,7 @@ double connectingTest(int connect_cnt)
 	double operating_time;
 	struct sockaddr_in connect_adress;
 	int retval;
+	double total_time = 0;
 
 	memset(&connect_adress, 0, sizeof(connect_adress));
 	connect_adress.sin_family = AF_INET;
@@ -140,27 +165,31 @@ double connectingTest(int connect_cnt)
 	connect_adress.sin_port = htons(PORT);
 
 	connected_cnt = g_connected_cnt;
-	gettimeofday(&start_point, NULL);
 	for(i = connected_cnt; i < connect_cnt + connected_cnt && i < SOCKET_MAX; i++)	
 	{
 		g_arr_socket[i] = socket(AF_INET, SOCK_STREAM, 0);
-		printLog("connect request [connect cnt = %d]", g_connected_cnt);
+		//printLog("connect request [connect cnt = %d]", g_connected_cnt);
+
+		gettimeofday(&start_point, NULL);
 		retval = connect(g_arr_socket[i], 
 					(struct sockaddr*)&connect_adress,
 					sizeof(connect_adress));
+		gettimeofday(&end_point, NULL);
 		if(retval == -1)
 		{
 			printLog("connect error [%d / %d : %d]\n", i, connect_cnt, g_connected_cnt);
 			return -1;
 		}
 		g_connected_cnt++;
-		printLog("connect success [connect cnt = %d]\n", g_connected_cnt);
+		operating_time = (double)(end_point.tv_sec)+(double)(end_point.tv_usec)/1000000.0-(double)(start_point.tv_sec)-(double)(start_point.tv_usec)/1000000.0;
+//		if(operating_time >= 0.01)
+//			printLog("connectting count = %d, operating_time = %lf", g_connected_cnt, operating_time);
+		total_time += operating_time;
+		//printLog("connect success [connect cnt = %d]\n", g_connected_cnt);
 	}
-	gettimeofday(&end_point, NULL);
 
-	operating_time = (double)(end_point.tv_sec)+(double)(end_point.tv_usec)/1000000.0-(double)(start_point.tv_sec)-(double)(start_point.tv_usec)/1000000.0;
 
-	return operating_time;
+	return total_time;
 }
 
 double closingTest(int close_cnt)
@@ -173,7 +202,7 @@ double closingTest(int close_cnt)
 	gettimeofday(&start_point, NULL);
 	for(i = 0; i < close_cnt && i < SOCKET_MAX; i++)
 	{
-		printLog("close request [connect cnt = %d]", g_connected_cnt - i);
+		//printLog("close request [connect cnt = %d]", g_connected_cnt - i);
 		if((retval = close(g_arr_socket[i])) == -1)
 		{
 			printLog("close error[errno = %d, fd = %d] [%d / %d : %d]\n", errno, g_arr_socket[i], i, close_cnt, g_connected_cnt);
@@ -181,7 +210,7 @@ double closingTest(int close_cnt)
 			continue;
 		}
 		g_arr_socket[i] = -1;
-		printLog("close success [connect cnt = %d]\n", g_connected_cnt - i - 1);
+		//printLog("close success [connect cnt = %d]\n", g_connected_cnt - i - 1);
 	}
 	gettimeofday(&end_point, NULL);
 
@@ -211,13 +240,12 @@ int closeAllSocket()
 }
 double test(int connecting_cnt)
 {
-	int cur_socket;
 	int	i;
 	double average_time, time_connect, time_transfer, operating_time;
-	int connect_test_cnt = 10;
+	int connect_test_cnt = CNT_DYNAMIC_CONNECT;
 
+	sleep(1);
 	average_time = 0;
-	srand(time(NULL));
 
 	operating_time = connectingTest(connecting_cnt);
 	if(operating_time < 0)
@@ -226,8 +254,11 @@ double test(int connecting_cnt)
 		return -1;
 	}
 
+
 	for(i = 0; i < TEST_CNT; i++)
 	{
+		sleep(2);
+
 		time_connect = 0;
 		operating_time = connectingTest(connect_test_cnt);
 		if(operating_time == -1)
@@ -235,12 +266,17 @@ double test(int connecting_cnt)
 			printLog("connect test error");
 			return -1;
 		}
-		//printLog("%5d Test [Cur Socket = %5d, Send Count = %5d, Send Size = %5d] Time = %.3lf sec", i_test, cur_socket, SEND_CNT, SEND_SIZE, operating_time);
+		if(operating_time > 2.5)
+		{
+			printLog("[%d test] restart", i);
+			i--;
+			continue;
+		}
+//			printLog("%5d Test [Connect Cur Socket = %5d, Connecting Count = %5d] Time = %.3lf sec", i, cur_socket, g_connected_cnt, operating_time);
+
 		time_connect += operating_time;
 
-		cur_socket = g_arr_socket[30];
-		printf("client [%d] transferr\n", cur_socket);
-		operating_time = transferTest(cur_socket, SEND_SIZE, SEND_CNT);
+		operating_time = transferTest(SEND_CNT, SEND_SIZE);
 		if(operating_time == -1)
 		{
 			printLog("transfer test error");
@@ -255,11 +291,14 @@ double test(int connecting_cnt)
 			printLog("close test error");
 			return -1;
 		}
-		//printLog("%5d Test [Cur Socket = %5d, Send Count = %5d, Send Size = %5d] Time = %.3lf sec", i_test, cur_socket, SEND_CNT, SEND_SIZE, operating_time);	
+//		if(operating_time > 0.01)
+//			printLog("%5d Test [Close Cur Socket = %5d, Connecting Count = %5d] Time = %.3lf sec", i, cur_socket, g_connected_cnt, operating_time);
+
 		time_connect += operating_time;
 
-		printResult("[%3d Test] Time Trasnfer = %.3lf ms / Time Connect = %.3lf ms / Total Time = %.3lf ms", i, time_transfer * 1000, time_connect * 1000, (time_transfer + time_connect) * 1000);
+		printLog("[%-15s] [%3d Test] Time Trasnfer = %.3lf ms / Time Connect = %.3lf ms / Total Time = %.3lf ms", g_testname, i, time_transfer * 1000, time_connect * 1000, (time_transfer + time_connect) * 1000);
 		average_time += time_transfer + time_connect;
+
 	}
 
 	printResult("[%-15s] total average time = %.3lf ms\n", g_testname, average_time / TEST_CNT * 1000);
@@ -269,7 +308,7 @@ double test(int connecting_cnt)
 
 int main(int argc, char** argv)
 {
-	int connecting_cnt = 50;
+	int connecting_cnt = CNT_CONNECTING;
 
 	if(argc == 3)
 	{
@@ -306,7 +345,7 @@ int main(int argc, char** argv)
 
 	closeAllSocket();
 
-	printf("\n%s test finish\n", g_testname);
+	printf("%s test finish\n\n\n\n", g_testname);
 	return 0;
 }
 

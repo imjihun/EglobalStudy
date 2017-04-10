@@ -75,6 +75,11 @@ static int decrypt_cbc(const char* fileName)
     fwrite(buf_out, elemSize, outputSize, fp_out);
     readedSize += retval;
 
+    /*
+    aesCtrEncryptBuffer(buf_out, buf_in, retval, key, iv);
+    fwrite(buf_out, elemSize, retval, fp_out);
+    readedSize += retval;
+    */
     //phex_n(buf_out, retval);
   }
   fclose(fp_in);

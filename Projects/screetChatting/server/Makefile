@@ -7,7 +7,7 @@ RANLIB = ranlib
 SYS_LIB =
 
 INCLUDE = -I/usr/include/mysql
-LIBS = $(SYS_LIB) $(mysql_config --libs)
+LIBS = $(SYS_LIB) $(mysql_config --libs) -L/home/user1/lib -laes
 
 CFLAGS = -c -Wall -O2 -g
 OFLAGS = 
@@ -17,7 +17,7 @@ OBJ_DIR = obj
 LOG_DIR = log
 
 OBJS	=	$(OBJ_DIR)/printLog.o
-OUT		=	serverMain
+OUT		=	mainServer
 
 .SUFFIXES:
 .SUFFIXES: .o .c
@@ -40,4 +40,4 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS) $(OBJS)
 
 clean:
-	$(RM) $(OBJ_DIR) $(OUT)
+	$(RM) $(OBJ_DIR) $(OUT) $(LOG_DIR)

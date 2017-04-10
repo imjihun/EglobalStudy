@@ -19,15 +19,15 @@ LOG_DIR = log
 OBJS	=		
 
 OUT		=	
-SUB_MAKE_DIR =	clientDir serverDir
+SUB_MAKE_DIR =	aesDir clientDir serverDir
 
 .SUFFIXES:
 .SUFFIXES: .o .c
 
 
 all: $(SUB_MAKE_DIR) $(OBJ_DIR) $(OUT) $(LOG_DIR)
-	cp ./server/serverMain ./
-	cp ./client/testEchoClient ./
+	cp ./server/mainServer ./
+	cp ./client/testClient ./
 
 proc: $(OUT)
 	cd client; $(MAKE) exec
@@ -50,8 +50,11 @@ clientDir:
 	cd client; $(MAKE)
 serverDir:
 	cd server; $(MAKE)
+aesDir:
+	cd aes; $(MAKE)
+
 
 clean:
-	$(RM) $(OBJ_DIR) $(OUT) serverMain testEchoClient
+	$(RM) $(OBJ_DIR) $(OUT) mainServer testClient $(LOG_DIR)
 	cd client; $(MAKE) clean
 	cd server; $(MAKE) clean

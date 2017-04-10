@@ -30,13 +30,19 @@ void printFile(char *buf)
 {
     FILE *fp;
     char filename[256];
+    char filepath[256];
     time_t timer;
     struct tm *t;
 
     timer = time(NULL);
     t = localtime(&timer);
     sprintf(filename, "log/%d_%d_%d_%d.txt", t->tm_year + 1900, t->tm_mon, t->tm_mday, t->tm_hour);
-    fp = fopen(filename, "a");
+
+    realpath(filename, filepath);
+
+    fp = fopen(filepath, "a");
+    if(fp == NULL)
+        perror("fopen");
 
     fprintf(fp, "[%d : %d] %s\n", t->tm_min, t->tm_sec, buf);
 

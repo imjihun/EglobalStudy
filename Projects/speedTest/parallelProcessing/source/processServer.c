@@ -20,6 +20,16 @@
     exit(1);
 }
  
+int reuse(int sockfd)
+{
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        printf("setsockopt(SO_REUSEADDR) failed\n");
+        return -1;
+    }
+    return 0;
+}
 int main(int argc, char **argv)
 {
     int server_sock, client_sock;
@@ -39,6 +49,7 @@ int main(int argc, char **argv)
     if (server_sock == -1)
         error_handler("socket() error");
  
+    reuse(server_sock);
     /* Address Setting */
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family      = AF_INET;
@@ -96,7 +107,7 @@ int main(int argc, char **argv)
                     printf("write error\n");
                     return -1;
                 }
-                printf("[%d] read write\n", client_sock);
+                //printf("[%d] read write\n", client_sock);
             }
  
             close(client_sock);

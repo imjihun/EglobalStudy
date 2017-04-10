@@ -49,5 +49,4 @@ void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const
 
 #endif // #ifdef CTR
 
-
 #endif //_AES_H_
