@@ -101,14 +101,14 @@ size_t readChattingLog(TYPE_ROOM_NUMBER room_number, char *id, char *buffer_ret,
 
 int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message, int size_message);
 
-int createId(socket_info *p_socket_info);
-int createRoom(socket_info *p_socket_info);
-int enterRoom(socket_info *p_socket_info);
-int leaveRoom(socket_info *p_socket_info);
-int viewRoom(socket_info *p_socket_info);
-int myRoomList(socket_info *p_socket_info);
-int totalRoomList(socket_info *p_socket_info);
-int chattingMessage(socket_info *p_socket_info);
+int cmdCreateId(socket_info *p_socket_info);
+int cmdCreateRoom(socket_info *p_socket_info);
+int cmdEnterRoom(socket_info *p_socket_info);
+int cmdLeaveRoom(socket_info *p_socket_info);
+int cmdViewRoom(socket_info *p_socket_info);
+int cmdTotalRoomList(socket_info *p_socket_info);
+int cmdMyRoomList(socket_info *p_socket_info);
+int cmdChattingMessage(socket_info *p_socket_info);
 
 
 int initDaemon();
@@ -223,43 +223,43 @@ int packetProcessing(socket_info *p_socket_info, char *packet)
     {
     case CMD_CREATE_ID:
         printLog("[server] [create id] [id = %s]", buffer + SIZE_HEADER);
-        retval = createId(p_socket_info);
+        retval = cmdCreateId(p_socket_info);
         break;
 
     case CMD_CREATE_ROOM:
         printLog("[server] [create room] [id = %s][%c][subject = %s]", buffer + SIZE_HEADER, *(buffer + SIZE_HEADER + SIZE_ID), buffer + SIZE_HEADER + SIZE_ID + SIZE_ROOM_STATUS);
-        retval = createRoom(p_socket_info);
+        retval = cmdCreateRoom(p_socket_info);
         break;
 
     case CMD_ENTER_ROOM:
         printLog("[server] [enter room] [id = %s]", buffer + SIZE_HEADER);
-        retval = enterRoom(p_socket_info);
+        retval = cmdEnterRoom(p_socket_info);
         break;
 
     case CMD_LEAVE_ROOM:
         printLog("[server] [leave room] [id = %s]", buffer + SIZE_HEADER);
-        retval = leaveRoom(p_socket_info);
+        retval = cmdLeaveRoom(p_socket_info);
         break;
 
     case CMD_VIEW_ROOM:
         printLog("[server] [view room] [id = %s]", buffer + SIZE_HEADER);
-        retval = viewRoom(p_socket_info);
+        retval = cmdViewRoom(p_socket_info);
         break;
 
     case CMD_TOTAL_ROOM_LIST:
         printLog("[server] [total room list] [id = %s]", buffer + SIZE_HEADER);
-        retval = totalRoomList(p_socket_info);
+        retval = cmdTotalRoomList(p_socket_info);
         break;
 
     case CMD_MY_ROOM_LIST:
         printLog("[server] [my room list] [id = %s]", buffer + SIZE_HEADER);
-        retval = totalRoomList(p_socket_info);
+        retval = cmdMyRoomList(p_socket_info);
         break;
 
     case CMD_CHATTING_MESSAGE:
         //viewChiper(buffer + SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER, size_packet - (SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER));
         printLog("[server] [message] [id = %s] [%d]", buffer + SIZE_HEADER, size_packet - (SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER));
-        retval = chattingMessage(p_socket_info);
+        retval = cmdChattingMessage(p_socket_info);
         break;
 
     default:
@@ -743,7 +743,9 @@ int findListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_inf
     while(cur_list_socket != NULL)
     {
         if(memcmp(cur_list_socket->p_socket_info->id, p_socket_info->id, SIZE_ID) == 0)
+        {
             return 0;
+        }
         cur_list_socket = cur_list_socket->next;
     }
     return 1;
@@ -827,19 +829,24 @@ int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message,
     list_socket *cur_list_socket;
 
     // make packet
+    // cmd
     cmd = CMD_CHATTING_MESSAGE;
     memcpy(packet, &cmd, SIZE_CMD);
     length = SIZE_HEADER;
 
+    // id
     memcpy(packet + length, id, SIZE_ID);
     length += SIZE_ID;
 
+    // room number
     memcpy(packet + length, &room_number, SIZE_ROOM_NUMBER);
     length += SIZE_ROOM_NUMBER;
 
+    // message
     memcpy(packet + length, message, size_message);
     length += size_message;
 
+    // length
     memcpy(packet + SIZE_CMD, &length, SIZE_PACKET_LENGTH);
 
     // send packet
@@ -862,8 +869,8 @@ int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message,
     return 0;
 }
 /*****************************************************/
-
-int createId(socket_info *p_socket_info)
+/*********************** cmd Function *****************************/
+int cmdCreateId(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
     char *id = buffer + SIZE_HEADER;
@@ -885,7 +892,7 @@ int createId(socket_info *p_socket_info)
     return 0;
 }
 
-int createRoom(socket_info *p_socket_info)
+int cmdCreateRoom(socket_info *p_socket_info)
 {
     char buffer_send[SIZE_BUFFER];
     int size_send_packet = 0;
@@ -950,12 +957,13 @@ int createRoom(socket_info *p_socket_info)
     return 0;
 }
 
-int enterRoom(socket_info *p_socket_info)
+int cmdEnterRoom(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
     TYPE_ROOM_NUMBER room_number = *(TYPE_ROOM_NUMBER *)(buffer + SIZE_HEADER + SIZE_ID);
 
-    char message[SIZE_BUFFER];
+    char buffer_send[SIZE_BUFFER];
+    int cnt_send;
     int retval;
 
     if(requestDB("") != 0)
@@ -970,16 +978,29 @@ int enterRoom(socket_info *p_socket_info)
         return -1;
     }
 
-    // send packet
-    if(sendPacket(p_socket_info, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) != 0)
+    // make packet EnterRoom
+    // CMD : ID : ROOM_NUMBER 
+    cnt_send = SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER;
+    memcpy(buffer_send, buffer, cnt_send);
+
+    // STATUS
+    buffer_send[cnt_send] = g_arr_room_info[room_number].status;
+    cnt_send++;
+
+    // SUBJECT
+    memcpy(buffer_send + cnt_send, g_arr_room_info[room_number].subject, SIZE_ROOM_SUBJECT);
+    cnt_send += SIZE_ROOM_SUBJECT;
+
+    // send packet EnterRoom
+    if(sendPacket(p_socket_info, buffer_send, cnt_send) != 0)
     {
         printLog("sendPacket()");
         return -1;
     }
 
-    // send packet
-    retval = sprintf(message, "\t%s is joined\n", buffer + SIZE_HEADER);
-    if(sprideChattingMessage(room_number, buffer + SIZE_HEADER, message, retval) != 0)
+    // send packet Message
+    retval = sprintf(buffer_send, "\t%s is joined\n", buffer + SIZE_HEADER);
+    if(sprideChattingMessage(room_number, buffer + SIZE_HEADER, buffer_send, retval) != 0)
     {
         printLog("sprideChattingMessage()");
         return -1;
@@ -987,7 +1008,7 @@ int enterRoom(socket_info *p_socket_info)
     return 0;
 }
 
-int leaveRoom(socket_info *p_socket_info)
+int cmdLeaveRoom(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
     TYPE_ROOM_NUMBER room_number = *(TYPE_ROOM_NUMBER *)(buffer + SIZE_HEADER + SIZE_ID);
@@ -1029,7 +1050,7 @@ int leaveRoom(socket_info *p_socket_info)
     return 0;
 }
 
-int viewRoom(socket_info *p_socket_info)
+int cmdViewRoom(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
     char *id = buffer + SIZE_HEADER;
@@ -1041,12 +1062,15 @@ int viewRoom(socket_info *p_socket_info)
 
 
     // make packet
-    memcpy(buffer_send, buffer, SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER);
+    // cmd, id, room_number
     size_send_packet = SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER;
-
+    memcpy(buffer_send, buffer, size_send_packet);
+/*
+    // secret key
     memcpy(buffer_send + size_send_packet, buffer, SIZE_KEY);
     size_send_packet = SIZE_KEY;
-
+*/
+    // chatting log
     if((retval = readChattingLog(room_number, id, buffer_send + size_send_packet, SIZE_BUFFER - size_send_packet)) < 0)
     {
         printLog("readChattingLog()");
@@ -1066,7 +1090,7 @@ int viewRoom(socket_info *p_socket_info)
     return 0;
 }
 
-int totalRoomList(socket_info *p_socket_info)
+int cmdTotalRoomList(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
 
@@ -1077,6 +1101,7 @@ int totalRoomList(socket_info *p_socket_info)
 
 
     // make packet
+    // cmd, id
     memcpy(buffer_send, buffer, SIZE_HEADER + SIZE_ID);
     size_send_packet += SIZE_HEADER + SIZE_ID;
 
@@ -1107,7 +1132,7 @@ int totalRoomList(socket_info *p_socket_info)
     return 0;
 }
 
-int myRoomList(socket_info *p_socket_info)
+int cmdMyRoomList(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
 
@@ -1117,13 +1142,14 @@ int myRoomList(socket_info *p_socket_info)
     TYPE_ROOM_NUMBER i;
 
     // make packet
+    // cmd, id
     memcpy(buffer_send, buffer, SIZE_HEADER + SIZE_ID);
     size_send_packet += SIZE_HEADER + SIZE_ID;
 
     for(i = 0; i < MAX_ROOM; i++)
     {
         if(g_arr_room_info[i].status == ROOM_INFO_STATUS_NOT_EXIST
-            && findListSocketInRoom(i, p_socket_info) != 0)
+            || findListSocketInRoom(i, p_socket_info) != 0)
             continue;
 
         memcpy(buffer_send + size_send_packet, &i, SIZE_ROOM_NUMBER);
@@ -1135,6 +1161,7 @@ int myRoomList(socket_info *p_socket_info)
         memcpy(buffer_send + size_send_packet, g_arr_room_info[i].subject, SIZE_ROOM_SUBJECT);
         size_send_packet += SIZE_ROOM_SUBJECT;
     }
+    memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
 
     // send packet
     if(sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
@@ -1146,7 +1173,7 @@ int myRoomList(socket_info *p_socket_info)
     return 0;
 }
 
-int chattingMessage(socket_info *p_socket_info)
+int cmdChattingMessage(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
     TYPE_PACKET_LENGTH size_packet = *(TYPE_PACKET_LENGTH*)(buffer + SIZE_CMD);
@@ -1162,6 +1189,7 @@ int chattingMessage(socket_info *p_socket_info)
     return 0;
 }
 
+/********************* end cmd Function ***************************/
 
 
 //////////////////////////////////////
