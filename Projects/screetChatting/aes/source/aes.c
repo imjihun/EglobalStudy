@@ -628,15 +628,12 @@ int AES_CBC_encrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
     output_length += KEYLEN;
   }
 
-  if(remainders)
-  {
-    BlockCopy(output, input);
-    memset(output + remainders, KEYLEN - remainders, KEYLEN - remainders); /* add 0-padding */
-    XorWithIv(output);
-    state = (state_t*)output;
-    Cipher();
-    output_length += KEYLEN;
-  }
+  BlockCopy(output, input);
+  memset(output + remainders, KEYLEN - remainders, KEYLEN - remainders); /* add 0-padding */
+  XorWithIv(output);
+  state = (state_t*)output;
+  Cipher();
+  output_length += KEYLEN;
 
   return output_length;
 }
@@ -782,7 +779,6 @@ void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const
 
     memcpy(counter, nonce, 8);
     memset(counter + 8, 0, 8);
-    counter[15]++;
 
 
     Key = key;
@@ -790,6 +786,7 @@ void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const
 
     for(i = 0; i < length; i+= KEYLEN)
     {
+        counter[15]++;
         blockCopy_16(output, counter, length);
         state = (state_t*)output;
 

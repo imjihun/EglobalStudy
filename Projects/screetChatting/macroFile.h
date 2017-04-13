@@ -23,9 +23,9 @@
 #define PORT_SERVER				9000
 
 /************************ aes **************************/
-#define SIZE_KEY				16
-#define TYPE_CHIPER				uint8_t
-#define MAX_UINT8_T				(TYPE_CHIPER)255
+#define SIZE_SECRET_KEY			16
+#define TYPE_CIPHER				uint8_t
+#define MAX_UINT8_T				(TYPE_CIPHER)255
 /********************** end aes ************************/
 
 /***********************protocol***********************/
@@ -69,13 +69,13 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : IS_SECRET : SUBJECT
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : SECRETKEY
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY
 */
 #define CMD_CREATE_ROOM				20
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY
 */
 #define CMD_ENTER_ROOM				30
 
@@ -99,13 +99,13 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject]
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey]
 */
 #define CMD_MY_ROOM_LIST			70
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER : MESSAGE
-	S->C # CMD[2] : LENGTH[4] : CMD_SUCCESS or CMD_FAIL : ROOM_NUMBER : MESSAGE
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
 */
 #define CMD_CHATTING_MESSAGE		80
 
@@ -114,6 +114,31 @@
 /*************** Definitions / Macros *************************************/
 
 /*************** New Data Types *******************************************/
+
+typedef struct _sockinfo
+{
+    int sockfd;
+    char id[SIZE_ID];
+    char buffer[SIZE_BUFFER];
+    int cnt_read;
+} socket_info;
+
+typedef struct _listnode
+{
+    socket_info *p_socket_info;
+    struct _listnode *next;
+} list_socket;
+
+typedef struct _roominfo
+{
+    unsigned char status;
+    char subject[SIZE_ROOM_SUBJECT];
+    list_socket *p_list_socket;
+
+    TYPE_CIPHER key[SIZE_SECRET_KEY];
+
+    unsigned int index_chatting_log;
+} room_info;
 
 /*************** Constant *************************************************/
 

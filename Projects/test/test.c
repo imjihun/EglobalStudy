@@ -1,13 +1,14 @@
 #include <stdio.h>
-#include <string.h>
+
 
 int main()
 {
-	char buf[4];
+	FILE *fp = fopen("t.txt", "r");
 
-	printf("ret = %d\n", sprintf(buf, "%s", "1234567890"));
+	fseek(fp, -1000, SEEK_END);
+	printf("ftell = %d\n", ftell(fp));
+	perror("error");
+	perror("error");
 
-	printf("len = %d\n", strlen(buf));
-	printf("buf = %s\n", buf);
 	return 0;
 }

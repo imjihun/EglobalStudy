@@ -10,8 +10,6 @@
 ***************************************************************************/
 
 /*************** Header files *********************************************/
-#include "connectDB.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -35,6 +33,30 @@
 #include "../../aes/source/aes.h"
 
 /*************** New Data Types *******************************************/
+typedef struct _sockinfo
+{
+    int sockfd;
+    char id[SIZE_ID];
+    char buffer[SIZE_BUFFER];
+    int cnt_read;
+} socket_info;
+
+typedef struct _listnode
+{
+    socket_info *p_socket_info;
+    struct _listnode *next;
+} list_socket;
+
+typedef struct _roominfo
+{
+    unsigned char status;
+    char subject[SIZE_ROOM_SUBJECT];
+    list_socket *p_list_socket;
+
+    TYPE_CIPHER key[SIZE_KEY];
+
+    unsigned int index_chatting_log;
+} room_info;
 
 /*************** Definitions / Macros  ************************************/
 
@@ -103,7 +125,7 @@ void makeKey(TYPE_CIPHER *key)
 {
     int i;
 
-    for(i = 0; i < SIZE_SECRET_KEY; i++)
+    for(i = 0; i < SIZE_KEY; i++)
     {
         key[i] = rand() % MAX_UINT8_T;
     }
@@ -129,15 +151,11 @@ int viewSend(int sockfd, char *packet, int size_packet)
 {
     printf("[server] [send sock(%d) size = %d] ", sockfd, size_packet);
     return viewPacket(packet);
-
-    //return 0;
 }
 int viewRecv(int sockfd, char *packet)
 {
     printf("[server] [recv sock(%d)] ", sockfd);
     return viewPacket(packet);
-
-    //return 0;
 }
 int viewCipher(char *cipher_text, int size_cipher_text, uint8_t *key)
 {
@@ -242,8 +260,6 @@ int decryptBuffer(TYPE_ROOM_NUMBER room_number, char *buffer_cipher, int length_
 
 int main(int argc, char **argv)
 {
-    int retval;
-
     if(argc == 2 && argv[1][0] == 'd')
     {
         if(initDaemon() != 0)
@@ -253,16 +269,7 @@ int main(int argc, char **argv)
         }
     }
 
-    dbOpen();
-    
-    //dbDropAllTable();
-    dbCreateAllTable();
-
-    retval = mainChattingServer();
-
-    dbClose();
-
-    return retval;
+    return mainChattingServer();
 }
 
 int packetProcessing(socket_info *p_socket_info, char *packet)
@@ -655,7 +662,7 @@ TYPE_ROOM_NUMBER addRoomInfoArr(socket_info *p_socket_info, char is_secret, char
     }
     else
     {
-        memset(g_arr_room_info[room_number].key, 0, SIZE_SECRET_KEY);
+        memset(g_arr_room_info[room_number].key, 0, SIZE_KEY);
     }
 
     return room_number;
@@ -883,9 +890,7 @@ size_t readChattingLog(TYPE_ROOM_NUMBER room_number, char *id, char *buffer_ret,
         return -1;
     }
 
-    fseek(fp, 0, SEEK_END);
-    if(ftell(fp) > SIZE_CHATTING_LOG)
-        fseek(fp, -SIZE_CHATTING_LOG, SEEK_END);
+    fseek(fp, -SIZE_CHATTING_LOG, SEEK_END);
 
     retval = fread(buffer_ret, 1, size_buffer_ret, fp);
     //printLog("[message log read] [%s] [%s]", file_path, buffer_ret);
@@ -958,10 +963,10 @@ int cmdCreateId(socket_info *p_socket_info)
     char *buffer = p_socket_info->buffer;
     char *id = buffer + SIZE_HEADER;
 
-    if(dbInsertUserinfo(id) != 0)
+    if(requestDB("") != 0)
     {
         printLog("requestDB()");
-        return -2;
+        return -1;
     }
 
     memcpy(p_socket_info->id, id, SIZE_ID);
@@ -984,33 +989,21 @@ int cmdCreateRoom(socket_info *p_socket_info)
     char *id = buffer + SIZE_HEADER;
     char is_secret = *(id + SIZE_ID);
     char *room_subject = id + SIZE_ID + SIZE_ROOM_STATUS;
-    uint8_t *key = NULL;
 
     TYPE_ROOM_NUMBER room_number;
     int retval;
 
+    if(requestDB("") != 0)
+    {
+        printLog("requestDB()");
+        return -1;
+    }
 
     room_number = addRoomInfoArr(p_socket_info, is_secret, room_subject);
     if(room_number < 0)
     {
         printLog("addRoomInfoArr()");
         return -1;
-    }
-
-    if(is_secret == ROOM_INFO_STATUS_SECRET)
-    {
-        ;   
-    }
-
-    if(dbInsertRoominfo(room_number, room_subject, key) != 0)
-    {
-        printLog("requestDB()");
-        return -2;
-    }
-    if(dbInsertRoomUser(room_number, id) != 0)
-    {
-        printLog("requestDB()");
-        return -2;
     }
 
     if(addListSocketInRoom(room_number, p_socket_info))
@@ -1038,8 +1031,8 @@ int cmdCreateRoom(socket_info *p_socket_info)
     size_send_packet += SIZE_ROOM_SUBJECT;
 
     // secretKey
-    memcpy(buffer_send + size_send_packet, g_arr_room_info[room_number].key, SIZE_SECRET_KEY);
-    size_send_packet += SIZE_SECRET_KEY;    
+    memcpy(buffer_send + size_send_packet, g_arr_room_info[room_number].key, SIZE_KEY);
+    size_send_packet += SIZE_KEY;    
 
     // length
     memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
@@ -1066,17 +1059,16 @@ int cmdCreateRoom(socket_info *p_socket_info)
 int cmdEnterRoom(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
-    char *id = buffer + SIZE_HEADER;
     TYPE_ROOM_NUMBER room_number = *(TYPE_ROOM_NUMBER *)(buffer + SIZE_HEADER + SIZE_ID);
 
     char buffer_send[SIZE_BUFFER];
     int cnt_send;
     int retval;
 
-    if(dbInsertRoomUser(room_number, id) != 0)
+    if(requestDB("") != 0)
     {
         printLog("requestDB()");
-        return -2;
+        return -1;
     }
 
     if(addListSocketInRoom(room_number, p_socket_info))
@@ -1099,8 +1091,8 @@ int cmdEnterRoom(socket_info *p_socket_info)
     cnt_send += SIZE_ROOM_SUBJECT;
 
     // secretKey
-    memcpy(buffer_send + cnt_send, g_arr_room_info[room_number].key, SIZE_SECRET_KEY);
-    cnt_send += SIZE_SECRET_KEY;    
+    memcpy(buffer_send + cnt_send, g_arr_room_info[room_number].key, SIZE_KEY);
+    cnt_send += SIZE_KEY;    
 
     // length
     memcpy(buffer_send + SIZE_CMD, &cnt_send, SIZE_PACKET_LENGTH);
@@ -1125,17 +1117,10 @@ int cmdEnterRoom(socket_info *p_socket_info)
 int cmdLeaveRoom(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
-    char *id = buffer + SIZE_HEADER;
     TYPE_ROOM_NUMBER room_number = *(TYPE_ROOM_NUMBER *)(buffer + SIZE_HEADER + SIZE_ID);
 
     char buffer_send[SIZE_BUFFER];
     int retval;
-
-    if(dbDeleteRoomUser(room_number, id) != 0)
-    {
-        printLog("requestDB()");
-        return -2;
-    }
 
     if(delListSocketInRoom(room_number, p_socket_info) != 0)
     {
@@ -1153,11 +1138,6 @@ int cmdLeaveRoom(socket_info *p_socket_info)
 
     if(g_arr_room_info[room_number].p_list_socket == NULL)
     {
-        if(dbDeleteRoominfo(room_number) != 0)
-        {
-            printLog("requestDB()");
-            return -2;
-        }
         if(delRoomInfoArr(room_number) != 0)
         {
             printLog("delRoomInfoArr()");
@@ -1193,7 +1173,7 @@ int cmdViewRoom(socket_info *p_socket_info)
     memcpy(buffer_send, buffer, size_send_packet);
 
     // chatting log
-    if((retval = readChattingLog(room_number, id, buffer_send + size_send_packet, (size_t)(SIZE_BUFFER - size_send_packet))) < 0)
+    if((retval = readChattingLog(room_number, id, buffer_send + size_send_packet, SIZE_BUFFER - size_send_packet)) < 0)
     {
         printLog("readChattingLog()");
         return -1;
@@ -1292,8 +1272,8 @@ int cmdMyRoomList(socket_info *p_socket_info)
         size_send_packet += SIZE_ROOM_SUBJECT;
 
         // secret key
-        memcpy(buffer_send + size_send_packet, g_arr_room_info[i].key, SIZE_SECRET_KEY);
-        size_send_packet += SIZE_SECRET_KEY;
+        memcpy(buffer_send + size_send_packet, g_arr_room_info[i].key, SIZE_KEY);
+        size_send_packet += SIZE_KEY;
     }
     // length
     memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);

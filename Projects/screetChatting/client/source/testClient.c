@@ -220,7 +220,7 @@ int makePacket(char *buffer, int cnt_read, char *packet)
 		idx_packet += SIZE_ROOM_NUMBER;
 		// MESSAGE
 		size_chiper_text = cnt_read - idx_buffer;
-		aesCtrEncryptBuffer((TYPE_CHIPER *)chiper_text, (TYPE_CHIPER *)(buffer + idx_buffer), size_chiper_text, key, nonce);
+		aesCtrEncryptBuffer((TYPE_CIPHER *)chiper_text, (TYPE_CIPHER *)(buffer + idx_buffer), size_chiper_text, key, nonce);
 		setChar(chiper_text, size_chiper_text, packet + idx_packet);
 		idx_packet += size_chiper_text;
 		break;
