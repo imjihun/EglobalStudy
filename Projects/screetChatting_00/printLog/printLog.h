@@ -8,27 +8,25 @@
 *		head file for *.c : XXX
 *
 ***************************************************************************/
-#ifndef _CONNECT_DB_H
-#define _CONNECT_DB_H
+#ifndef _PRINT_LOG_H
+#define _PRINT_LOG_H
 
 /*************** Header files *********************************************/
-#include <mysql.h>
+
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
+#include <time.h>
+#include <stdarg.h>
 #include <stdlib.h>
-
-#include "../../macroFile.h"
+#include <limits.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
 
-#define DB_HOST "127.0.0.1"
-#define DB_USER "root"
-#define DB_PASS "root00"
-#define DB_NAME "test"
-
-#define SIZE_QUERY  1024
+#define LOG_VIEW
+#define LOG_FILE
 
 /*************** Definitions / Macros *************************************/
 
@@ -40,19 +38,13 @@
 
 /*************** Prototypes ***********************************************/
 
-int dbOpen();
-int dbClose();
-int dbCreateAllTable();
-int dbDropAllTable();
+void printView(char *buf);
+void printFile(char *buf);
+void printLog(const char *Format, ...);
 
-int dbInsertUserinfo(char *id);
-int dbInsertRoominfo(room_info room);
-int dbDeleteRoominfo(TYPE_ROOM_NUMBER room_number);
-int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
-int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
-
-int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr);
-
-#endif	/*_CONNECT_DB_H */
+#endif /* _PRINT_LOG_H */
 /*************** END OF FILE **********************************************/
+
+
+
 

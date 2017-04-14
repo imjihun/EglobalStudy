@@ -18,7 +18,9 @@
   #define ECB 1
 #endif
 
-
+#ifndef CTR
+	#define CTR
+#endif
 
 #if defined(ECB) && ECB
 
@@ -41,5 +43,10 @@ int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
 #endif // #if defined(CBC) && CBC
 
 
+#ifdef CTR
+
+void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* nonce);
+
+#endif // #ifdef CTR
 
 #endif //_AES_H_

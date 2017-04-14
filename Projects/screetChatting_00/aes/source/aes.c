@@ -579,6 +579,7 @@ int AES_CBC_encrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
 {
   uintptr_t i;
   uint8_t remainders; /* Remaining bytes in the last non-full block */
+  int output_length = 0;
 
   switch(keySize)
   {
@@ -624,25 +625,25 @@ int AES_CBC_encrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
     Iv = output;
     input += KEYLEN;
     output += KEYLEN;
+    output_length += KEYLEN;
   }
 
-  if(remainders)
-  {
-    BlockCopy(output, input);
-    memset(output + remainders, 0x0, KEYLEN - remainders); /* add 0-padding */
-    XorWithIv(output);
-    state = (state_t*)output;
-    Cipher();
-  }
+  BlockCopy(output, input);
+  memset(output + remainders, KEYLEN - remainders, KEYLEN - remainders); /* add 0-padding */
+  XorWithIv(output);
+  state = (state_t*)output;
+  Cipher();
+  output_length += KEYLEN;
 
-  return 0;
+  return output_length;
 }
 
 int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv, int keySize)
 {
   uintptr_t i;
   uint8_t remainders; /* Remaining bytes in the last non-full block */
-  
+  int output_length = 0;
+
   switch(keySize)
   {
   case 192:
@@ -688,6 +689,7 @@ int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
     Iv = input;
     input += KEYLEN;
     output += KEYLEN;
+    output_length += KEYLEN;
   }
 
   if(remainders)
@@ -698,8 +700,18 @@ int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
     InvCipher();
     XorWithIv(output);
   }
+  {
+    int i;
+    for(i = 0; i < *(output - 1); i++)
+    {
+      if(*(output - i - 1) != *(output - 1))
+      {
+        return length;
+      }
+    }
+  }
 
-  return 0;
+  return output_length - *(output - 1);
 }
 void AES128_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv)
 {
@@ -745,4 +757,49 @@ void AES128_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length,
 
 #endif // #if defined(CBC) && CBC
 
+
+
+
+/************************ My Function ******************************/
+
+#ifdef CTR
+void blockCopy_16(uint8_t *dst, uint8_t *src, uint32_t size)
+{
+    memcpy(dst, src, size);
+    if(size < 16)
+    {
+        memset(dst + size, 0, 16 - size);
+    }
+}
+void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* nonce)
+{
+    uint32_t i;
+
+    uint8_t counter[KEYLEN];
+
+    memcpy(counter, nonce, 8);
+    memset(counter + 8, 0, 8);
+
+
+    Key = key;
+    KeyExpansion();
+
+    for(i = 0; i < length; i+= KEYLEN)
+    {
+        counter[15]++;
+        blockCopy_16(output, counter, length);
+        state = (state_t*)output;
+
+        Iv = input;
+
+        Cipher();
+
+        XorWithIv(output);
+
+        output += KEYLEN;
+        input += KEYLEN;
+    }
+}
+
+#endif // #ifdef CTR
 

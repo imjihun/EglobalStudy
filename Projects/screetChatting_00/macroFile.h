@@ -78,7 +78,7 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY : COUNT_MEMBER
 */
 #define CMD_ENTER_ROOM				30
 
@@ -102,7 +102,7 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey]
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey : count_member]
 */
 #define CMD_MY_ROOM_LIST			70
 
@@ -125,21 +125,25 @@ typedef struct _sockinfo
     char buffer[SIZE_BUFFER];
     int cnt_read;
 } socket_info;
-/*
+
 typedef struct _listnode
 {
     socket_info *p_socket_info;
     struct _listnode *next;
 } list_socket;
-*/
+
 typedef struct _roominfo
 {
-	TYPE_ROOM_NUMBER number;
+	TYPE_ROOM_NUMBER room_number;
     unsigned char status;
     char subject[SIZE_ROOM_SUBJECT];
-    //list_socket *p_list_socket;
+    list_socket *p_list_socket;
 
     TYPE_SECRET_KEY key[SIZE_SECRET_KEY];
+
+    unsigned int index_chatting_log;
+    
+    int count_member;
 } room_info;
 
 /*************** Constant *************************************************/

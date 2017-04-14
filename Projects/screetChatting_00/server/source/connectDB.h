@@ -46,13 +46,14 @@ int dbCreateAllTable();
 int dbDropAllTable();
 
 int dbInsertUserinfo(char *id);
-int dbInsertRoominfo(room_info room);
+int dbInsertRoominfo(room_info *p_room_info);
 int dbDeleteRoominfo(TYPE_ROOM_NUMBER room_number);
 int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
 int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
 
 int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr);
-
+int dbSelectUserInRoom(int room_number, char** arr_id_ret, int size_arr_id);
+int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr);
 #endif	/*_CONNECT_DB_H */
 /*************** END OF FILE **********************************************/
 
