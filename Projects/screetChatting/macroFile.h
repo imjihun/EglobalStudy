@@ -18,10 +18,11 @@
 /*************** Macros ***************************************************/
 
 #define MAX_CLIENT				1024
-#define MAX_ROOM				255
+#define MAX_ROOM				1024
 
 #define SIZE_BUFFER				4096
 #define PORT_SERVER				9000
+
 
 /************************ aes **************************/
 #define SIZE_SECRET_KEY			16
@@ -62,7 +63,7 @@
 #define SIZE_CHATTING_LOG			1024
 
 
-#define CMD_FAIL					1
+#define CMD_FAIL					10000
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
@@ -78,7 +79,7 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY : COUNT_MEMBER
 */
 #define CMD_ENTER_ROOM				30
 
@@ -102,7 +103,7 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey]
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey : count_member]
 */
 #define CMD_MY_ROOM_LIST			70
 
@@ -111,6 +112,13 @@
 	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
 */
 #define CMD_CHATTING_MESSAGE		80
+
+/*
+	C->S # CMD[2] : LENGTH[4] : MYID : YOURID : ROOM_NUMBER
+	S->C # CMD[2] : LENGTH[4] : MYID or CMD_FAIL
+	S->C # CMD[2] : LENGTH[4] : YOURID or CMD_FAIL : ROOM_NUMBER
+*/
+#define CMD_INVITE					90
 
 /*********************end protocol*********************/
 
@@ -125,21 +133,23 @@ typedef struct _sockinfo
     char buffer[SIZE_BUFFER];
     int cnt_read;
 } socket_info;
-/*
+
 typedef struct _listnode
 {
     socket_info *p_socket_info;
     struct _listnode *next;
 } list_socket;
-*/
+
 typedef struct _roominfo
 {
-	TYPE_ROOM_NUMBER number;
+	TYPE_ROOM_NUMBER room_number;
     unsigned char status;
     char subject[SIZE_ROOM_SUBJECT];
-    //list_socket *p_list_socket;
+    list_socket *p_list_socket;
 
     TYPE_SECRET_KEY key[SIZE_SECRET_KEY];
+    
+    int count_member;
 } room_info;
 
 /*************** Constant *************************************************/

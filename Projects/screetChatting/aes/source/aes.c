@@ -526,6 +526,10 @@ void AES128_ECB_decrypt(const uint8_t* input, const uint8_t* key, uint8_t *outpu
 #if defined(CBC) && CBC
 
 
+#ifndef SIZE_CIPHER_ELEMENT
+#define SIZE_CIPHER_ELEMENT 16
+#endif
+
 static void XorWithIv(uint8_t* buf)
 {
   uint8_t i;
@@ -638,7 +642,7 @@ int AES_CBC_encrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
   return output_length;
 }
 
-int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv, int keySize)
+int _AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv, int keySize)
 {
   uintptr_t i;
   uint8_t remainders; /* Remaining bytes in the last non-full block */
@@ -695,7 +699,6 @@ int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
   if(remainders)
   {
     BlockCopy(output, input);
-    //memset(output+remainders, 0, KEYLEN - remainders); /* add 0-padding */
     state = (state_t*)output;
     InvCipher();
     XorWithIv(output);
@@ -706,12 +709,38 @@ int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, con
     {
       if(*(output - i - 1) != *(output - 1))
       {
-        return length;
+        return -1;
       }
     }
   }
 
   return output_length - *(output - 1);
+}
+int AES_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv, int keySize)
+{
+    uint8_t tmp[4096];
+    int retval;
+    int i;
+
+    int length_once_decrypt = 16;
+    int offset_input = 0;
+    int offset_output = 0;
+
+    for (i=0; i<length; i+=16)
+    {
+        retval = _AES_CBC_decrypt_buffer(tmp, input + offset_input, length_once_decrypt, key, iv, keySize);
+        if(retval < 0)
+        {
+            length_once_decrypt += 16;
+            continue;
+        }
+        offset_input += length_once_decrypt;
+        length_once_decrypt = 16;
+
+        memcpy(output + offset_output, tmp, retval);
+        offset_output += retval;
+    }
+    return offset_output;
 }
 void AES128_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length, const uint8_t* key, const uint8_t* iv)
 {
@@ -763,6 +792,10 @@ void AES128_CBC_decrypt_buffer(uint8_t* output, uint8_t* input, uint32_t length,
 /************************ My Function ******************************/
 
 #ifdef CTR
+
+#ifndef SIZE_CIPHER_ELEMENT
+#define SIZE_CIPHER_ELEMENT 16
+#endif
 void blockCopy_16(uint8_t *dst, uint8_t *src, uint32_t size)
 {
     memcpy(dst, src, size);
@@ -775,29 +808,27 @@ void aesCtrEncryptBuffer(uint8_t* output, uint8_t* input, uint32_t length, const
 {
     uint32_t i;
 
-    uint8_t counter[KEYLEN];
+    uint8_t counter[SIZE_CIPHER_ELEMENT];
 
     memcpy(counter, nonce, 8);
-    memset(counter + 8, 0, 8);
-
+    memset(counter + 8, 0, SIZE_CIPHER_ELEMENT - 8);
 
     Key = key;
     KeyExpansion();
 
-    for(i = 0; i < length; i+= KEYLEN)
+    for(i = 0; i < length; i+= SIZE_CIPHER_ELEMENT)
     {
-        counter[15]++;
-        blockCopy_16(output, counter, length);
+        counter[SIZE_CIPHER_ELEMENT - 1]++;
+        blockCopy_16(output, counter, SIZE_CIPHER_ELEMENT);
         state = (state_t*)output;
 
         Iv = input;
-
         Cipher();
 
         XorWithIv(output);
 
-        output += KEYLEN;
-        input += KEYLEN;
+        output += SIZE_CIPHER_ELEMENT;
+        input += SIZE_CIPHER_ELEMENT;
     }
 }
 

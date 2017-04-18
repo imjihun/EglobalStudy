@@ -15,20 +15,24 @@ OFLAGS =
 THREAD = -pthread
 SRC_DIR = source
 OBJ_DIR = obj
-LOG_DIR = log
 
-OBJS	=	$(OBJ_DIR)/printLog.o $(OBJ_DIR)/connectDB.o
-OUT		=	mainServer
+OBJS	=	$(OBJ_DIR)/printLog.o \
+			$(OBJ_DIR)/connectDB.o \
+			$(OBJ_DIR)/chattingLog.o \
+			$(OBJ_DIR)/encrypt.o
+
+OUT		=	mainServer log
 
 .SUFFIXES:
 .SUFFIXES: .o .c
 
 
-all: $(OBJ_DIR) $(OBJS) $(OUT) $(LOG_DIR)
+all: $(OBJ_DIR) $(OBJS) $(OUT) cntldb
+
+cntldb: $(OBJ_DIR)/cntldb.o $(OBJS)
+	$(CC) $(OFLAGS) -o $@ $< $(LIBS) $(OBJS)
 
 $(OBJ_DIR):
-	mkdir $@
-$(LOG_DIR):
 	mkdir $@
 
 $(OBJ_DIR)/printLog.o : ../printLog/printLog.c
@@ -41,4 +45,4 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	$(CC) $(OFLAGS) $(THREAD) -o $@ $< $(LIBS) $(OBJS)
 
 clean:
-	$(RM) $(OBJ_DIR) $(OUT) $(LOG_DIR)
+	$(RM) $(OBJ_DIR) $(OUT)

@@ -18,10 +18,11 @@
 /*************** Macros ***************************************************/
 
 #define MAX_CLIENT				1024
-#define MAX_ROOM				255
+#define MAX_ROOM				1024
 
 #define SIZE_BUFFER				4096
 #define PORT_SERVER				9000
+
 
 /************************ aes **************************/
 #define SIZE_SECRET_KEY			16
@@ -62,7 +63,7 @@
 #define SIZE_CHATTING_LOG			1024
 
 
-#define CMD_FAIL					1
+#define CMD_FAIL					10000
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
@@ -111,6 +112,13 @@
 	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
 */
 #define CMD_CHATTING_MESSAGE		80
+
+/*
+	C->S # CMD[2] : LENGTH[4] : MYID : YOURID : ROOM_NUMBER
+	S->C # CMD[2] : LENGTH[4] : MYID or CMD_FAIL
+	S->C # CMD[2] : LENGTH[4] : YOURID or CMD_FAIL : ROOM_NUMBER
+*/
+#define CMD_INVITE					90
 
 /*********************end protocol*********************/
 

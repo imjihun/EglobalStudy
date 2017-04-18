@@ -37,7 +37,7 @@ int viewAllTable()
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
@@ -58,12 +58,12 @@ int viewAllTable()
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
     
-    printf("| %-16s | %-16s | %-20s | %-32s |\n", "roominfo_number", "roominfo_status", "roominfo_subject", "roominfo_key");
+    printf("| %-16s | %-16s | %-20s | %-32s | %-10s |\n", "roominfo_number", "roominfo_status", "roominfo_subject", "roominfo_key", "roominfo_countmember");
     while ( (sql_row = mysql_fetch_row(sql_result)) != NULL )
     {
         printf("| %-16d | ", atoi(sql_row[0]));
@@ -71,12 +71,13 @@ int viewAllTable()
         printf("%-20s | ", sql_row[2]);
         if(sql_row[2] == NULL)
         {
-            printf("%-32s |\n", "null");
+            printf("%-32s |", "null");
         }
         else
         {
-            printf("%-32s |\n", sql_row[3]);
+            printf("%-32s |", sql_row[3]);
         }
+        printf("%-10d |\n", atoi(sql_row[4]));
     }
     printf("\n");
 
@@ -89,7 +90,7 @@ int viewAllTable()
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
@@ -139,8 +140,8 @@ int dbInsertRoominfo(room_info *p_room_info)
         idx_string_key += sprintf(string_key + idx_string_key, "%02x", *(unsigned char *)(p_room_info->key + idx_key));
     string_key[idx_string_key] = '\0';
 
-    sprintf(query, "insert into roominfo (roominfo_number, roominfo_status, roominfo_subject, roominfo_key, roominfo_countmember) value(%d, '%c', '%s', '%s', %d)",
-                        p_room_info->room_number, p_room_info->status, p_room_info->subject, string_key, p_room_info->count_member);
+    sprintf(query, "insert into roominfo (roominfo_number, roominfo_status, roominfo_subject, roominfo_key) value(%d, '%c', '%s', '%s')",
+                        p_room_info->room_number, p_room_info->status, p_room_info->subject, string_key);
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
     {
@@ -201,6 +202,42 @@ int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char*id)
     return viewAllTable();
 }
 
+
+int dbSelectKeyOfRoom(TYPE_ROOM_NUMBER room_number, TYPE_SECRET_KEY *key)
+{
+    char query[SIZE_QUERY];
+    int query_stat;
+    MYSQL_RES *sql_result;
+    MYSQL_ROW sql_row;
+
+    char key_elem[3];
+    int i;
+
+    sprintf(query, "select roominfo_key from roominfo where roominfo_number=%d", room_number);
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
+        return -2;
+    }
+    
+    sql_result = mysql_store_result(g_connection);
+    while ( (sql_row = mysql_fetch_row(sql_result)) != NULL)
+    {
+        // room key (string -> hex)
+        for(i = 0; i < SIZE_SECRET_KEY; i++)
+        {
+            key_elem[0] = sql_row[0][i*2 + 0];
+            key_elem[1] = sql_row[0][i*2 + 1];
+            key_elem[2] = '\0';
+
+            key[i] = (TYPE_SECRET_KEY)strtol(key_elem, NULL, 16);
+        }
+    }
+
+    mysql_free_result(sql_result);
+    return 0;
+}
 int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr)
 {
     char query[SIZE_QUERY];
@@ -219,7 +256,7 @@ int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr)
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
@@ -248,7 +285,7 @@ int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr)
             key_elem[1] = sql_row[3][i*2 + 1];
             key_elem[2] = '\0';
 
-            arr_room_info_ret[count_roominfo].key[i] = (TYPE_SECRET_KEY)strtol(key_elem, NULL, 16);
+            arr_room_info_ret[room_number].key[i] = (TYPE_SECRET_KEY)strtol(key_elem, NULL, 16);
         }
 
         arr_room_info_ret[room_number].count_member = atoi(sql_row[4]);
@@ -275,7 +312,7 @@ int dbSelectUserInRoom(int room_number, char** arr_id_ret, int size_arr_id)
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
@@ -312,7 +349,7 @@ int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr)
     if (query_stat != 0)
     {
         fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
-        return -3;
+        return -2;
     }
     
     sql_result = mysql_store_result(g_connection);
@@ -343,6 +380,7 @@ int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr)
             arr_room_info_ret[count_roominfo].key[i] = (TYPE_SECRET_KEY)strtol(key_elem, NULL, 16);
         }
 
+        // count member
         arr_room_info_ret[count_roominfo].count_member = atoi(sql_row[4]);
 
         count_roominfo++;
@@ -354,6 +392,94 @@ int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr)
     return count_roominfo;
 }
 
+int dbSelectRoomOfRoomNumber(TYPE_ROOM_NUMBER room_number, room_info *p_room_info_ret)
+{
+    char query[SIZE_QUERY];
+    int query_stat;
+    MYSQL_RES *sql_result;
+    MYSQL_ROW sql_row;
+
+    int retval = -2;
+    int size_subject;
+    char key_elem[3];
+    int i;
+
+    sprintf(query, "select * from roominfo where roominfo_number=%d", room_number);
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
+        return -2;
+    }
+    
+    sql_result = mysql_store_result(g_connection);
+
+    if ( (sql_row = mysql_fetch_row(sql_result)) == NULL)
+    {
+        printf("mysql_fetch_row() error\n");
+        retval = -2;
+    }
+
+    // room number
+    p_room_info_ret->room_number = room_number;
+
+    // room status
+    p_room_info_ret->status = sql_row[1][0];
+
+    // room subject
+    size_subject = strlen(sql_row[2]);
+    memcpy(p_room_info_ret->subject, sql_row[2], size_subject);
+    memset(p_room_info_ret->subject + size_subject, 0, SIZE_ROOM_SUBJECT - size_subject);
+
+    // room key (string -> hex)
+    for(i = 0; i < SIZE_SECRET_KEY; i++)
+    {
+        key_elem[0] = sql_row[3][i*2 + 0];
+        key_elem[1] = sql_row[3][i*2 + 1];
+        key_elem[2] = '\0';
+
+        p_room_info_ret->key[i] = (TYPE_SECRET_KEY)strtol(key_elem, NULL, 16);
+    }
+
+    // count member
+    p_room_info_ret->count_member = atoi(sql_row[4]);
+
+    mysql_free_result(sql_result);
+    viewAllTable();
+    retval = 0;
+
+    return retval;
+}
+int dbCountUserInRoom(TYPE_ROOM_NUMBER room_number)
+{
+    char query[SIZE_QUERY];
+    int query_stat;
+    MYSQL_RES *sql_result;
+    MYSQL_ROW sql_row;
+
+    int retval = -2;
+
+    sprintf(query, "select roominfo_countmember from roominfo where roominfo_number=%d", room_number);
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s", mysql_error(&g_conn));
+        return -2;
+    }
+
+    sql_result = mysql_store_result(g_connection);
+    if(sql_result)
+    {
+        sql_row = mysql_fetch_row(sql_result);
+        if(sql_row)
+            retval = atoi(sql_row[0]);
+        else
+            retval = -2;
+    }
+
+    mysql_free_result(sql_result);
+    return retval;
+}
 
 int dbOpen()
 {
@@ -397,11 +523,11 @@ int dbCreateAllTable()
 
 
     sprintf(query, 
-        "create table roominfo (    roominfo_number bigint(%d) unsigned NOT NULL, \
+        "create table roominfo (    roominfo_number bigint(%d) unsigned NOT NULL auto_increment, \
                                     roominfo_status varchar(1) NOT NULL, \
                                     roominfo_subject varchar(%d) NOT NULL, \
                                     roominfo_key varchar(%d) NOT NULL, \
-                                    roominfo_countmember bigint(10) NOT NULL, \
+                                    roominfo_countmember bigint(10) NOT NULL default 0, \
                                     primary key (roominfo_number) \
                                 ) engine=InnoDB DEFAULT CHARSET=utf8",
         SIZE_ROOM_NUMBER, SIZE_ROOM_SUBJECT, SIZE_SECRET_KEY * 2);
@@ -424,6 +550,47 @@ int dbCreateAllTable()
                                     primary key (roominfo_number, userinfo_id) \
                                 ) engine=InnoDB DEFAULT CHARSET=utf8",
         SIZE_ROOM_NUMBER, SIZE_ID);
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s\n", mysql_error(&g_conn));
+        return -2;
+    }
+
+    sprintf(query,
+        "create trigger increase_member after insert \
+            on roomuser \
+            for each row \
+            begin \
+                update roominfo set roominfo_countmember=roominfo_countmember+1 where roominfo_number=new.roominfo_number; \
+            end");
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s\n", mysql_error(&g_conn));
+        return -2;
+    }
+
+    sprintf(query,
+        "create trigger decrease_member before delete \
+            on roomuser \
+            for each row \
+            begin \
+                update roominfo set roominfo_countmember=roominfo_countmember-1 where roominfo_number=old.roominfo_number; \
+            end");
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        fprintf(stderr, "Mysql query error : %s\n", mysql_error(&g_conn));
+        return -2;
+    }
+    sprintf(query,
+        "create trigger check_countmember after update \
+            on roominfo \
+            for each row \
+            begin \
+                delete from roominfo where roominfo_number=new.roominfo_number and roominfo_countmember<1; \
+            end");
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
     {

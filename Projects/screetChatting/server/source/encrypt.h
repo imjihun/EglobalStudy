@@ -8,27 +8,18 @@
 *		head file for *.c : XXX
 *
 ***************************************************************************/
-#ifndef _PRINT_LOG_H
-#define _PRINT_LOG_H
+#ifndef _PROTO_TYPE_H
+#define _PROTO_TYPE_H
 
 /*************** Header files *********************************************/
-
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
-#include <time.h>
-#include <stdarg.h>
+#include "../../aes/source/aes.h"
+#include "../../macroFile.h"
 #include <stdlib.h>
-#include <limits.h>
+#include <stdio.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
-
-#define LOG_VIEW
-#define LOG_FILE
-
-#define FILENAME_SERVERLOG		"serverLogs"
 
 /*************** Definitions / Macros *************************************/
 
@@ -39,14 +30,11 @@
 /*************** typedef  *************************************************/
 
 /*************** Prototypes ***********************************************/
+void makeKey(TYPE_SECRET_KEY *key);
+int decryptBuffer(TYPE_SECRET_KEY *key, char *buffer_cipher, int length_buffer_cipher, char *buffer_ret);
+int encryptBuffer(TYPE_SECRET_KEY *key, char *buffer, int length_buffer, char *buffer_cipher);
 
-void printView(char *buf);
-void printFile(char *buf);
-void printLog(const char *Format, ...);
-
-#endif /* _PRINT_LOG_H */
+#endif	/*_PROTO_TYPE_H */
 /*************** END OF FILE **********************************************/
-
-
 
 

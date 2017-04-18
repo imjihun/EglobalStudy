@@ -8,25 +8,31 @@
 *		head file for *.c : XXX
 *
 ***************************************************************************/
-#ifndef _PRINT_LOG_H
-#define _PRINT_LOG_H
+#ifndef _CHATTING_LOG_H
+#define _CHATTING_LOG_H
 
 /*************** Header files *********************************************/
+#include "connectDB.h"
+#include "../../macroFile.h"
+#include "../../printLog/printLog.h"
 
-#include <string.h>
+#include "encrypt.h"
+#include "../../aes/source/aes.h"
+
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include <errno.h>
-#include <time.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <limits.h>
+#include <dirent.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
-
-#define LOG_VIEW
-#define LOG_FILE
+#define DIRNAME_CHATTINGLOG			"chattinglog"
+#define SIZE_DIRNAME_CHATTINGLOG	11
 
 /*************** Definitions / Macros *************************************/
 
@@ -37,14 +43,14 @@
 /*************** typedef  *************************************************/
 
 /*************** Prototypes ***********************************************/
+int initPath();
+int viewList();
+int viewFile(char* filename);
 
-void printView(char *buf);
-void printFile(char *buf);
-void printLog(const char *Format, ...);
+int resetFile(room_info *p_room_info);
+int writeChattingLog(room_info *p_room_info, char *id, char *message, size_t size_message);
+size_t readChattingLog(room_info *p_room_info, char *id, char *buffer_ret, size_t size_buffer_ret);
 
-#endif /* _PRINT_LOG_H */
+#endif	/*_CHATTING_LOG_H */
 /*************** END OF FILE **********************************************/
-
-
-
 

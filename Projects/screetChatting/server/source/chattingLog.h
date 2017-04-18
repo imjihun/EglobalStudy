@@ -8,27 +8,31 @@
 *		head file for *.c : XXX
 *
 ***************************************************************************/
-#ifndef _CONNECT_DB_H
-#define _CONNECT_DB_H
+#ifndef _CHATTING_LOG_H
+#define _CHATTING_LOG_H
 
 /*************** Header files *********************************************/
-#include <mysql.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "connectDB.h"
 #include "../../macroFile.h"
+#include "../../printLog/printLog.h"
+
+#include "encrypt.h"
+#include "../../aes/source/aes.h"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <dirent.h>
 
 /*************** Assertions ***********************************************/
 
 /*************** Macros ***************************************************/
-
-#define DB_HOST "127.0.0.1"
-#define DB_USER "root"
-#define DB_PASS "root00"
-#define DB_NAME "test"
-
-#define SIZE_QUERY  1024
+#define DIRNAME_CHATTINGLOG			"chattinglog"
+#define SIZE_DIRNAME_CHATTINGLOG	11
 
 /*************** Definitions / Macros *************************************/
 
@@ -39,21 +43,14 @@
 /*************** typedef  *************************************************/
 
 /*************** Prototypes ***********************************************/
+int initPath();
+int viewList();
+int viewFile(char* filename);
 
-int dbOpen();
-int dbClose();
-int dbCreateAllTable();
-int dbDropAllTable();
+int resetFile(room_info *p_room_info);
+int writeChattingLog(room_info *p_room_info, char *id, char *message, size_t size_message);
+size_t readChattingLog(room_info *p_room_info, char *id, char *buffer_ret, size_t size_buffer_ret);
 
-int dbInsertUserinfo(char *id);
-int dbInsertRoominfo(room_info *p_room_info);
-int dbDeleteRoominfo(TYPE_ROOM_NUMBER room_number);
-int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
-int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
-
-int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr);
-int dbSelectUserInRoom(int room_number, char** arr_id_ret, int size_arr_id);
-int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr);
-#endif	/*_CONNECT_DB_H */
+#endif	/*_CHATTING_LOG_H */
 /*************** END OF FILE **********************************************/
 

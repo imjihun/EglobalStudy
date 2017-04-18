@@ -14,7 +14,6 @@ OFLAGS =
 THREAD = -pthread
 SRC_DIR = source
 OBJ_DIR = obj
-LOG_DIR = log
 
 OBJS	=		
 
@@ -25,17 +24,19 @@ SUB_MAKE_DIR =	aesDir clientDir serverDir
 .SUFFIXES: .o .c
 
 
-all: $(SUB_MAKE_DIR) $(OBJ_DIR) $(OUT) $(LOG_DIR)
+all: $(SUB_MAKE_DIR) $(OBJ_DIR) $(OUT) serverLogs
 	cp ./server/mainServer ./
+	cp ./server/log ./
 	cp ./client/testClient ./
+	cp ./server/cntldb ./
+
+serverLogs:
+	mkdir serverLogs
 
 proc: $(OUT)
 	cd client; $(MAKE) exec
 thr:
 	cd server; $(MAKE) exec
-
-$(LOG_DIR):
-	mkdir $@
 
 $(OBJ_DIR):
 	mkdir $@
@@ -55,6 +56,7 @@ aesDir:
 
 
 clean:
-	$(RM) $(OBJ_DIR) $(OUT) mainServer testClient $(LOG_DIR)
+	$(RM) $(OBJ_DIR) $(OUT) mainServer testClient
 	cd client; $(MAKE) clean
 	cd server; $(MAKE) clean
+	cd aes; $(MAKE) clean
