@@ -36,7 +36,7 @@ void printFile(char *buf)
 
     timer = time(NULL);
     t = localtime(&timer);
-    sprintf(filename, "%s/%d_%d_%d_%d.txt", FILENAME_SERVERLOG, t->tm_year + 1900, t->tm_mon, t->tm_mday, t->tm_hour);
+    sprintf(filename, "%s/%d_%d_%d_%d.txt", FILENAME_SERVERLOG, t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour);
 
     realpath(filename, filepath);
 

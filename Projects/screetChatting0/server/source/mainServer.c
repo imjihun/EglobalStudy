@@ -47,18 +47,21 @@ int PORT = PORT_SERVER;
 socket_info *g_arr_p_socket_info[MAX_CLIENT];
 int g_cnt_socket = 0;
 
-room_info g_arr_room_info[MAX_ROOM];
-
-unsigned int g_cnt_chatting_log = 0;
+int g_epollfd = 0;
 /*************** Prototypes ***********************************************/
 int initDaemon();
 
+int initChattingServer(int *listenfd);
+int runChattingServer(int listenfd);
+
 int initListenfd(int *listenfd, int port);
-int initEpoll(int *epollfd);
-int addSocketEpoll(int epollfd, int sockfd);
-int delSocketEpoll(int epollfd, socket_info * sockfd);
+int initEpoll();
+int addSocketEpoll(int sockfd);
+int delSocketEpoll(socket_info * sockfd);
+
 int mainChattingServer();
-int recvProcessing(int epollfd, socket_info * sockfd);
+int checkKnowPacket(char *buffer);
+int recvProcessing(socket_info * sockfd);
 int packetProcessing(socket_info *p_socket_info, char *packet);
 int reuse(int sockfd);
 
@@ -66,21 +69,11 @@ int addSocketInfoArr(socket_info *p_socket_info);
 int delSocketInfoArr(socket_info *p_socket_info);
 int findSocketInfoArr(const char *id, socket_info **p_socket_info_ret);
 
-int initRoomInfoArr();
-int addRoomInfoArr(socket_info *p_socket_info, char is_secret, char *subject);
-int delRoomInfoArr(TYPE_ROOM_NUMBER room_number);
-
-int addListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_info);
-int delListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_info);
-int delAllListSocketInRoom(TYPE_ROOM_NUMBER room_number);
-int delListSocketAllRoom(socket_info *p_socket_info);
-int findListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_info);
-
 int sendPacket(socket_info *p_socket_info, char *packet, int size_packet);
 int sendFail(socket_info *p_socket_info, TYPE_CMD cmd);
 int spridePacket(TYPE_ROOM_NUMBER room_number, char *packet, TYPE_PACKET_LENGTH size_packet);
-int makeMessage(char *id, TYPE_ROOM_NUMBER room_number, char *message, int size_message, char *message_ret);
-int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message, int size_message);
+int makeMessage(char *id, room_info *p_room, char *message, int size_message, char *message_ret);
+int sprideChattingMessage(room_info *p_room, char *id, char *message, int size_message);
 
 int cmdCreateId(socket_info *p_socket_info);
 int cmdCreateRoom(socket_info *p_socket_info);
@@ -92,14 +85,12 @@ int cmdMyRoomList(socket_info *p_socket_info);
 int cmdChattingMessage(socket_info *p_socket_info);
 int cmdInvite(socket_info *p_socket_info);
 
-
 int viewPacket(char *packet);
 int viewRecv(int sockfd, char *packet);
 int viewSend(int sockfd, char *packet, int size_packet);
 
 int viewPacket(char *packet)
 {
-
     TYPE_PACKET_LENGTH size = *(TYPE_PACKET_LENGTH *)(packet + SIZE_CMD);
     int i;
 
@@ -109,97 +100,66 @@ int viewPacket(char *packet)
     {
         printf("%2x ", *(unsigned char *)(packet + i));
     }
-    printf("]\n");
+    printf("]\n\n");
 
     return 0;
 }
 
 int viewSend(int sockfd, char *packet, int size_packet)
 {
-    printf("[server] [send sock(%d) size = %d] ", sockfd, size_packet);
+    printLog("[server] [send sock(%d) size = %d] ", sockfd, size_packet);
     return viewPacket(packet);
-
     //return 0;
 }
 
 int viewRecv(int sockfd, char *packet)
 {
-    printf("[server] [recv sock(%d)] ", sockfd);
+    printLog("[server] [recv sock(%d)] ", sockfd);
     return viewPacket(packet);
-
     //return 0;
 }
 
-int sendPacket(socket_info *p_socket_info, char *packet, int size_packet)
-{
-    int send_cnt = 0, retval;
-
-    while (send_cnt < size_packet)
-    {
-        retval = send(p_socket_info->sockfd, packet + send_cnt, size_packet - send_cnt, 0);
-        if (retval <= 0)
-        {
-            printLog("send() sockfd = %d, send_cnt = %d, retval = %d, size_packet = %d", p_socket_info->sockfd, send_cnt, retval, size_packet);
-            return -1;
-        }
-        send_cnt += retval;
-    }
-    viewSend(p_socket_info->sockfd, packet, size_packet);
-    return 0;
-}
 
 /*************** Function *************************************************/
 
 int main(int argc, char **argv)
 {
     int retval;
-
-    if (argc == 2 && argv[1][0] == 'd')
+    if(argc < 2 || 
+        (argv[1][0] != '-' || strlen(argv[1]) != 2))
     {
-        if (initDaemon() != 0)
+        printf("usage %s <-option>\n", argv[0]);
+        printf("\t -d : start deamon server\n");
+        printf("\t -n : start normal server\n");
+        printf("\n");
+        return -1;
+    }
+
+    if(dbOpen() < 0)
+    {
+        printLog("dbOpen()");
+        return -2;
+    }
+    if(dbCreateAllTableIfNotExists() < 0)
+    {
+        printLog("dbCreateAllTable()");
+        return -2;
+    }
+
+    if(argv[1][1] == 'd')
+    {
+        if (initDaemon() < 0)
         {
             printLog("initDaemon()");
             return -1;
         }
     }
-
-    dbOpen();
-
-    //dbDropAllTable();
-    //dbCreateAllTable();
-
     retval = mainChattingServer();
-
     dbClose();
 
     return retval;
 }
-int sendFail(socket_info *p_socket_info, TYPE_CMD cmd)
-{
-    TYPE_CMD cmd_fail = CMD_FAIL;
-    char buffer_send[SIZE_BUFFER];
-    TYPE_PACKET_LENGTH size_send_packet = 0;
 
-    //cmd
-    memcpy(buffer_send + size_send_packet, &cmd, SIZE_CMD);
-    size_send_packet += SIZE_HEADER;
-
-    //cmd_fail
-    memcpy(buffer_send + size_send_packet, &cmd_fail, SIZE_CMD);
-    size_send_packet += SIZE_CMD;
-
-    //length
-    memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
-
-    // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
-    {
-        printLog("sendPacket()");
-        return -1;
-    }
-
-    return 0;
-}
 int packetProcessing(socket_info *p_socket_info, char *packet)
 {
     int retval = 0;
@@ -207,64 +167,58 @@ int packetProcessing(socket_info *p_socket_info, char *packet)
     TYPE_CMD cmd = *(TYPE_CMD*)buffer;
     TYPE_PACKET_LENGTH size_packet = *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD);
 
-
     buffer[size_packet] = 0;
 
     viewRecv(p_socket_info->sockfd, packet);
     switch (cmd)
     {
     case CMD_CREATE_ID:
-        printLog("[server] [create id] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [create id] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdCreateId(p_socket_info);
         break;
 
     case CMD_CREATE_ROOM:
-        printLog("[server] [create room] [id = %s][%c][subject = %s]", buffer + SIZE_HEADER, *(buffer + SIZE_HEADER + SIZE_ID), buffer + SIZE_HEADER + SIZE_ID + SIZE_ROOM_STATUS);
+        printLog("[server] [create room] [id = %s][%c][subject = %s]\n", buffer + SIZE_HEADER, *(buffer + SIZE_HEADER + SIZE_ID), buffer + SIZE_HEADER + SIZE_ID + SIZE_ROOM_STATUS);
         retval = cmdCreateRoom(p_socket_info);
         break;
 
     case CMD_ENTER_ROOM:
-        printLog("[server] [enter room] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [enter room] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdEnterRoom(p_socket_info);
         break;
 
     case CMD_LEAVE_ROOM:
-        printLog("[server] [leave room] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [leave room] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdLeaveRoom(p_socket_info);
         break;
 
     case CMD_VIEW_ROOM:
-        printLog("[server] [view room] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [view room] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdViewRoom(p_socket_info);
         break;
 
     case CMD_TOTAL_ROOM_LIST:
-        printLog("[server] [total room list] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [total room list] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdTotalRoomList(p_socket_info);
         break;
 
     case CMD_MY_ROOM_LIST:
-        printLog("[server] [my room list] [id = %s]", buffer + SIZE_HEADER);
+        printLog("[server] [my room list] [id = %s]\n", buffer + SIZE_HEADER);
         retval = cmdMyRoomList(p_socket_info);
         break;
 
     case CMD_CHATTING_MESSAGE:
-        printLog("[server] [message] [id = %s] [%d]", buffer + SIZE_HEADER, size_packet - (SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER));
+        printLog("[server] [message] [id = %s] [%d]\n", buffer + SIZE_HEADER, size_packet - (SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER));
         retval = cmdChattingMessage(p_socket_info);
         break;
 
     case CMD_INVITE:
-        printLog("[server] [invite] [id = %s] [your id = %s]", buffer + SIZE_HEADER, buffer + SIZE_HEADER + SIZE_ID);
+        printLog("[server] [invite] [id = %s] [your id = %s]\n", buffer + SIZE_HEADER, buffer + SIZE_HEADER + SIZE_ID);
         retval = cmdInvite(p_socket_info);
-        break;
-
-    default:
-        printLog("[server] [not define command]");
-        retval = -1;
         break;
     }
 
-    if (retval != 0)
+    if (retval < 0)
     {
         sendFail(p_socket_info, cmd);
         printLog("in packetProcessing()");
@@ -272,7 +226,26 @@ int packetProcessing(socket_info *p_socket_info, char *packet)
 
     return retval;
 }
-int recvProcessing(int epollfd, socket_info *p_socket_info)
+int checkKnowPacket(char *buffer)
+{
+    TYPE_CMD cmd = *(TYPE_CMD *)buffer;
+    if(     cmd == CMD_CREATE_ID
+        ||  cmd == CMD_CREATE_ROOM
+        ||  cmd == CMD_ENTER_ROOM
+        ||  cmd == CMD_LEAVE_ROOM
+        ||  cmd == CMD_VIEW_ROOM
+        ||  cmd == CMD_TOTAL_ROOM_LIST
+        ||  cmd == CMD_MY_ROOM_LIST
+        ||  cmd == CMD_CHATTING_MESSAGE
+        ||  cmd == CMD_INVITE)
+        return 0;
+    else
+    {
+        printLog("[server] [not define command]\n");
+        return NOT_DEFINE_CMD;
+    }
+}
+int recvProcessing(socket_info *p_socket_info)
 {
     int retval;
     int number_error = 0;
@@ -288,7 +261,7 @@ int recvProcessing(int epollfd, socket_info *p_socket_info)
     {
         printLog("recv()");
 
-        if (delSocketEpoll(epollfd, p_socket_info) != 0)
+        if (delSocketEpoll(p_socket_info) < 0)
         {
             printLog("delSocketEpoll()");
             return -1;
@@ -301,12 +274,26 @@ int recvProcessing(int epollfd, socket_info *p_socket_info)
     if (p_socket_info->cnt_read < SIZE_HEADER)
         return 1;
 
+    if (checkKnowPacket(buffer) == NOT_DEFINE_CMD)
+    {
+        printLog("recv()");
+
+        if (delSocketEpoll(p_socket_info) < 0)
+        {
+            printLog("delSocketEpoll()");
+            return -1;
+        }
+        printLog("close sock(%d)", sockfd);
+        return -1;
+    }
+
     size_packet = *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD);
-    if (size_packet > p_socket_info->cnt_read)
+    if (p_socket_info->cnt_read < size_packet)
         return 1;
 
     memcpy(packet, buffer, size_packet);
-    if (packetProcessing(p_socket_info, packet) != 0)
+    retval = packetProcessing(p_socket_info, packet);
+    if (retval < 0)
     {
         printLog("packetProcessing()");
 
@@ -318,10 +305,35 @@ int recvProcessing(int epollfd, socket_info *p_socket_info)
         memcpy(buffer, buffer + size_packet, p_socket_info->cnt_read);
     return number_error;
 }
-int mainChattingServer()
+int initChattingServer(int *listenfd)
 {
-    int listenfd;
-    int epollfd;
+    if (initPath() < 0)
+    {
+        printLog("initPath()");
+        return -1;
+    }
+
+    if (initListenfd(listenfd, PORT) < 0)
+    {
+        printLog("initListenfd()");
+        return -1;
+    }
+
+    if (initEpoll() < 0)
+    {
+        printLog("initEpoll()");
+        return -1;
+    }
+
+    if (addSocketEpoll(*listenfd) < 0)
+    {
+        printLog("addSocketEpoll()");
+        return -1;
+    }
+    return 0;
+}
+int runChattingServer(int listenfd)
+{
     struct epoll_event arr_return_event[MAX_CLIENT];
 
     int sockfd;
@@ -331,39 +343,9 @@ int mainChattingServer()
     socket_info *p_socket_info;
 
 
-    if (initPath() != 0)
-    {
-        printLog("initPath()");
-        return -1;
-    }
-
-    if (initListenfd(&listenfd, PORT) != 0)
-    {
-        printLog("initListenfd()");
-        return -1;
-    }
-
-    if (initEpoll(&epollfd) != 0)
-    {
-        printLog("initEpoll()");
-        return -1;
-    }
-
-    if (initRoomInfoArr() != 0)
-    {
-        printLog("initRoomInfoArr()");
-        return -1;
-    }
-
-    if (addSocketEpoll(epollfd, listenfd) != 0)
-    {
-        printLog("addSocketEpoll()");
-        return -1;
-    }
-
     while (1)
     {
-        cnt_return_event = epoll_wait(epollfd, arr_return_event, MAX_CLIENT, -1);
+        cnt_return_event = epoll_wait(g_epollfd, arr_return_event, MAX_CLIENT, -1);
         if (cnt_return_event < 0)
         {
             printLog("epoll_wait()");
@@ -381,7 +363,7 @@ int mainChattingServer()
                     printLog("accept()");
                     return -1;
                 }
-                if (addSocketEpoll(epollfd, sockfd) != 0)
+                if (addSocketEpoll(sockfd) < 0)
                 {
                     printLog("addSocketEpoll()");
                     return -1;
@@ -389,14 +371,29 @@ int mainChattingServer()
                 printLog("accept sock(%d)", sockfd);
             }
             else {
-                if (recvProcessing(epollfd, p_socket_info) != 0)
+                if (recvProcessing(p_socket_info) < 0)
                 {
                     printLog("recvProcessing()");
                 }
             }
         }
     }
+    return 0;
+}
+int mainChattingServer()
+{
+    int listenfd;
+    if(initChattingServer(&listenfd) < 0)
+    {
+        printLog("initChattingServer()");
+        return -1;
+    }
 
+    if(runChattingServer(listenfd) < 0)
+    {
+        printLog("runChattingServer()");
+        return -1;   
+    }
     return 0;
 }
 
@@ -420,7 +417,7 @@ int initListenfd(int *listenfd, int port)
         printLog("socket()");
         return -1;
     }
-    if (reuse((*listenfd)) != 0)
+    if (reuse((*listenfd)) < 0)
     {
         printLog("reuse()");
         return -1;
@@ -437,7 +434,7 @@ int initListenfd(int *listenfd, int port)
         return -1;
     }
 
-    if (listen((*listenfd), SOMAXCONN) != 0)
+    if (listen((*listenfd), SOMAXCONN) < 0)
     {
         printLog("listen()");
         return -1;
@@ -445,18 +442,17 @@ int initListenfd(int *listenfd, int port)
 
     return 0;
 }
-int initEpoll(int *epollfd)
+int initEpoll()
 {
-    (*epollfd) = epoll_create(MAX_CLIENT);
-    if (!(*epollfd))
+    g_epollfd = epoll_create(MAX_CLIENT);
+    if (g_epollfd == 0)
     {
         printLog("epoll_create()");
         return -1;
     }
-
     return 0;
 }
-int addSocketEpoll(int epollfd, int sockfd)
+int addSocketEpoll(int sockfd)
 {
     struct epoll_event tmp_event;
 
@@ -472,13 +468,13 @@ int addSocketEpoll(int epollfd, int sockfd)
 
     tmp_event.events = EPOLLIN | EPOLLHUP;
     tmp_event.data.ptr = (void*)p_socket_info;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &tmp_event) < 0)
+    if (epoll_ctl(g_epollfd, EPOLL_CTL_ADD, sockfd, &tmp_event) < 0)
     {
         printLog("epoll_ctl(), adding sockfd");
         return -1;
     }
 
-    if (addSocketInfoArr(p_socket_info) != 0)
+    if (addSocketInfoArr(p_socket_info) < 0)
     {
         printLog("addSocketInfoArr()");
         return -1;
@@ -487,15 +483,15 @@ int addSocketEpoll(int epollfd, int sockfd)
     return 0;
 }
 
-int delSocketEpoll(int epollfd, socket_info *p_socket_info)
+int delSocketEpoll(socket_info *p_socket_info)
 {
-    if (epoll_ctl(epollfd, EPOLL_CTL_DEL, p_socket_info->sockfd, NULL) != 0)
+    if (epoll_ctl(g_epollfd, EPOLL_CTL_DEL, p_socket_info->sockfd, NULL) < 0)
     {
         printLog("epoll_ctl(), deleting sockfd");
         return -1;
     }
 
-    if (close(p_socket_info->sockfd) != 0)
+    if (close(p_socket_info->sockfd) < 0)
     {
         printLog("close()");
         return -1;
@@ -503,15 +499,9 @@ int delSocketEpoll(int epollfd, socket_info *p_socket_info)
 
     free(p_socket_info);
 
-    if (delSocketInfoArr(p_socket_info) != 0)
+    if (delSocketInfoArr(p_socket_info) < 0)
     {
         printLog("delSocketInfoArr()");
-        return -1;
-    }
-
-    if (delListSocketAllRoom(p_socket_info) != 0)
-    {
-        printLog("delListSocketAllRoom()");
         return -1;
     }
 
@@ -568,221 +558,89 @@ int findSocketInfoArr(const char *id, socket_info **p_socket_info_ret)
     return -1;
 }
 
-int initRoomInfoArr()
+int sendPacket(socket_info *p_socket_info, char *packet, int size_packet)
 {
-    int i;
-    for (i = 0; i < MAX_ROOM; i++)
+    int send_cnt = 0, retval;
+
+    while (send_cnt < size_packet)
     {
-        g_arr_room_info[i].status = ROOM_INFO_STATUS_NOT_EXIST;
-        g_arr_room_info[i].p_list_socket = NULL;
+        retval = send(p_socket_info->sockfd, packet + send_cnt, size_packet - send_cnt, 0);
+        if (retval <= 0)
+        {
+            printLog("send() sockfd = %d, send_cnt = %d, retval = %d, size_packet = %d", p_socket_info->sockfd, send_cnt, retval, size_packet);
+            if(delSocketEpoll(p_socket_info) < 0)
+            {
+                printLog("delSocketEpoll()");
+                return -1;
+            }
+            return -1;
+        }
+        send_cnt += retval;
+    }
+    viewSend(p_socket_info->sockfd, packet, size_packet);
+    return 0;
+}
+int sendFail(socket_info *p_socket_info, TYPE_CMD cmd)
+{
+    TYPE_CMD cmd_fail = CMD_FAIL;
+    char buffer_send[SIZE_BUFFER];
+    TYPE_PACKET_LENGTH size_send_packet = 0;
+
+    //cmd
+    memcpy(buffer_send + size_send_packet, &cmd, SIZE_CMD);
+    size_send_packet += SIZE_HEADER;
+
+    //cmd_fail
+    memcpy(buffer_send + size_send_packet, &cmd_fail, SIZE_CMD);
+    size_send_packet += SIZE_CMD;
+
+    //length
+    memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
+
+    // send packet
+    if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
+    {
+        printLog("sendPacket()");
+        return -1;
     }
 
-    if(dbSelectAllRoom(g_arr_room_info, MAX_ROOM) < 0)
+    return 0;
+}
+
+int spridePacket(TYPE_ROOM_NUMBER room_number, char *packet, TYPE_PACKET_LENGTH size_packet)
+{
+    char arr_id[1024][SIZE_ID];
+    int size_arr = 1024;
+    int count;
+
+    socket_info *p_socket_info_ret;
+
+    int i;
+
+    if((count = dbSelectUserInRoom(room_number, arr_id, size_arr)) < 0)
     {
-        printLog("dbSelectAllRoom()");
+        printLog("dbSelectUserInRoom()");
         return -2;
     }
 
-    return 0;
-}
-
-
-TYPE_ROOM_NUMBER addRoomInfoArr(socket_info *p_socket_info, char is_secret, char *subject)
-{
-    TYPE_ROOM_NUMBER room_number;
-    for (room_number = 0; room_number < MAX_ROOM; room_number++)
+    for(i = 0; i < count; i++)
     {
-        if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_NOT_EXIST)
-            break;
-    }
-
-    if (room_number >= MAX_ROOM)
-    {
-        printLog("room max");
-        return -1;
-    }
-
-    g_arr_room_info[room_number].room_number = room_number;
-    g_arr_room_info[room_number].status = is_secret;
-    memcpy(g_arr_room_info[room_number].subject, subject, SIZE_ROOM_SUBJECT);
-    g_arr_room_info[room_number].index_chatting_log = g_cnt_chatting_log++;
-    g_arr_room_info[room_number].count_member = 0;
-
-    if (is_secret == ROOM_INFO_STATUS_SECRET)
-    {
-        makeKey(g_arr_room_info[room_number].key);
-    }
-    else
-    {
-        memset(g_arr_room_info[room_number].key, 0, SIZE_SECRET_KEY);
-    }
-
-    return room_number;
-}
-
-int delRoomInfoArr(TYPE_ROOM_NUMBER room_number)
-{
-    if (room_number >= MAX_ROOM || room_number < 0)
-    {
-        printLog("invalid room number");
-        return -1;
-    }
-
-    if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_NOT_EXIST)
-    {
-        printLog("Already Not Existed Room Number");
-        return 0;
-    }
-
-    g_arr_room_info[room_number].status = ROOM_INFO_STATUS_NOT_EXIST;
-
-    if (delAllListSocketInRoom(room_number) != 0)
-    {
-        printLog("delAllListSocketInRoom()");
-        return -1;
-    }
-
-    return 0;
-}
-
-int delAllListSocketInRoom(TYPE_ROOM_NUMBER room_number)
-{
-    list_socket *prev_list_socket = g_arr_room_info[room_number].p_list_socket;
-    list_socket *cur_list_socket = NULL;
-
-    if (prev_list_socket == NULL)
-        return 0;
-
-    cur_list_socket = prev_list_socket->next;
-    while (cur_list_socket != NULL)
-    {
-        if (prev_list_socket != NULL)
-            free(prev_list_socket);
-
-        prev_list_socket = cur_list_socket;
-        cur_list_socket = cur_list_socket->next;
-    }
-
-    if (prev_list_socket != NULL)
-        free(prev_list_socket);
-
-    g_arr_room_info[room_number].p_list_socket = NULL;
-    return 0;
-}
-int addListSocketInRoom(int room_number, socket_info *p_socket_info)
-{
-    list_socket *cur_list_socket, *prev_list_socket;
-    list_socket *p_list_socket = (list_socket*)malloc(sizeof(list_socket));
-    if (p_list_socket == NULL)
-    {
-        printLog("malloc");
-        return -1;
-    }
-    p_list_socket->p_socket_info = p_socket_info;
-    p_list_socket->next = NULL;
-
-
-    if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_NOT_EXIST)
-        return -1;
-
-    prev_list_socket = NULL;
-    cur_list_socket = g_arr_room_info[room_number].p_list_socket;
-    while (cur_list_socket != NULL)
-    {
-        prev_list_socket = cur_list_socket;
-        cur_list_socket = cur_list_socket->next;
-    }
-
-    if (prev_list_socket == NULL)
-        g_arr_room_info[room_number].p_list_socket = p_list_socket;
-    else
-        prev_list_socket->next = p_list_socket;
-
-    g_arr_room_info[room_number].count_member++;
-
-    return 0;
-}
-int delListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_info)
-{
-    list_socket *prev_list_socket = NULL;
-    list_socket *cur_list_socket = g_arr_room_info[room_number].p_list_socket;
-
-
-    while (cur_list_socket != NULL)
-    {
-        if (memcmp(cur_list_socket->p_socket_info->id, p_socket_info->id, SIZE_ID) == 0)
+        if(findSocketInfoArr(arr_id[i], &p_socket_info_ret) < 0)
         {
-            if (prev_list_socket != NULL)
-                prev_list_socket->next = cur_list_socket->next;
-            else
-                g_arr_room_info[room_number].p_list_socket = cur_list_socket->next;
-
-            break;
+            printLog("findSocketInfoArr()");
+            continue;
         }
-        prev_list_socket = cur_list_socket;
-        cur_list_socket = cur_list_socket->next;
-    }
 
-    if (cur_list_socket != NULL)
-    {
-        free(cur_list_socket);
-    }
-    else
-    {
-        //printLog("Not Exist ListSocket To Delete");
-        return 0;
-    }
-
-    if (g_arr_room_info[room_number].p_list_socket == NULL)
-    {
-        if (delRoomInfoArr(room_number) != 0)
+        if(sendPacket(p_socket_info_ret, packet, size_packet) < 0)
         {
-            printLog("delRoomInfoArr()");
-            return -1;
+            printLog("sendPacket()");
+            continue;
         }
     }
-
-    g_arr_room_info[room_number].count_member--;
     return 0;
 }
-int delListSocketAllRoom(socket_info *p_socket_info)
-{
-    int i;
-    for (i = 0; i < MAX_ROOM; i++)
-    {
-        if (g_arr_room_info[i].status != ROOM_INFO_STATUS_NOT_EXIST)
-        {
-            delListSocketInRoom(i, p_socket_info);
-            /*
-            dbDeleteRoomUser(room_number, p_socket_info->id);
-            if (dbDeleteRoominfo(room_number) != 0)
-            {
-                printLog("dbDeleteRoominfo()");
-                return -2;
-            }
-            */
-        }
-    }
 
-    return 0;
-}
-int findListSocketInRoom(TYPE_ROOM_NUMBER room_number, socket_info *p_socket_info)
-{
-    list_socket *cur_list_socket = g_arr_room_info[room_number].p_list_socket;
-
-    while (cur_list_socket != NULL)
-    {
-        if (memcmp(cur_list_socket->p_socket_info->id, p_socket_info->id, SIZE_ID) == 0)
-        {
-            return 0;
-        }
-        cur_list_socket = cur_list_socket->next;
-    }
-    return 1;
-}
-
-
-int makeMessage(char *id, TYPE_ROOM_NUMBER room_number, char *message, int size_message, char *message_ret)
+int makeMessage(char *id, room_info *p_room, char *message, int size_message, char *message_ret)
 {
     int retval;
     time_t timer;
@@ -794,40 +652,24 @@ int makeMessage(char *id, TYPE_ROOM_NUMBER room_number, char *message, int size_
     timer = time(NULL);
     t = localtime(&timer);
 
-    if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_SECRET)
+    if (p_room->status == ROOM_INFO_STATUS_SECRET)
         p_buffer = buffer_plain;
 
     // make message template
-    retval = sprintf(p_buffer, "[%4d_%2d_%2d %2d:%2d:%2d] %s : ", t->tm_year + 1900, t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, id);
+    retval = sprintf(p_buffer, "[%04d_%02d_%02d %02d:%02d:%02d] %s : ", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, id);
     memcpy(p_buffer + retval, message, size_message);
     retval += size_message;
     p_buffer[retval++] = '\n';
     p_buffer[retval] = '\0';
 
     // check encrypt & encrypt
-    if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_SECRET)
-        retval = encryptBuffer(g_arr_room_info[room_number].key, p_buffer, retval, message_ret);
+    if (p_room->status == ROOM_INFO_STATUS_SECRET)
+        retval = encryptBuffer(p_room->key, p_buffer, retval, message_ret);
 
     return retval;
 }
 
-int spridePacket(TYPE_ROOM_NUMBER room_number, char *packet, TYPE_PACKET_LENGTH size_packet)
-{
-    list_socket *cur_list_socket;
-
-    cur_list_socket = g_arr_room_info[room_number].p_list_socket;
-    while (cur_list_socket != NULL)
-    {
-        if (sendPacket(cur_list_socket->p_socket_info, packet, size_packet) != 0)
-        {
-            printLog("sendPacket()");
-            return -1;
-        }
-        cur_list_socket = cur_list_socket->next;
-    }
-    return 0;
-}
-int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message, int size_message)
+int sprideChattingMessage(room_info *p_room, char *id, char *message, int size_message)
 {
     char packet[SIZE_BUFFER];
     char remake_message[SIZE_BUFFER];
@@ -846,11 +688,11 @@ int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message,
     length += SIZE_ID;
 
     // room number
-    memcpy(packet + length, &room_number, SIZE_ROOM_NUMBER);
+    memcpy(packet + length, &p_room->room_number, SIZE_ROOM_NUMBER);
     length += SIZE_ROOM_NUMBER;
 
     // message
-    size_remake_message = makeMessage(id, room_number, message, size_message, remake_message);
+    size_remake_message = makeMessage(id, p_room, message, size_message, remake_message);
     memcpy(packet + length, remake_message, size_remake_message);
     length += size_remake_message;
 
@@ -858,16 +700,16 @@ int sprideChattingMessage(TYPE_ROOM_NUMBER room_number, char *id, char *message,
     memcpy(packet + SIZE_CMD, &length, SIZE_PACKET_LENGTH);
 
     // send packet
-    if(spridePacket(room_number, packet, length) != 0)
+    if(spridePacket(p_room->room_number, packet, length) < 0)
     {
         printLog("spridePacket()");
         return -1;
     }
 
-    if (writeChattingLog(&g_arr_room_info[room_number], packet + SIZE_HEADER, remake_message, size_remake_message) != 0)
+    if (writeChattingLog(p_room, packet + SIZE_HEADER, remake_message, size_remake_message) < 0)
     {
         printLog("writeChattingLog()");
-        return -1;
+        return -3;
     }
     return 0;
 }
@@ -878,7 +720,7 @@ int cmdCreateId(socket_info *p_socket_info)
     char *buffer = p_socket_info->buffer;
     char *id = buffer + SIZE_HEADER;
 
-    if (dbInsertUserinfo(id) != 0)
+    if (dbInsertUserinfo(id) < 0)
     {
         printLog("dbInsertUserinfo()");
         return -2;
@@ -887,14 +729,13 @@ int cmdCreateId(socket_info *p_socket_info)
     memcpy(p_socket_info->id, id, SIZE_ID);
 
     // send packet
-    if (sendPacket(p_socket_info, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) != 0)
+    if (sendPacket(p_socket_info, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) < 0)
     {
         printLog("sendPacket()");
         return -1;
     }
     return 0;
 }
-
 int cmdCreateRoom(socket_info *p_socket_info)
 {
     char buffer_send[SIZE_BUFFER];
@@ -905,41 +746,32 @@ int cmdCreateRoom(socket_info *p_socket_info)
     char is_secret = *(id + SIZE_ID);
     char *room_subject = id + SIZE_ID + SIZE_ROOM_STATUS;
 
-    TYPE_ROOM_NUMBER room_number;
     int retval;
 
-    room_number = addRoomInfoArr(p_socket_info, is_secret, room_subject);
-    if (room_number < 0)
-    {
-        printLog("addRoomInfoArr()");
-        return -1;
-    }
-    if (addListSocketInRoom(room_number, p_socket_info))
-    {
-        printLog("addListSocketInRoom()");
-        return -1;
-    }
+    room_info room;
+    room.room_number = -1;
+    room.status = is_secret;
+    memcpy(room.subject, room_subject, SIZE_ROOM_SUBJECT);
+    room.count_member = 1;
+    if(room.status == ROOM_INFO_STATUS_SECRET)
+        makeKey(room.key);
 
-    if (dbInsertRoominfo(&g_arr_room_info[room_number]) != 0)
+    if (dbInsertRoominfo(&room) < 0)
     {
         printLog("dbInsertRoominfo()");
         return -2;
     }
-    if (dbInsertRoomUser(room_number, p_socket_info->id) != 0)
+    if (dbInsertRoomUser(room.room_number, p_socket_info->id) < 0)
     {
         printLog("dbInsertRoomUser()");
         return -2;
     }
     
-    
-    if (resetFile(&g_arr_room_info[room_number]) != 0)
+    if (resetFile(&room) < 0)
     {
         printLog("resetFile()");
-        return -1;
+        return -3;
     }
-
-    
-
     
     // S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY
     // make packet
@@ -948,19 +780,19 @@ int cmdCreateRoom(socket_info *p_socket_info)
     size_send_packet += SIZE_HEADER + SIZE_ID;
 
     // room number
-    memcpy(buffer_send + size_send_packet, &room_number, SIZE_ROOM_NUMBER);
+    memcpy(buffer_send + size_send_packet, &room.room_number, SIZE_ROOM_NUMBER);
     size_send_packet += SIZE_ROOM_NUMBER;
 
     // status
-    memcpy(buffer_send + size_send_packet, &g_arr_room_info[room_number].status, SIZE_ROOM_STATUS);
+    memcpy(buffer_send + size_send_packet, &room.status, SIZE_ROOM_STATUS);
     size_send_packet += SIZE_ROOM_STATUS;
 
     // subject
-    memcpy(buffer_send + size_send_packet, g_arr_room_info[room_number].subject, SIZE_ROOM_SUBJECT);
+    memcpy(buffer_send + size_send_packet, room.subject, SIZE_ROOM_SUBJECT);
     size_send_packet += SIZE_ROOM_SUBJECT;
 
     // secretKey
-    memcpy(buffer_send + size_send_packet, g_arr_room_info[room_number].key, SIZE_SECRET_KEY);
+    memcpy(buffer_send + size_send_packet, room.key, SIZE_SECRET_KEY);
     size_send_packet += SIZE_SECRET_KEY;
 
     // length
@@ -968,7 +800,7 @@ int cmdCreateRoom(socket_info *p_socket_info)
 
     
     // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
+    if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
     {
         printLog("sendPacket()");
         return -1;
@@ -978,13 +810,12 @@ int cmdCreateRoom(socket_info *p_socket_info)
     
     // send message packet
     retval = sprintf(buffer_send, "[%s is joined]", buffer + SIZE_HEADER);
-    if (sprideChattingMessage(room_number, buffer + SIZE_HEADER, buffer_send, retval) != 0)
+    if (sprideChattingMessage(&room, buffer + SIZE_HEADER, buffer_send, retval) < 0)
     {
         printLog("sprideChattingMessage()");
         return -1;
     }
 
-    
     return 0;
 }
 
@@ -997,15 +828,16 @@ int cmdEnterRoom(socket_info *p_socket_info)
     int cnt_send;
     int retval;
 
+    room_info room;
 
-    if (addListSocketInRoom(room_number, p_socket_info))
-    {
-        printLog("addListSocketInRoom()");
-        return -1;
-    }
-    if (dbInsertRoomUser(room_number, p_socket_info->id) != 0)
+    if (dbInsertRoomUser(room_number, p_socket_info->id) < 0)
     {
         printLog("dbInsertRoomUser()");
+        return -2;
+    }
+    if(dbSelectRoomOfRoomNumber(room_number, &room) < 0)
+    {
+        printLog("dbSelectRoomOfRoomNumber()");
         return -2;
     }
 
@@ -1015,26 +847,26 @@ int cmdEnterRoom(socket_info *p_socket_info)
     memcpy(buffer_send, buffer, cnt_send);
 
     // status
-    buffer_send[cnt_send] = g_arr_room_info[room_number].status;
+    buffer_send[cnt_send] = room.status;
     cnt_send++;
 
     // subject
-    memcpy(buffer_send + cnt_send, g_arr_room_info[room_number].subject, SIZE_ROOM_SUBJECT);
+    memcpy(buffer_send + cnt_send, room.subject, SIZE_ROOM_SUBJECT);
     cnt_send += SIZE_ROOM_SUBJECT;
 
     // secretKey
-    memcpy(buffer_send + cnt_send, g_arr_room_info[room_number].key, SIZE_SECRET_KEY);
+    memcpy(buffer_send + cnt_send, room.key, SIZE_SECRET_KEY);
     cnt_send += SIZE_SECRET_KEY;
 
     // count member
-    memcpy(buffer_send + cnt_send, &g_arr_room_info[room_number].count_member, sizeof(g_arr_room_info[room_number].count_member));
-    cnt_send += sizeof(g_arr_room_info[room_number].count_member);    
+    memcpy(buffer_send + cnt_send, &room.count_member, sizeof(room.count_member));
+    cnt_send += sizeof(room.count_member);    
 
     // length
     memcpy(buffer_send + SIZE_CMD, &cnt_send, SIZE_PACKET_LENGTH);
 
     // send packet EnterRoom
-    if(spridePacket(room_number, buffer_send, cnt_send) != 0)
+    if(spridePacket(room_number, buffer_send, cnt_send) < 0)
     {
         printLog("spridePacket()");
         return -1;
@@ -1042,7 +874,7 @@ int cmdEnterRoom(socket_info *p_socket_info)
 
     // send message packet
     retval = sprintf(buffer_send, "[%s is joined]", buffer + SIZE_HEADER);
-    if (sprideChattingMessage(room_number, buffer + SIZE_HEADER, buffer_send, retval) != 0)
+    if (sprideChattingMessage(&room, buffer + SIZE_HEADER, buffer_send, retval) < 0)
     {
         printLog("sprideChattingMessage()");
         return -1;
@@ -1058,52 +890,32 @@ int cmdLeaveRoom(socket_info *p_socket_info)
     char buffer_send[SIZE_BUFFER];
     int retval;
 
-    if (delListSocketInRoom(room_number, p_socket_info) != 0)
-    {
-        printLog("delListSocketInRoom()");
-        return -1;
-    }
-    dbDeleteRoomUser(room_number, p_socket_info->id);
-    if (dbDeleteRoominfo(room_number) != 0)
-    {
-        printLog("dbDeleteRoominfo()");
-        return -2;
-    }
+    room_info room;
 
     // send packet
-    if(spridePacket(room_number, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) != 0)
+    if(spridePacket(room_number, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) < 0)
     {
         printLog("spridePacket()");
         return -1;
     }
-    if (sendPacket(p_socket_info, buffer, *(TYPE_PACKET_LENGTH *)(buffer + SIZE_CMD)) != 0)
-    {
-        printLog("sendPacket()");
-        return -1;
-    }
 
-    // check count == 0
-    if (g_arr_room_info[room_number].p_list_socket == NULL)
+    if(dbSelectRoomOfRoomNumber(room_number, &room) < 0)
     {
-        if (delRoomInfoArr(room_number) != 0)
-        {
-            printLog("delRoomInfoArr()");
-            return -1;
-        }
-        if (dbDeleteRoominfo(room_number) != 0)
-        {
-            printLog("dbDeleteRoominfo()");
-            return -2;
-        }
-        return 0;
+        printLog("dbSelectRoomOfRoomNumber()");
+        return -2;
     }
-
     // send message packet
     retval = sprintf(buffer_send, "[%s is leaved]", buffer + SIZE_HEADER);
-    if (sprideChattingMessage(room_number, buffer + SIZE_HEADER, buffer_send, retval) != 0)
+    if (sprideChattingMessage(&room, buffer + SIZE_HEADER, buffer_send, retval) < 0)
     {
         printLog("sprideChattingMessage()");
         return -1;
+    }
+
+    if (dbDeleteRoomUser(room_number, p_socket_info->id) < 0)
+    {
+        printLog("dbDeleteRoominfo()");
+        return -2;
     }
     return 0;
 }
@@ -1119,16 +931,23 @@ int cmdViewRoom(socket_info *p_socket_info)
     int size_send_packet;
     int retval;
 
+    room_info room;
+    if(dbSelectRoomOfRoomNumber(room_number, &room) < 0)
+    {
+        printLog("dbSelectRoomOfRoomNumber()");
+        return -2;
+    }
+
     // make packet
     // cmd, id, room_number
     size_send_packet = SIZE_HEADER + SIZE_ID + SIZE_ROOM_NUMBER;
     memcpy(buffer_send, buffer, size_send_packet);
 
     // chatting log
-    if ((retval = readChattingLog(&g_arr_room_info[room_number], id, buffer_send + size_send_packet, (size_t)(SIZE_BUFFER - size_send_packet))) < 0)
+    if ((retval = readChattingLog(&room, id, buffer_send + size_send_packet, (size_t)(SIZE_BUFFER - size_send_packet))) < 0)
     {
         printLog("readChattingLog()");
-        return -1;
+        retval = 0;
     }
     size_send_packet += retval;
 
@@ -1136,7 +955,7 @@ int cmdViewRoom(socket_info *p_socket_info)
     memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
 
     // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
+    if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
     {
         printLog("sendPacket()");
         return -1;
@@ -1155,7 +974,9 @@ int cmdTotalRoomList(socket_info *p_socket_info)
 
     TYPE_ROOM_NUMBER i;
 
-    if((count_room = dbSelectAllRoom(g_arr_room_info, MAX_ROOM)) < 0)
+    room_info arr_room_info[MAX_ROOM];
+
+    if((count_room = dbSelectAllRoom(arr_room_info, MAX_ROOM)) < 0)
     {
         printLog("dbSelectAllRoom()");
         return -2;
@@ -1164,34 +985,38 @@ int cmdTotalRoomList(socket_info *p_socket_info)
     // make packet
     // cmd, id
     memcpy(buffer_send, buffer, SIZE_HEADER + SIZE_ID);
-    size_send_packet += SIZE_HEADER + SIZE_ID;
 
     // roomlist
-    for (i = 0; i < MAX_ROOM; i++)
+    for (i = 0; i < count_room; i++)
     {
-        if (g_arr_room_info[i].status != ROOM_INFO_STATUS_NORMAL)
+        size_send_packet = SIZE_HEADER + SIZE_ID;
+        if (arr_room_info[i].status != ROOM_INFO_STATUS_NORMAL)
             continue;
         // room number
-        memcpy(buffer_send + size_send_packet, &i, SIZE_ROOM_NUMBER);
+        memcpy(buffer_send + size_send_packet, &arr_room_info[i].room_number, SIZE_ROOM_NUMBER);
         size_send_packet += SIZE_ROOM_NUMBER;
 
         // room status
-        memcpy(buffer_send + size_send_packet, &(g_arr_room_info[i].status), SIZE_ROOM_STATUS);
+        memcpy(buffer_send + size_send_packet, &(arr_room_info[i].status), SIZE_ROOM_STATUS);
         size_send_packet += SIZE_ROOM_STATUS;
 
         // room subject
-        memcpy(buffer_send + size_send_packet, g_arr_room_info[i].subject, SIZE_ROOM_SUBJECT);
+        memcpy(buffer_send + size_send_packet, arr_room_info[i].subject, SIZE_ROOM_SUBJECT);
         size_send_packet += SIZE_ROOM_SUBJECT;
-    }
 
-    // length
-    memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
+        // count member
+        memcpy(buffer_send + size_send_packet, &arr_room_info[i].count_member, sizeof(arr_room_info[i].count_member));
+        size_send_packet += sizeof(arr_room_info[i].count_member);
 
-    // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
-    {
-        printLog("sendPacket()");
-        return -1;
+        // length
+        memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
+
+        // send packet
+        if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
+        {
+            printLog("sendPacket()");
+            return -1;
+        }
     }
 
     return 0;
@@ -1200,7 +1025,7 @@ int cmdTotalRoomList(socket_info *p_socket_info)
 int cmdMyRoomList(socket_info *p_socket_info)
 {
     char *buffer = p_socket_info->buffer;
-
+    char *id = buffer + SIZE_HEADER;
     char buffer_send[SIZE_BUFFER];
     int size_send_packet = 0;
 
@@ -1209,30 +1034,22 @@ int cmdMyRoomList(socket_info *p_socket_info)
     room_info arr_room_info[MAX_ROOM];
     int count_roominfo;
 
+    int retval = 0;
+
     if ((count_roominfo = dbSelectRoomOfUser(p_socket_info->id, arr_room_info, MAX_ROOM)) < 0)
     {
-        printLog("dbSelectUserInRoom()");
+        printLog("dbSelectRoomOfUser()");
         return -2;
-    }
-
-    // 새로 연결이 되었으니 link add
-    for (i = 0; i < count_roominfo; i++)
-    {
-        if(addListSocketInRoom(arr_room_info[i].room_number, p_socket_info) != 0)
-        {
-            printLog("addListSocketInRoom()");
-            return -1;
-        }
     }
 
     // make packet
     // cmd, id
     memcpy(buffer_send, buffer, SIZE_HEADER + SIZE_ID);
-    size_send_packet += SIZE_HEADER + SIZE_ID;
 
     // roomlist
     for (i = 0; i < count_roominfo; i++)
     {
+        size_send_packet = SIZE_HEADER + SIZE_ID;
         // room number
         memcpy(buffer_send + size_send_packet, &arr_room_info[i].room_number, SIZE_ROOM_NUMBER);
         size_send_packet += SIZE_ROOM_NUMBER;
@@ -1252,15 +1069,25 @@ int cmdMyRoomList(socket_info *p_socket_info)
         // count member
         memcpy(buffer_send + size_send_packet, &arr_room_info[i].count_member, sizeof(arr_room_info[i].count_member));
         size_send_packet += sizeof(arr_room_info[i].count_member);
-    }
-    // length
-    memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
 
-    // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
-    {
-        printLog("sendPacket()");
-        return -1;
+        // chatting log
+        if ((retval = readChattingLog(&arr_room_info[i], id, buffer_send + size_send_packet, (size_t)(SIZE_BUFFER - size_send_packet))) < 0)
+        {
+            printLog("readChattingLog()");
+            retval = 0;
+        }
+        size_send_packet += retval;
+
+        // length
+        memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
+
+        // send packet
+        if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
+        {
+            printLog("sendPacket()");
+            return -1;
+        }
+
     }
 
     return 0;
@@ -1279,23 +1106,29 @@ int cmdChattingMessage(socket_info *p_socket_info)
     char *message_send = message;
     int size_message_send = size_message;
 
-    if (g_arr_room_info[room_number].status == ROOM_INFO_STATUS_SECRET)
+    room_info room;
+    if(dbSelectRoomOfRoomNumber(room_number, &room) < 0)
     {
-        size_message_send = decryptBuffer(g_arr_room_info[room_number].key, message, size_message, buffer_plain);
+        printLog("dbSelectRoomOfRoomNumber()");
+        return -2;
+    }
+
+    if (room.status == ROOM_INFO_STATUS_SECRET)
+    {
+        size_message_send = decryptBuffer(room.key, message, size_message, buffer_plain);
         message_send = buffer_plain;
     }
 
-
     // send message packet
     if (sprideChattingMessage(
-        // room_number
-        room_number,
+        // ptr_room_info
+        &room,
         // id
         id,
         // message
         message_send,
         // size_message
-        size_message_send) != 0)
+        size_message_send) < 0)
     {
         printLog("sprideChattingMessage()");
         return -1;
@@ -1313,7 +1146,7 @@ int cmdInvite(socket_info *p_socket_info)
     char buffer_send[SIZE_BUFFER];
     TYPE_PACKET_LENGTH size_send_packet;
 
-    if(findSocketInfoArr(yourid, &p_socket_info_ret) != 0)
+    if(findSocketInfoArr(yourid, &p_socket_info_ret) < 0)
     {
         printLog("findSocketInfoArr()");
         return -1;
@@ -1328,7 +1161,7 @@ int cmdInvite(socket_info *p_socket_info)
     memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
 
     // send packet
-    if (sendPacket(p_socket_info, buffer_send, size_send_packet) != 0)
+    if (sendPacket(p_socket_info, buffer_send, size_send_packet) < 0)
     {
         printLog("sendPacket()");
         return -1;
@@ -1347,7 +1180,7 @@ int cmdInvite(socket_info *p_socket_info)
     memcpy(buffer_send + SIZE_CMD, &size_send_packet, SIZE_PACKET_LENGTH);
 
     // send packet
-    if (sendPacket(p_socket_info_ret, buffer_send, size_send_packet) != 0)
+    if (sendPacket(p_socket_info_ret, buffer_send, size_send_packet) < 0)
     {
         printLog("sendPacket()");
         return -1;
@@ -1356,8 +1189,7 @@ int cmdInvite(socket_info *p_socket_info)
 }
 /********************* end cmd Function ***************************/
 
-
-//////////////////////////////////////
+// daemon function
 int initDaemon()
 {
     pid_t pid;

@@ -23,11 +23,23 @@ TYPE_SECRET_KEY g_iv[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 /*************** Prototypes ***********************************************/
 
 /*************** Function *************************************************/
+/*
+void view(char *buffer, int size)
+{
+    int i;
 
+    for(i=0; i<size; i++)
+    {
+        printf("%c", *(buffer + i));
+    }
+    printf("\n");
+}
+*/
 void makeKey(TYPE_SECRET_KEY *key)
 {
     int i;
 
+    srand(time(NULL));
     for (i = 0; i < SIZE_SECRET_KEY; i++)
     {
         key[i] = rand() % MAX_TYPE_SECRET_KEY;
@@ -80,7 +92,6 @@ int decryptBuffer(TYPE_SECRET_KEY *key, char *buffer_cipher, int length_buffer_c
         key,
         // iv, keysize
         g_iv, 128);
-
     /*
     aesCtrEncryptBuffer(
     // output

@@ -24,8 +24,7 @@ MYSQL *g_connection = NULL;
 /*************** Prototypes ***********************************************/
 
 /*************** Function *************************************************/
-
-int viewAllTable()
+int _dbViewAllTable()
 {
     char query[SIZE_QUERY];
     int query_stat;
@@ -104,7 +103,14 @@ int viewAllTable()
     printf("---------------------------------------------------------------\n");
 
     mysql_free_result(sql_result);
-
+    
+    return 0;
+}
+int dbViewAllTable()
+{
+#ifdef VIEWTABLE
+    _dbViewAllTable();
+#endif // VIEWTABLE
     return 0;
 }
 int dbInsertUserinfo(char* id)
@@ -121,7 +127,7 @@ int dbInsertUserinfo(char* id)
         printLog("Mysql query error : %s\n", mysql_error(&g_conn));
         // return -2;
     }
-    return viewAllTable();
+    return dbViewAllTable();
 }
 
 int dbInsertRoominfo(room_info *p_room_info)
@@ -140,8 +146,10 @@ int dbInsertRoominfo(room_info *p_room_info)
         idx_string_key += sprintf(string_key + idx_string_key, "%02x", *(unsigned char *)(p_room_info->key + idx_key));
     string_key[idx_string_key] = '\0';
 
-    sprintf(query, "insert into roominfo (roominfo_number, roominfo_status, roominfo_subject, roominfo_key) value(%d, '%c', '%s', '%s')",
-                        p_room_info->room_number, p_room_info->status, p_room_info->subject, string_key);
+    // sprintf(query, "insert into roominfo (roominfo_number, roominfo_status, roominfo_subject, roominfo_key) value(%d, '%c', '%s', '%s')",
+    //                     p_room_info->room_number, p_room_info->status, p_room_info->subject, string_key);
+    sprintf(query, "insert into roominfo (roominfo_status, roominfo_subject, roominfo_key) value('%c', '%s', '%s')",
+                        p_room_info->status, p_room_info->subject, string_key);
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
     {
@@ -149,8 +157,11 @@ int dbInsertRoominfo(room_info *p_room_info)
         return -2;
     }
 
+    // room_number auto_increment load and save
+    p_room_info->room_number = mysql_insert_id(g_connection);
 
-    return viewAllTable();
+    dbViewAllTable();
+    return 0;
 }
 int dbDeleteRoominfo(TYPE_ROOM_NUMBER room_number)
 {
@@ -166,7 +177,7 @@ int dbDeleteRoominfo(TYPE_ROOM_NUMBER room_number)
         printLog("Mysql query error : %s\n", mysql_error(&g_conn));
         return -2;
     }
-    return viewAllTable();
+    return dbViewAllTable();
 }
 
 int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char*id)
@@ -183,7 +194,7 @@ int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char*id)
         printLog("Mysql query error : %s\n", mysql_error(&g_conn));
         return -2;
     }
-    return viewAllTable();
+    return dbViewAllTable();
 }
 int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char*id)
 {
@@ -199,7 +210,7 @@ int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char*id)
         printLog("Mysql query error : %s\n", mysql_error(&g_conn));
         return -2;
     }
-    return viewAllTable();
+    return dbViewAllTable();
 }
 
 
@@ -484,6 +495,37 @@ int dbCountUserInRoom(TYPE_ROOM_NUMBER room_number)
     return retval;
 }
 
+int dbCheckRoomUser(TYPE_ROOM_NUMBER room_number, char *id)
+{
+    char query[SIZE_QUERY];
+    int query_stat;
+    MYSQL_RES *sql_result;
+    MYSQL_ROW sql_row;
+
+    int count = 0;
+
+    sprintf(query, "select count(*) from roomuser where roominfo_number=%d and userinfo_id='%s'"
+                    , room_number, id);
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        printLog("Mysql query error : %s", mysql_error(&g_conn));
+        return -2;
+    }
+
+    sql_result = mysql_store_result(g_connection);
+    if(sql_result)
+    {
+        sql_row = mysql_fetch_row(sql_result);
+        count = atoi(sql_row[0]);
+    }
+    mysql_free_result(sql_result);
+
+    if(count == 0)
+        return -1;
+    else
+        return 0;
+}
 int dbOpen()
 {
     mysql_init(&g_conn);
@@ -507,15 +549,15 @@ int dbClose()
 }
 
 
-int dbCreateAllTable()
+int dbCreateAllTableIfNotExists()
 {
     char query[SIZE_QUERY];
     int query_stat;
 
     sprintf(query, 
-        "create table userinfo (    userinfo_id varchar(%d) NOT NULL, \
-                                    primary key (userinfo_id) \
-                                ) engine=InnoDB DEFAULT CHARSET=utf8",
+        "create table if not exists userinfo (  userinfo_id varchar(%d) NOT NULL, \
+                                                primary key (userinfo_id) \
+                                            ) engine=InnoDB DEFAULT CHARSET=utf8",
         SIZE_ID);
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
@@ -526,13 +568,13 @@ int dbCreateAllTable()
 
 
     sprintf(query, 
-        "create table roominfo (    roominfo_number bigint(%d) unsigned NOT NULL, \
-                                    roominfo_status varchar(1) NOT NULL, \
-                                    roominfo_subject varchar(%d) NOT NULL, \
-                                    roominfo_key varchar(%d) NOT NULL, \
-                                    roominfo_countmember bigint(10) NOT NULL default 0, \
-                                    primary key (roominfo_number) \
-                                ) engine=InnoDB DEFAULT CHARSET=utf8",
+        "create table if not exists roominfo (  roominfo_number bigint(%d) unsigned NOT NULL auto_increment, \
+                                                roominfo_status varchar(1) NOT NULL, \
+                                                roominfo_subject varchar(%d) NOT NULL, \
+                                                roominfo_key varchar(%d) NOT NULL, \
+                                                roominfo_countmember bigint(10) NOT NULL default 0, \
+                                                primary key (roominfo_number) \
+                                            ) engine=InnoDB DEFAULT CHARSET=utf8",
         SIZE_ROOM_NUMBER, SIZE_ROOM_SUBJECT, SIZE_SECRET_KEY * 2);
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
@@ -542,16 +584,16 @@ int dbCreateAllTable()
     }
 
     sprintf(query, 
-        "create table roomuser (    roominfo_number bigint(%d) unsigned NOT NULL, \
-                                    userinfo_id varchar(%d) NOT NULL, \
-                                    foreign key (roominfo_number) \
-                                        references roominfo (roominfo_number) \
-                                        on delete cascade, \
-                                    foreign key (userinfo_id) \
-                                        references userinfo (userinfo_id) \
-                                        on delete cascade, \
-                                    primary key (roominfo_number, userinfo_id) \
-                                ) engine=InnoDB DEFAULT CHARSET=utf8",
+        "create table if not exists roomuser (  roominfo_number bigint(%d) unsigned NOT NULL, \
+                                                userinfo_id varchar(%d) NOT NULL, \
+                                                foreign key (roominfo_number) \
+                                                    references roominfo (roominfo_number) \
+                                                    on delete cascade, \
+                                                foreign key (userinfo_id) \
+                                                    references userinfo (userinfo_id) \
+                                                    on delete cascade, \
+                                                primary key (roominfo_number, userinfo_id) \
+                                            ) engine=InnoDB DEFAULT CHARSET=utf8",
         SIZE_ROOM_NUMBER, SIZE_ID);
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
@@ -560,6 +602,14 @@ int dbCreateAllTable()
         return -2;
     }
 
+/////////////////////////trigger///////////////////////////
+    sprintf(query, "drop trigger if exists increase_member");
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        printLog("Mysql query error : %s\n", mysql_error(&g_conn));
+        return -2;
+    }
     sprintf(query,
         "create trigger increase_member after insert \
             on roomuser \
@@ -574,6 +624,13 @@ int dbCreateAllTable()
         return -2;
     }
 
+    sprintf(query, "drop trigger if exists decrease_member");
+    query_stat = mysql_query(g_connection, query);
+    if (query_stat != 0)
+    {
+        printLog("Mysql query error : %s\n", mysql_error(&g_conn));
+        return -2;
+    }
     sprintf(query,
         "create trigger decrease_member after delete \
             on roomuser \
@@ -589,7 +646,7 @@ int dbCreateAllTable()
         return -2;
     }
 
-    return viewAllTable();
+    return dbViewAllTable();
 }
 
 int dbDropAllTable()

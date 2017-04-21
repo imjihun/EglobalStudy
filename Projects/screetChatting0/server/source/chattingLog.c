@@ -36,17 +36,17 @@ int initPath()
 	bufsize = 16384;
 	buf = malloc(bufsize);
 	if (buf == NULL) {
-		perror("malloc");
+		printLog("malloc()");
 		return -1;
 	}
 
 	s = getpwuid_r(getuid(), &pwd, buf, bufsize, &result);
 	if (result == NULL) {
 		if (s == 0)
-		    printf("Not found\n");
+		    printLog("in initPath() Not found\n");
 		else {
 		    errno = s;
-		    perror("getpwnam_r");
+		    printLog("getpwnam_r()");
 		}
 		return -1;
 	}
@@ -65,6 +65,12 @@ int initPath()
 		}
 	}
 
+	return 0;
+}
+
+int setPath(char *path)
+{
+	sprintf(g_path_logdir, "%s", path);
 	return 0;
 }
 int viewList()
@@ -88,114 +94,101 @@ int viewList()
 	char buf[1024];
 	sprintf(buf, "ls %s", g_path_logdir);
 
-	printf("[list]%s =>\n", g_path_logdir);
+	printf("[list] [%s] =>\n", g_path_logdir);
 	system(buf);
 	return 0;
 }
-int viewFile(char* filename)
+
+int viewFile(TYPE_ROOM_NUMBER room_number)
 {
-	int i;
-	int size_filename;
 	FILE *fp;
-	char buf[SIZE_BUFFER];
-	char buf_plain[SIZE_BUFFER];
 	char filefullname[1024];
 	int retval = 0;
 
-	TYPE_ROOM_NUMBER room_number = 0;
-	TYPE_SECRET_KEY key[SIZE_SECRET_KEY];
+	room_info room;
 
-	size_filename = strlen(filename);
-	for(i = 0; i < size_filename; i++)
-	{
-		if(filename[i] == '_')
-		{
-			filename[i] = '\0';
-			room_number = atoi(filename);
-			i++;
-			break;
-		}
-	}
+	char buf[SIZE_BUFFER];
+	char buf_plain[SIZE_BUFFER];
 
-	sprintf(filefullname, "%s/%s_%s", g_path_logdir, filename, filename + i);
+	// get room info
+    if(dbOpen() != 0)
+    {
+		printLog("dbOpen() error\n");
+		return -1;
+    }
+	if(dbSelectRoomOfRoomNumber(room_number, &room) != 0)
+    {
+		printLog("dbSelectRoomOfRoomNumber() error\n");
+		return -1;
+    }
+	if(dbClose() != 0)
+    {
+		printLog("dbClose() error\n");
+		return -1;
+    }
+
+    // get file path
+	sprintf(filefullname, "%s/%09d.log", g_path_logdir, room_number);
+
+	// open file
 	fp = fopen(filefullname, "r");
 	if(fp == NULL)
 	{
-		printf("fopen() error\n");
+		printLog("fopen() error\n");
 		return -1;
 	}
 
 
-	printf("[view]%s =>\n", filefullname);
+	printf("[view] [%s] =>\n", filefullname);
 
-	// secret file
-	if(filename[i] == ROOM_INFO_STATUS_SECRET)
+	while((retval = fread(buf, 1, SIZE_BUFFER - 1, fp)) > 0)
 	{
-		if((retval = fread(buf, 1, SIZE_BUFFER - 1, fp)) < 1)
+		if(room.status == ROOM_INFO_STATUS_NORMAL)
 		{
-			printf("fread() error\n");
-			return -1;
+			// normal file
+			buf[retval] = '\0';
+			printf("%s", buf);
 		}
+		else if(room.status == ROOM_INFO_STATUS_SECRET)
+		{
+			// secret file
+		    retval = decryptBuffer(
+		        // key
+		        room.key,
+		        // input
+		        buf,
+		        // length_buffer
+		        retval,
+		        // output
+		        buf_plain);
 
-	    if(dbOpen() != 0)
-	    {
-			printf("dbOpen() error\n");
-			return -1;
-	    }
-		if(dbSelectKeyOfRoom(room_number, key) != 0)
-	    {
-			printf("dbSelectKeyOfRoom() error\n");
-			return -1;
-	    }
-		if(dbClose() != 0)
-	    {
-			printf("dbClose() error\n");
-			return -1;
-	    }
-
-	    retval = decryptBuffer(
-	        // key
-	        key,
-	        // input
-	        buf,
-	        // length_buffer
-	        retval,
-	        // output
-	        buf_plain);
-	    if(retval == -1)
-	    {
-			printf("decryptBuffer() error\n");
-			return -1;
-	    }
-		buf_plain[retval] = '\0';
-		printf("%s\n", buf_plain);
-		/*
-		for(i = 0; i < retval; i++)
-			printf("%2x", *(unsigned char *)(buf_plain + i));
-		printf("\n");
-		*/
-		return 0;
+		    if(retval == -1)
+		    {
+				printLog("decryptBuffer()\n");
+				return -1;
+		    }
+			buf_plain[retval] = '\0';
+			printf("%s\n", buf_plain);
+		}
 	}
-
-	// normal file
-	while((retval = fread(buf, 1, SIZE_BUFFER - 1, fp)) == SIZE_BUFFER -1)
-	{
-		buf[retval] = '\0';
-		printf("%s", buf);
-	}
-	buf[retval] = '\0';
-	printf("%s", buf);
 
 	return 0;
 }
 
+int removeAllFiles()
+{
+	char buf[1024];
+	sprintf(buf, "rm -rf %s", g_path_logdir);
+	system(buf);
+	return 0;
+}
 int resetFile(room_info *p_room_info)
 {
     FILE *fp;
     char file_path[256];
 
     //sprintf(file_name, "log/%d_%d_%c.txt", g_arr_room_info[room_number].index_chatting_log, room_number, g_arr_room_info[room_number].status);
-    sprintf(file_path, "%s/%d_%c.log", g_path_logdir, p_room_info->room_number, p_room_info->status);
+    sprintf(file_path, "%s/%09d.log", g_path_logdir, p_room_info->room_number);
 
     //realpath(file_name, file_path);
 
@@ -220,7 +213,7 @@ int writeChattingLog(room_info *p_room_info, char *id, char *message, size_t siz
     char file_path[256];
 
     //sprintf(file_name, "log/%d_%d_%c.txt", g_arr_room_info[room_number].index_chatting_log, room_number, g_arr_room_info[room_number].status);
-    sprintf(file_path, "%s/%d_%c.log", g_path_logdir, p_room_info->room_number, p_room_info->status);
+    sprintf(file_path, "%s/%09d.log", g_path_logdir, p_room_info->room_number);
 
     // realpath(file_name, file_path);
 
@@ -249,7 +242,7 @@ size_t readChattingLog(room_info *p_room_info, char *id, char *buffer_ret, size_
     size_t retval;
 
     //sprintf(file_name, "log/%d_%d_%c.txt", g_arr_room_info[room_number].index_chatting_log, room_number, g_arr_room_info[room_number].status);
-    sprintf(file_path, "%s/%d_%c.log", g_path_logdir, p_room_info->room_number, p_room_info->status);
+    sprintf(file_path, "%s/%09d.log", g_path_logdir, p_room_info->room_number);
 
     // realpath(file_name, file_path);
 

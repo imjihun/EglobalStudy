@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include "../../macroFile.h"
+#include "../../printLog/printLog.h"
 
 /*************** Assertions ***********************************************/
 
@@ -29,7 +30,7 @@
 #define DB_NAME "test"
 
 #define SIZE_QUERY  1024
-
+// #define VIEWTABLE
 /*************** Definitions / Macros *************************************/
 
 /*************** New Data Types *******************************************/
@@ -42,9 +43,10 @@
 
 int dbOpen();
 int dbClose();
-int dbCreateAllTable();
+int dbCreateAllTableIfNotExists();
 int dbDropAllTable();
-int viewAllTable();
+int _dbViewAllTable();
+int dbViewAllTable();
 
 int dbInsertUserinfo(char *id);
 int dbInsertRoominfo(room_info *p_room_info);
@@ -53,10 +55,12 @@ int dbInsertRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
 int dbDeleteRoomUser(TYPE_ROOM_NUMBER room_number, char *id);
 
 int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr);
-int dbSelectUserInRoom(int room_number, char** arr_id_ret, int size_arr_id);
+int dbSelectUserInRoom(int room_number, char (*arr_id_ret)[SIZE_ID], int size_arr_id);
 int dbSelectRoomOfUser(char *id, room_info *arr_room_info_ret, int size_arr);
+int dbSelectRoomOfRoomNumber(TYPE_ROOM_NUMBER room_number, room_info *p_room_info_ret);
 
 int dbSelectKeyOfRoom(TYPE_ROOM_NUMBER room_number, TYPE_SECRET_KEY *key);
+int dbCountUserInRoom(TYPE_ROOM_NUMBER room_number);
 #endif	/*_CONNECT_DB_H */
 /*************** END OF FILE **********************************************/
 

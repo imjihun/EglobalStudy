@@ -30,10 +30,13 @@
 #define MAX_TYPE_SECRET_KEY		(TYPE_SECRET_KEY)255
 /********************** end aes ************************/
 
-
+#define VALUE_SYSTEM_MESSAGE_PADDING	0
+#define SIZE_SYSTEM_MESSAGE_PADDING		1
 
 /***********************protocol***********************/
-/* CMD[2] : LENGTH[4] : DATA */
+/* 
+	CMD[2] : LENGTH[4] : DATA 
+*/
 
 #define TYPE_CMD					unsigned short
 #define SIZE_CMD					2
@@ -62,7 +65,7 @@
 #define MAX_ONCE_LOAD_CHATTING_LOG	1024
 #define SIZE_CHATTING_LOG			1024
 
-
+#define NOT_DEFINE_CMD				-500
 #define CMD_FAIL					10000
 
 /*
@@ -91,32 +94,38 @@
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : CHATTING_LOG
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER
 */
 #define CMD_VIEW_ROOM				50
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject]
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL :ROOM_NUMBER : STATUS : SUBJECT : COUNT_MEMBER
+	... room count ...
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL :ROOM_NUMBER : STATUS : SUBJECT : COUNT_MEMBER
 */
 #define CMD_TOTAL_ROOM_LIST			60
 
 /*
 	C->S # CMD[2] : LENGTH[4] : ID
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_LIST[room_number : status : subject : secretkey : count_member]
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY : COUNT_MEMBER : CHATTING_LOG
+	... room count ...
+	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : STATUS : SUBJECT : SECRETKEY : COUNT_MEMBER : CHATTING_LOG
 */
 #define CMD_MY_ROOM_LIST			70
 
 /*
-	C->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER : MESSAGE
-	S->C # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
+	C1->S # CMD[2] : LENGTH[4] : ID : ROOM_NUMBER : MESSAGE
+	S->C1 # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
+	... user count ...
+	S->Cn # CMD[2] : LENGTH[4] : ID or CMD_FAIL : ROOM_NUMBER : MESSAGE
 */
 #define CMD_CHATTING_MESSAGE		80
 
 /*
-	C->S # CMD[2] : LENGTH[4] : MYID : YOURID : ROOM_NUMBER
-	S->C # CMD[2] : LENGTH[4] : MYID or CMD_FAIL
-	S->C # CMD[2] : LENGTH[4] : YOURID or CMD_FAIL : ROOM_NUMBER
+	C1->S # CMD[2] : LENGTH[4] : MYID : YOURID : ROOM_NUMBER
+	S->C1 # CMD[2] : LENGTH[4] : MYID or CMD_FAIL
+	S->C2 # CMD[2] : LENGTH[4] : YOURID or CMD_FAIL : ROOM_NUMBER
 */
 #define CMD_INVITE					90
 
@@ -145,7 +154,6 @@ typedef struct _roominfo
 	TYPE_ROOM_NUMBER room_number;
     unsigned char status;
     char subject[SIZE_ROOM_SUBJECT];
-    list_socket *p_list_socket;
 
     TYPE_SECRET_KEY key[SIZE_SECRET_KEY];
     

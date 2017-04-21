@@ -44,8 +44,10 @@
 
 /*************** Prototypes ***********************************************/
 int initPath();
+int setPath(char *path);
 int viewList();
-int viewFile(char* filename);
+int viewFile(TYPE_ROOM_NUMBER room_number);
+int removeAllFiles();
 
 int resetFile(room_info *p_room_info);
 int writeChattingLog(room_info *p_room_info, char *id, char *message, size_t size_message);

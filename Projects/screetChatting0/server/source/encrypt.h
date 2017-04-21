@@ -16,6 +16,7 @@
 #include "../../macroFile.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 /*************** Assertions ***********************************************/
 
