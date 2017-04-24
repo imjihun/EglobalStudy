@@ -89,6 +89,8 @@ int viewPacket(char *packet);
 int viewRecv(int sockfd, char *packet);
 int viewSend(int sockfd, char *packet, int size_packet);
 
+/*************** Function *************************************************/
+
 int viewPacket(char *packet)
 {
     TYPE_PACKET_LENGTH size = *(TYPE_PACKET_LENGTH *)(packet + SIZE_CMD);
@@ -118,9 +120,6 @@ int viewRecv(int sockfd, char *packet)
     return viewPacket(packet);
     //return 0;
 }
-
-
-/*************** Function *************************************************/
 
 int main(int argc, char **argv)
 {
@@ -1240,15 +1239,15 @@ int initDaemon()
         return -1;
     }
     else if (pid > 0) {           /* parent */
-    _exit(0);
-}
+        _exit(0);
+    }
     /* child */
 
-stdin = freopen("/dev/null", "r", stdin);
-stdout = freopen("/dev/null", "w", stdout);
-stderr = freopen("/dev/null", "w", stderr);
+    stdin = freopen("/dev/null", "r", stdin);
+    stdout = freopen("/dev/null", "w", stdout);
+    stderr = freopen("/dev/null", "w", stderr);
 
-return 0;
+    return 0;
 }
 /*************** END OF FILE **********************************************/
 
