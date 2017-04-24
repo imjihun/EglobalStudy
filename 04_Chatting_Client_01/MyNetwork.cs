@@ -14,7 +14,7 @@ namespace _04_Chatting_Client_01
 	{
 		public static MyNetwork net = null;
 		
-		string IP = "192.168.1.14";
+		string IP = "192.168.233.128";
 		int PORT = 9000;
 		Socket m_sock;
 
@@ -391,8 +391,6 @@ namespace _04_Chatting_Client_01
 			{
 				DebugLog.debugLog("Recv(" + m_cnt_recv + ")", m_buffer_recv, size_packet);
 				UInt16 cmd = BitConverter.ToUInt16(m_buffer_recv, 0);
-				if (BitConverter.ToUInt16(m_buffer_recv, Macro.SIZE_HEADER) != Macro.CMD_FAIL)
-				{
 					switch (cmd)
 					{
 						case Macro.CMD_CREATE_ID:
@@ -426,13 +424,6 @@ namespace _04_Chatting_Client_01
 							restartNetwork();
 							break;
 					}
-				}
-				// dbfail packet processing
-				else
-				{
-					if (cmd == Macro.CMD_ENTER_ROOM || cmd == Macro.CMD_VIEW_ROOM)
-						UserData.ud.delMyRoom(BitConverter.ToInt32(m_buffer_recv, Macro.SIZE_HEADER + Macro.SIZE_CMD));
-				}
 
 				m_cnt_recv -= size_packet;
 				Array.Copy(m_buffer_recv, size_packet, m_buffer_recv, 0, m_cnt_recv);
@@ -494,6 +485,11 @@ namespace _04_Chatting_Client_01
 		}
 		private void cmdEnterRoom(byte[] packet, int size_packet)
 		{
+			if (BitConverter.ToUInt16(packet, Macro.SIZE_HEADER) == Macro.CMD_FAIL)
+			{
+				UserData.ud.delMyRoom(BitConverter.ToInt32(m_buffer_recv, Macro.SIZE_HEADER + Macro.SIZE_CMD));
+				return;
+			}
 			string id = Encoding.UTF8.GetString(packet, Macro.SIZE_HEADER, Macro.SIZE_ID);
 			int idx = Macro.SIZE_HEADER + Macro.SIZE_ID;
 			int room_number = BitConverter.ToInt32(packet, idx);
@@ -542,6 +538,11 @@ namespace _04_Chatting_Client_01
 		}
 		private void cmdViewRoom(byte[] packet, int size_packet)
 		{
+			if (BitConverter.ToUInt16(packet, Macro.SIZE_HEADER) == Macro.CMD_FAIL)
+			{
+				UserData.ud.delMyRoom(BitConverter.ToInt32(m_buffer_recv, Macro.SIZE_HEADER + Macro.SIZE_CMD));
+				return;
+			}
 			int room_number = BitConverter.ToInt32(packet, Macro.SIZE_HEADER + Macro.SIZE_ID);
 
 			MyRoom my_room = UserData.ud.findMyRoom(room_number);
@@ -596,6 +597,13 @@ namespace _04_Chatting_Client_01
 		}
 		private void cmdTotalRoomList(byte[] packet, int size_packet)
 		{
+			Console.WriteLine("cmdTotalRoomList()");
+			if (BitConverter.ToUInt16(packet, Macro.SIZE_HEADER) == Macro.CMD_FAIL)
+			{
+				UserData.ud.clearTotalRoom();
+				return;
+			}
+
 			int idx;
 			
 			int room_number;
@@ -607,6 +615,8 @@ namespace _04_Chatting_Client_01
 			//if(UserData.ud.count_total_room == 0)
 			//	UserData.ud.clearTotalRoom();
 			//while (idx < size_packet)
+			Console.WriteLine(idx + ", " + size_packet);
+			if (idx < size_packet)
 			{
 				// room number
 				room_number = BitConverter.ToInt32(m_buffer_recv, idx);
@@ -641,6 +651,7 @@ namespace _04_Chatting_Client_01
 			idx = Macro.SIZE_HEADER + Macro.SIZE_ID;
 
 			//while (idx < size_packet)
+			if(idx < size_packet)
 			{
 				// room number
 				room_number = BitConverter.ToInt32(m_buffer_recv, idx);

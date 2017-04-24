@@ -265,7 +265,7 @@ int dbSelectAllRoom(room_info *arr_room_info_ret, int size_arr)
 
     // printLog("\t\tcalled dbSelectAllRoom()\n");
 
-    sprintf(query, "select * from %s", "roominfo");
+    sprintf(query, "select * from %s where roominfo_status='N'", "roominfo");
     query_stat = mysql_query(g_connection, query);
     if (query_stat != 0)
     {

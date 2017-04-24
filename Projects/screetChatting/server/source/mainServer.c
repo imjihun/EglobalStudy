@@ -1003,6 +1003,11 @@ int cmdTotalRoomList(socket_info *p_socket_info)
         printLog("dbSelectAllRoom()");
         return -2;
     }
+    if(count_room == 0)
+    {
+        printLog("Not Exist Room");
+        return -10;   
+    }
 
     // make packet
     // cmd, id
