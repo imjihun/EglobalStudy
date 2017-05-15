@@ -21,7 +21,7 @@ namespace ConfigEditor_proj
 	}
 	class JsonController
 	{
-		public async static Task<string> Request_Json()
+		async static Task<string> Request_Json()
 		{
 			//string result = null;
 			//string url = "http://www.redmine.org/issues.json";
@@ -70,7 +70,7 @@ namespace ConfigEditor_proj
 
 		//	MainWindow.mWnd.IssueListView.ItemsSource = issues;
 		//}
-		public static void ParseJson(String json)
+		static void ParseJson(String json)
 		{
 			List<Issue> issues = new List<Issue>();
 
@@ -93,45 +93,22 @@ namespace ConfigEditor_proj
 		}
 
 
-		public static JObject parseJson(string json)
+		public static JToken parseJson(string json)
 		{
-			JObject obj = JObject.Parse(json);
-
-			Console.WriteLine(obj);
+			JToken obj = null;
+			try
+			{
+				obj = JToken.Parse(json);
+				Console.WriteLine(obj);
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
 
 			return obj;
-
-
-
-
-
-			//Dictionary<string, object> values = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-			//Console.WriteLine(values["type"]);
-			//Console.WriteLine(values["comm_option"]);
-
-			//Console.WriteLine((values["comm_option"] as JObject).Last);
-			//Console.WriteLine(values["type"].GetType());
-			//Console.WriteLine(values["comm_option"].GetType());
-
-			//object obj = values["comm_option"];
-			//Console.WriteLine(obj.GetType());
-
-			//// dynamic .net 4.0 이상 지원
-			//dynamic stuff = JObject.Parse(json);
-
-			//Console.WriteLine(stuff["type"]);
-			//Console.WriteLine(stuff["comm_option"]["sam_type"]);
-			//Console.WriteLine(stuff["type"].GetType());
-			//Console.WriteLine(stuff["comm_option"].GetType());
-			//Console.WriteLine(stuff["comm_option"]["sam_type"].GetType());
-
-
-			//Dictionary<string, object> values = new Dictionary<string, object>();
-			//values.Add("key1", "value1");
-			//values.Add("key2", "value2");
-
-			//string json2 = JsonConvert.SerializeObject(values);
-			//Console.WriteLine(json2);
 		}
+
+
 	}
 }

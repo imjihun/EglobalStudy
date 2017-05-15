@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace ConfigEditor_proj
@@ -20,12 +21,12 @@ namespace ConfigEditor_proj
 		{
 			public string path;
 			public string filename;
-			public JObject jobj;
+			public JToken jtoken;
 			public void Clear()
 			{
 				path = null;
 				filename = null;
-				jobj = null;
+				jtoken = null;
 			}
 		}
 		JSonFile cur_jsonfile = new JSonFile();
@@ -90,8 +91,8 @@ namespace ConfigEditor_proj
 
 			if(json != null)
 			{
-				cur_jsonfile.jobj = JsonController.parseJson(json);
-				addJsonItem(trvItem, cur_jsonfile.jobj, key_stack);
+				cur_jsonfile.jtoken = JsonController.parseJson(json);
+				addJsonItem(trvItem, cur_jsonfile.jtoken as JObject, key_stack);
 			}
 		}
 		void addJsonItem(TreeViewItem cur, JObject jobj, List<string> key_stack)
@@ -110,7 +111,7 @@ namespace ConfigEditor_proj
 					addJsonItem(newtrvitem, (JArray)property.Value, key_stack);
 				}
 				else
-				{
+				{					
 					addItemToJsonTree(cur, property.Name, property.Value.ToString(), key_stack);
 				}
 			}
@@ -134,51 +135,51 @@ namespace ConfigEditor_proj
 		TreeViewItem addTreeviewToJsonTree(TreeViewItem viewitem, string key, List<string> key_stack)
 		{
 			// 계층이 하나 생긴다.
-			StackPanel sp = new StackPanel();
-			sp.Orientation = Orientation.Horizontal;
-			viewitem.Items.Insert(viewitem.Items.Count - 1, sp);
-			
+			//Grid grd = new Grid();
+			//ColumnDefinition cldf0 = new ColumnDefinition();
+			//cldf0.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf0);
+
+			//ColumnDefinition cldf1 = new ColumnDefinition();
+			//cldf1.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf1);
+
+			//ColumnDefinition cldf2 = new ColumnDefinition();
+			//cldf2.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf2);
+
+			//viewitem.Items.Insert(viewitem.Items.Count - 1, grd);
+
+
 			TreeViewItem trvItem = new TreeViewItem();
-			trvItem.Header = key;
+			viewitem.Items.Insert(viewitem.Items.Count - 1, trvItem);
 			addButtonAddjson(trvItem, key_stack);
-			sp.Children.Add(trvItem);
 
-			addButtonDeletejson(sp, key_stack);
-
-			//viewitem.Items.Insert(viewitem.Items.Count - 1, trvItem);
+			StackPanel sp1 = new StackPanel();
+			sp1.Orientation = Orientation.Horizontal;
+			trvItem.Header = sp1;
+			
+			addKeyTextBox(sp1, key, key_stack);
+			addButtonDeletejson(sp1, key_stack);
 
 			// 새로운 스택이 쌓이는 구간
 			key_stack.Add(key);
 
 			return trvItem;
 		}
-		void addItemToJsonTree(TreeViewItem viewitem, string key, string data, List<string> key_stack)
+		void addKeyTextBox(Panel pan, string key, List<string> key_stack)
 		{
-			Grid grd = new Grid();
-			ColumnDefinition cldf0 = new ColumnDefinition();
-			cldf0.Width = new GridLength(1, GridUnitType.Star);
-			grd.ColumnDefinitions.Add(cldf0);
-
-			ColumnDefinition cldf1 = new ColumnDefinition();
-			cldf1.Width = new GridLength(1, GridUnitType.Star);
-			grd.ColumnDefinitions.Add(cldf1);
-
-			ColumnDefinition cldf2 = new ColumnDefinition();
-			cldf2.Width = new GridLength(1, GridUnitType.Star);
-			grd.ColumnDefinitions.Add(cldf2);
-
-			viewitem.Items.Insert(viewitem.Items.Count - 1, grd);
-
 			string[] arr = new string[key_stack.Count];
 			key_stack.CopyTo(arr);
 
 			TextBox tb_key = new TextBox();
 			tb_key.Text = key;
 			tb_key.Margin = new Thickness(5);
-			tb_key.IsEnabled = false;
+			tb_key.Width = 150;
+			//tb_key.IsEnabled = false;
 			tb_key.TextChanged += delegate (object sender, TextChangedEventArgs e)
 			{
-				JToken tmp = cur_jsonfile.jobj;
+				JToken tmp = cur_jsonfile.jtoken;
 				for(int i = 0; i < arr.Length; i++)
 				{
 					if(tmp is JObject)
@@ -188,21 +189,27 @@ namespace ConfigEditor_proj
 					else
 						break;
 				}
-				//Console.WriteLine(tmp);
-				Console.WriteLine(tmp[key]);
-				tmp[key] = tb_key.Text;
+				tmp[tb_key.Text] = tmp[key];
+				tmp[key].Parent.Remove();
+				//(tmp[key] as JProperty).Remove();
 
-				FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jobj.ToString());
+				FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jtoken.ToString());
 			};
-			grd.Children.Add(tb_key);
-			tb_key.SetValue(Grid.ColumnProperty, 0);
+			pan.Children.Add(tb_key);
+			//tb_key.SetValue(Grid.ColumnProperty, 0);
+		}
+		void addValueTextBox(Panel pan, string key, string data, List<string> key_stack)
+		{
+			string[] arr = new string[key_stack.Count];
+			key_stack.CopyTo(arr);
 
 			TextBox tb_value = new TextBox();
 			tb_value.Text = data;
 			tb_value.Margin = new Thickness(5);
+			tb_value.Width = 150;
 			tb_value.TextChanged += delegate (object sender, TextChangedEventArgs e)
 			{
-				JToken tmp = cur_jsonfile.jobj;
+				JToken tmp = cur_jsonfile.jtoken;
 				for(int i = 0; i < arr.Length; i++)
 				{
 					if(tmp is JObject)
@@ -213,14 +220,41 @@ namespace ConfigEditor_proj
 						break;
 				}
 				tmp[key] = tb_value.Text;
-				
-				FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jobj.ToString());
+
+				FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jtoken.ToString());
 			};
 			//tb_value.TextChanged += Tb_value_TextChanged;
-			grd.Children.Add(tb_value);
-			tb_value.SetValue(Grid.ColumnProperty, 1);
-			addButtonDeletejson(grd, key_stack);
+			pan.Children.Add(tb_value);
+			//tb_value.SetValue(Grid.ColumnProperty, 1);
 		}
+		void addItemToJsonTree(TreeViewItem viewitem, string key, string data, List<string> key_stack)
+		{
+			//Grid grd = new Grid();
+			//ColumnDefinition cldf0 = new ColumnDefinition();
+			//cldf0.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf0);
+
+			//ColumnDefinition cldf1 = new ColumnDefinition();
+			//cldf1.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf1);
+
+			//ColumnDefinition cldf2 = new ColumnDefinition();
+			//cldf2.Width = new GridLength(1, GridUnitType.Star);
+			//grd.ColumnDefinitions.Add(cldf2);
+			//viewitem.Items.Insert(viewitem.Items.Count - 1, grd);
+
+			StackPanel sp1 = new StackPanel();
+			viewitem.Items.Insert(viewitem.Items.Count - 1, sp1);
+			sp1.Orientation = Orientation.Horizontal;
+
+
+			addKeyTextBox(sp1, key, key_stack);
+
+			addValueTextBox(sp1, key, data, key_stack);
+
+			addButtonDeletejson(sp1, key_stack);
+		}
+
 		void addButtonAddjson(TreeViewItem viewitem, List<string> key_stack)
 		{
 			Button btn = new Button();
@@ -233,7 +267,8 @@ namespace ConfigEditor_proj
 			btn.HorizontalContentAlignment = HorizontalAlignment.Center;
 			btn.Click += delegate (object sender, RoutedEventArgs e)
 			{
-				new popup_AddJsonItem().ShowDialog();
+				addItemToJsonTree(viewitem, "", "", key_stack);
+				//new popup_AddJsonItem().ShowDialog();
 			};
 			viewitem.Items.Add(btn);
 		}
@@ -247,34 +282,48 @@ namespace ConfigEditor_proj
 			btn.Height = 20;
 			btn.VerticalContentAlignment = VerticalAlignment.Center;
 			btn.HorizontalContentAlignment = HorizontalAlignment.Center;
-			
+
+			string[] arr_key_stack = new string[key_stack.Count];
+			key_stack.CopyTo(arr_key_stack);
 			btn.Click += delegate (object sender, RoutedEventArgs e)
 			{
 				TreeViewItem parent = pan.Parent as TreeViewItem;
 				if(parent != null)
 				{
-					TextBox tb = pan.Children[0] as TextBox;
-					if(tb != null)
+					if(parent.Header == pan)
 					{
-						JToken tmp = cur_jsonfile.jobj;
-						for(int i = 0; i < key_stack.Count; i++)
-						{
-							if(tmp is JObject)
-								tmp = ((JObject)tmp).GetValue(key_stack[i]);
-							else if(tmp is JArray)
-								tmp = ((JArray)tmp)[Convert.ToInt16(key_stack[i])];
-							else
-								break;
-						}
-						tmp[tb.Text].Remove();
+						TreeViewItem grandparent = parent.Parent as TreeViewItem;
+						if(grandparent != null)
+							grandparent.Items.Remove(parent);
 					}
-
-					parent.Items.Remove(pan);
-					FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jobj.ToString());
+					else
+						parent.Items.Remove(pan);
 				}
+
+				JToken tmp = cur_jsonfile.jtoken;
+				for(int i = 0; i < arr_key_stack.Length; i++)
+				{
+					if(tmp is JObject)
+						tmp = ((JObject)tmp).GetValue(arr_key_stack[i]);
+					else if(tmp is JArray)
+						tmp = ((JArray)tmp)[Convert.ToInt16(arr_key_stack[i])];
+					else
+						break;
+				}
+				string key;
+				TextBox tb = pan.Children[0] as TextBox;
+				if(tb != null)
+				{
+					key = tb.Text;
+					JToken jt = tmp[key];
+					if(jt != null)
+						tmp[key].Parent.Remove();
+				}
+
+				FileContoller.write(cur_jsonfile.filename, cur_jsonfile.jtoken.ToString());
 			};
 			pan.Children.Add(btn);
-			btn.SetValue(Grid.ColumnProperty, 2);
+			//btn.SetValue(Grid.ColumnProperty, 2);
 		}
 
 	}

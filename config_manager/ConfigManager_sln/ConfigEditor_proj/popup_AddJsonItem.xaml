@@ -7,7 +7,72 @@
         mc:Ignorable="d"
         Title="popup_AddJsonItem" Height="100" Width="300"
         WindowStyle="None" ResizeMode="NoResize">
-    <Grid>
-        
-    </Grid>
+	<Window.Resources>
+		<BooleanToVisibilityConverter x:Key="MyBoolToVisibilityConverter"/>
+	</Window.Resources>
+	<Grid>
+		<Border Margin="10">
+			<Border.Effect>
+				<DropShadowEffect Color="Gray"
+                              Direction="270"
+                              BlurRadius="10"
+                              ShadowDepth="1" />
+			</Border.Effect>
+			<Grid Background="White" />
+		</Border>
+		<Grid Margin="10">
+			<RadioButton x:Name="radioButton_jvalue" GroupName="type" Content="jvalue"
+						 Margin="5,5,0,0"
+						 HorizontalAlignment="Left" VerticalAlignment="Top"/>
+			<RadioButton x:Name="radioButton_jobject" GroupName="type" Content="jobject" 
+						 Margin="70,5,0,0"
+						 HorizontalAlignment="Left" VerticalAlignment="Top"/>
+			<RadioButton x:Name="radioButton_jarray" GroupName="type" Content="jarray" 
+						 Margin="135,5,0,0"
+						 HorizontalAlignment="Left" VerticalAlignment="Top"/>
+
+
+			<Grid Visibility="{Binding ElementName=radioButton_jvalue, Path=IsChecked, Converter={StaticResource MyBoolToVisibilityConverter}}">
+				<TextBlock Text="key" FontSize="20" 
+								   VerticalAlignment="Center" HorizontalAlignment="Center"
+								   Margin="0, 0, 120, 0" Height="30" Width="100"
+								   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_key, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+				<TextBox x:Name="textBox_key" Background="{x:Null}"
+								 VerticalAlignment="Center" HorizontalAlignment="Center"
+								 Margin="0, 0, 120, 0" Width="100" Height="30" />
+
+				<TextBlock Text="value" FontSize="20" 
+								   VerticalAlignment="Center" HorizontalAlignment="Center"
+								   Margin="120, 0, 0, 0" Height="30" Width="100"
+								   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_value, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+				<TextBox x:Name="textBox_value" Background="{x:Null}"
+								 VerticalAlignment="Center" HorizontalAlignment="Center"
+								 Margin="120, 0, 0, 0" Width="100" Height="30" />
+			</Grid>
+		</Grid>
+		<!--<TabControl x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+			<TabItem Header="value">
+				<Grid>
+					<TextBlock Text="key" FontSize="20" 
+							   VerticalAlignment="Center" HorizontalAlignment="Center"
+							   Margin="0, 0, 120, 0" Height="30" Width="100"
+							   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_key, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+					<TextBox x:Name="textBox_key" Background="{x:Null}"
+							 VerticalAlignment="Center" HorizontalAlignment="Center"
+							 Margin="0, 0, 120, 0" Width="100" Height="30" />
+
+					<TextBlock Text="value" FontSize="20" 
+							   VerticalAlignment="Center" HorizontalAlignment="Center"
+							   Margin="120, 0, 0, 0" Height="30" Width="100"
+							   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_value, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+					<TextBox x:Name="textBox_value" Background="{x:Null}"
+							 VerticalAlignment="Center" HorizontalAlignment="Center"
+							 Margin="120, 0, 0, 0" Width="100" Height="30"/>
+				</Grid>
+			</TabItem>
+			<TabItem Header="TabItem">
+				<Grid Background="#FFE5E5E5"/>
+			</TabItem>
+		</TabControl>-->
+	</Grid>
 </Window>
