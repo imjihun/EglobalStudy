@@ -20,10 +20,18 @@
 					</Grid.RowDefinitions>
 
 					<Grid Grid.Column="0" Grid.Row="0" Grid.RowSpan="2">
-						<ListView x:Name="listView_json"></ListView>
+						<TextBox x:Name="tb_root_path"
+								 Margin="5,5,60,5" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="25"></TextBox>
+						<Button x:Name="btn_root_path" Content="path" Background="White"
+								Margin="5" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="25"></Button>
+						<TreeView x:Name="treeView_jsonfile"
+								  Margin="0,35,0,0"></TreeView>
 					</Grid>
 					<Grid Grid.Column="1" Grid.Row="0">
-						<Grid.ColumnDefinitions>
+
+						<TreeView x:Name="treeView_common_option" Margin="0,0,0,0">
+						</TreeView>
+						<!--<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="1*"/>
 							<ColumnDefinition Width="1*"/>
 							<ColumnDefinition Width="3*"/>
@@ -72,11 +80,14 @@
 						<TextBox x:Name="t3" Text="encode_type"
 								 Grid.Column="2"
 								 Height="25"
-								 Margin="0,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+								 Margin="0,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>-->
 					</Grid>
 					<Grid Grid.Column="1" Grid.Row="1">
 						<TreeView x:Name="treeView_json" Margin="0,0,0,0">
 						</TreeView>
+
+						<Button x:Name="btn_view_filew" Content="view" Background="White"
+								Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
 					</Grid>
 
 					<GridSplitter Background="Gray"

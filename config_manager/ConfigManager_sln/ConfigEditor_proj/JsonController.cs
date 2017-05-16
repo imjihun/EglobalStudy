@@ -92,7 +92,8 @@ namespace ConfigEditor_proj
 			//MainWindow.mWnd.IssueListView.ItemsSource = issues;
 		}
 
-
+		static string error_message = "";
+		public static string Error_message { get { return error_message; } }
 		public static JToken parseJson(string json)
 		{
 			JToken obj = null;
@@ -103,6 +104,7 @@ namespace ConfigEditor_proj
 			}
 			catch(Exception e)
 			{
+				error_message = e.Message;
 				Console.WriteLine(e.Message);
 			}
 

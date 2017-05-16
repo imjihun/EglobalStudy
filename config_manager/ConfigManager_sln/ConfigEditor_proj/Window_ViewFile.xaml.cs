@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,37 +15,34 @@ using System.Windows.Shapes;
 namespace ConfigEditor_proj
 {
 	/// <summary>
-	/// popup_AddJsonItem.xaml에 대한 상호 작용 논리
+	/// Window_ViewFile.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class popup_AddJsonItem : Window
+	public partial class Window_ViewFile : Window
 	{
-		public string key = "";
-		public JToken value = "";
-		public bool return_ok = false;
-		JToken[] value_type = new JToken[3];
-		public popup_AddJsonItem()
+		string path_file;
+		public Window_ViewFile(string str_file, string path)
 		{
 			InitializeComponent();
 
-			value_type[0] = new JValue("");
-			value_type[1] = new JObject();
-			value_type[2] = new JArray(new JObject());
+			tb_file.Text = str_file;
+			path_file = path;
 
 			btn_ok.Click += Btn_ok_Click;
 			btn_cancel.Click += Btn_cancel_Click;
-		}
 
+			string[] splited_path = path.Split('\\');
+			this.Title = splited_path[splited_path.Length - 1];
+		}
+		
 		private void Btn_ok_Click(object sender, RoutedEventArgs e)
 		{
-			key = textBox_key.Text;
-			value = value_type[comboBox_type.SelectedIndex];
-			return_ok = true;
+			FileContoller.write(path_file, tb_file.Text);
+			test3.m_wnd.refreshJsonItem();
 			this.Close();
 		}
 
 		private void Btn_cancel_Click(object sender, RoutedEventArgs e)
 		{
-			return_ok = false;
 			this.Close();
 		}
 	}
