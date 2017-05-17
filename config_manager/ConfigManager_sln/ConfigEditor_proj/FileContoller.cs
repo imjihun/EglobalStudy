@@ -54,5 +54,9 @@ namespace ConfigEditor_proj
 				Console.WriteLine(e.Message);
 			}
 		}
+		public static string[] loadFile(string path, string searchPattern)
+		{
+			return Directory.GetFiles(path, searchPattern);
+		}
 	}
 }
