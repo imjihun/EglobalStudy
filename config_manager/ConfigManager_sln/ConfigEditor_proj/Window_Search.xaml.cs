@@ -20,200 +20,274 @@ namespace ConfigEditor_proj
 	/// </summary>
 	public partial class Window_Search : Window
 	{
+		public string path_return = null;
+		public class DirTreeViewItem : TreeViewItem
+		{
+			public static string last_path = "";
+
+			public string path;
+			public DirTreeViewItem(string _path)
+			{
+				path = _path;
+				this.Header = _path;
+				
+				refreshChild();
+				this.IsExpanded = true;
+			}
+
+			protected override void OnSelected(RoutedEventArgs e)
+			{
+				DirTreeViewItem tvi;
+				//if(this.Items.Count > 0)
+				//{
+				//	tvi = this;
+				//}
+				//else//(this.Items.Count == 0)
+				//{
+				//	tvi = this.Parent as DirTreeViewItem;
+				//	if(tvi == null)
+				//		return;
+				//	m_wnd.setTextBox_name(this.Header.ToString());
+				//}
+				tvi = this;
+
+				last_path = tvi.path;
+				m_wnd.refreshListView_dir(tvi);
+			}
+			protected override void OnExpanded(RoutedEventArgs e)
+			{
+				base.OnExpanded(e);
+				refreshGrandChild();
+			}
+			private DirTreeViewItem(DirTreeViewItem tvi_parent, string _path)
+			{
+				path = _path;
+				string[] split = _path.Split('\\');
+				this.Header = split[split.Length - 1];
+				
+				tvi_parent.Items.Add(this);
+			}
+
+			public static string[] loadFile(string path)
+			{
+				DirectoryInfo d = new DirectoryInfo(path);
+				if(!d.Exists)
+					return null;
+				try
+				{
+					return Directory.GetFiles(path);
+				}
+				catch(Exception e)
+				{
+					Console.WriteLine(e.Message);
+					return null;
+				}
+			}
+
+			private void refreshChild()
+			{
+				this.unloadChild();
+				DirectoryInfo d = new DirectoryInfo(path);
+				if(!d.Exists)
+					return;
+
+				try
+				{
+					string[] arr_dir = Directory.GetDirectories(path);
+					for(int i = 0; i < arr_dir.Length; i++)
+					{
+						DirTreeViewItem child_tvi = new DirTreeViewItem(this, arr_dir[i]);
+					}
+				}
+				catch(Exception e)
+				{
+					Console.WriteLine("GetDirectories() = " + e.Message);
+					Console.WriteLine(path);
+					Console.WriteLine();
+
+					DirTreeViewItem parent_tvi = this.Parent as DirTreeViewItem;
+					if(parent_tvi == null)
+						return;
+					parent_tvi.Items.Remove(this);
+				}
+			}
+			private void refreshGrandChild()
+			{
+				this.unloadGrandChild();
+				for(int i = 0; i < this.Items.Count; i++)
+				{
+					DirTreeViewItem tvi_child = this.Items[i] as DirTreeViewItem;
+					if(tvi_child == null)
+						continue;
+
+					tvi_child.refreshChild();
+				}
+			}
+			private void unloadChild()
+			{
+				this.Items.Clear();
+			}
+			private void unloadGrandChild()
+			{
+				for(int i = 0; i < this.Items.Count; i++)
+				{
+					DirTreeViewItem tvi_child = this.Items[i] as DirTreeViewItem;
+					if(tvi_child == null)
+						continue;
+
+					tvi_child.unloadChild();
+				}
+			}
+		}
+		public static Window_Search m_wnd = null;
+		DirTreeViewItem root_tree;
+		
 		public Window_Search()
 		{
+			m_wnd = this;
 			InitializeComponent();
+
+			createDirTree();
+
+			button_save.Click += Button_save_Click;
+			button_cancel.Click += Button_cancel_Click;
+			listView_dir.SelectionChanged += ListView_dir_SelectionChanged;
+			listView_dir.MouseDoubleClick += ListView_dir_MouseDoubleClick;
 		}
-		//private void frmTreeView_Load(object sender, EventArgs e)
-		//{
-		//	//현재 사용자 정보 표시
-		//	System.Security.Principal.WindowsIdentity identity =
-		//		   System.Security.Principal.WindowsIdentity.GetCurrent();
-		//	lblLogin.Text = "현재 사용자 : " + identity.Name;
 
-		//	//컴퓨터 존재하는 드라이브 정보 검색하여 노트 추가하기
-		//	DriveInfo[] allDrives = DriveInfo.GetDrives();
 
-		//	foreach(DriveInfo dname in allDrives)
-		//	{
-		//		if(dname.DriveType == DriveType.Fixed)
-		//		{
-		//			if(dname.Name == @"C:\")
-		//			{
-		//				TreeNode rootNode = new TreeNode(dname.Name);
-		//				rootNode.ImageIndex = 0;
-		//				rootNode.SelectedImageIndex = 0;
-		//				treeView1.Nodes.Add(rootNode);
-		//				Fill(rootNode);
-		//			}
-		//			else
-		//			{
-		//				TreeNode rootNode = new TreeNode(dname.Name);
-		//				rootNode.ImageIndex = 1;
-		//				rootNode.SelectedImageIndex = 1;
-		//				treeView1.Nodes.Add(rootNode);
-		//				Fill(rootNode);
-		//			}
-		//		}
-		//	}
+		void clearListView_dir()
+		{
+			listView_dir.Items.Clear();
+		}
 
-		//	treeView1.Nodes[0].Expand();
+		public void refreshListView_dir(DirTreeViewItem tvi)
+		{
+			clearListView_dir();
+			
+			for(int i = 0; i < tvi.Items.Count; i++)
+			{
+				DirTreeViewItem child_tvi = tvi.Items[i] as DirTreeViewItem;
+				if(child_tvi == null)
+					continue;
 
-		//	//ListView 보기 속성 설정
-		//	listView1.View = View.Details;
+				listView_dir.Items.Add(new MyListItem() { Type = "dir", Name = child_tvi.Header.ToString() });
 
-		//	//ListView Details 속성을 위해서 헤더를 추가해줌
-		//	listView1.Columns.Add("이름", listView1.Width / 4, HorizontalAlignment.Left);
-		//	listView1.Columns.Add("수정한 날짜", listView1.Width / 4, HorizontalAlignment.Left);
-		//	listView1.Columns.Add("유형", listView1.Width / 4, HorizontalAlignment.Left);
-		//	listView1.Columns.Add("크기", listView1.Width / 4, HorizontalAlignment.Left);
+			}
+			string[] files = DirTreeViewItem.loadFile(tvi.path);
+			if(files == null)
+				return;
 
-		//	//행단위 선택가능
-		//	listView1.FullRowSelect = true;
-		//}
+			for(int i = 0; i < files.Length; i++)
+			{
+				string[] split = files[i].Split('\\');
+				listView_dir.Items.Add(new MyListItem() { Type = "file", Name = split[split.Length - 1]});
+			}
+		}
 
-		////트리노드에 디렉토리 정보 채우기
-		//private void Fill(TreeNode dirNode)
-		//{
-		//	try
-		//	{
-		//		DirectoryInfo dir = new DirectoryInfo(dirNode.FullPath);
-		//		foreach(DirectoryInfo dirItem in dir.GetDirectories())
-		//		{
-		//			// Add node for the directory.
-		//			TreeNode newNode = new TreeNode(dirItem.Name);
-		//			newNode.ImageIndex = 2;
-		//			newNode.SelectedImageIndex = 2;
-		//			dirNode.Nodes.Add(newNode);
-		//			newNode.Nodes.Add("*");
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		MessageBox.Show("에러 발생 : " + ex.Message);
-		//	}
-		//}
+		private void ListView_dir_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			ListView lv = sender as ListView;
+			if(lv == null)
+				return;
 
-		////트리노드가 확장되기 전에 발생하는 이벤트
-		//private void treeView1_BeforeExpand(object sender, TreeViewCancelEventArgs e)
-		//{
-		//	if(e.Node.Nodes[0].Text == "*")
-		//	{
-		//		e.Node.Nodes.Clear();
-		//		Fill(e.Node);
-		//	}
-		//}
+			if(lv.SelectedIndex < 0)
+				return;
 
-		////노드를 클릭하면 발생하는 이벤트
-		//private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-		//{
-		//	try
-		//	{
-		//		//기존의 파일 목록 제거
-		//		listView1.Items.Clear();
-		//		DirectoryInfo dir = new DirectoryInfo(e.Node.FullPath);
+			MyListItem item = lv.Items[lv.SelectedIndex] as MyListItem;
+			if(item == null)
+				return;
 
-		//		int DirectCount = 0;
-		//		//하부 디렉토리 보여주기
-		//		foreach(DirectoryInfo dirItem in dir.GetDirectories())
-		//		{
-		//			//하부 디렉토리가 존재할 경우 ListView에 추가
-		//			//ListViewItem 객체를 생성
-		//			ListViewItem lsvitem = new ListViewItem();
+			if(item.Type == "dir")
+				return;
+			textBox_name.Text = item.Name;
+		}
+		private void ListView_dir_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			ListView lv = sender as ListView;
+			if(lv == null)
+				return;
 
-		//			//생성된 ListViewItem 객체에 똑같은 이미지를 할당
-		//			lsvitem.ImageIndex = 2;
-		//			lsvitem.Text = dirItem.Name;
+			if(lv.SelectedIndex < 0)
+				return;
 
-		//			//아이템을 ListView(listView1)에 추가하기
-		//			listView1.Items.Add(lsvitem);
+			MyListItem item = lv.Items[lv.SelectedIndex] as MyListItem;
+			if(item == null)
+				return;
 
-		//			listView1.Items[DirectCount].SubItems.Add(dirItem.CreationTime.ToString());
-		//			listView1.Items[DirectCount].SubItems.Add("폴더");
-		//			listView1.Items[DirectCount].SubItems.Add(dirItem.GetFiles().Length.ToString() + " files");
-		//			DirectCount++;
-		//		}
+			if(item.Type == "dir")
+			{
+				;
+			}
+			//textBox_name.Text = item.Name;
+		}
 
-		//		//디렉토리의 존재하는 파일목록 보여주기
-		//		FileInfo[] fishow = dir.GetFiles();
-		//		int Count = 0;
-		//		foreach(FileInfo fri in fishow)
-		//		{
-		//			listView1.Items.Add(fri.Name);
-		//			if(fri.LastWriteTime.ToString() != null)
-		//			{
-		//				listView1.Items[Count].SubItems.Add(fri.LastWriteTime.ToString());
-		//			}
-		//			else
-		//			{
-		//				listView1.Items[Count].SubItems.Add(fri.CreationTime.ToString());
-		//			}
-		//			listView1.Items[Count].SubItems.Add(fri.Attributes.ToString());
-		//			listView1.Items[Count].SubItems.Add(fri.Length.ToString());
-		//			Count++;
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		MessageBox.Show("예외 발생 : " + ex.Message);
-		//	}
-		//	treeView1.Nodes[0].Expand();
+		public void setTextBox_name(string str)
+		{
+			textBox_name.Text = str;
+		}
 
-		//}
+		private void Button_save_Click(object sender, RoutedEventArgs e)
+		{
+			path_return = DirTreeViewItem.last_path + '\\' + textBox_name.Text;
+			FileInfo f = new FileInfo(path_return);
+			if(f.Exists)
+			{
+				MessageBoxResult mr = MessageBox.Show("파일이 이미 존재합니다\n 바꾸시겠습니까?", "파일 중복", MessageBoxButton.YesNoCancel);
+				if(mr != MessageBoxResult.Yes)
+					path_return = null;
+			}
+			this.Close();
+		}
 
-		//private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
-		//{
-		//	try
-		//	{
-		//		//기존의 파일 목록 제거
-		//		listView1.Items.Clear();
-		//		DirectoryInfo dir = new DirectoryInfo(listView1.SelectedItems[0].Text);
+		private void Button_cancel_Click(object sender, RoutedEventArgs e)
+		{
+			path_return = null;
+			this.Close();
+		}
+		
+		void createDirTree()
+		{
+			string path = Directory.GetDirectoryRoot(AppDomain.CurrentDomain.BaseDirectory);
+			//string path = AppDomain.CurrentDomain.BaseDirectory;
+			root_tree = new DirTreeViewItem(path);
+			treeView_dir.Items.Add(root_tree);
+			curPathOpen();
+		}
+		void curPathOpen()
+		{
+			string path = AppDomain.CurrentDomain.BaseDirectory;
 
-		//		int DirectCount = 0;
-		//		//하부 디렉토리 보여주기
-		//		foreach(DirectoryInfo dirItem in dir.GetDirectories())
-		//		{
-		//			//하부 디렉토리가 존재할 경우 ListView에 추가
-		//			//ListViewItem 객체를 생성
-		//			ListViewItem lsvitem = new ListViewItem();
+			string[] split = path.Split('\\');
 
-		//			//생성된 ListViewItem 객체에 똑같은 이미지를 할당
-		//			lsvitem.ImageIndex = 2;
-		//			lsvitem.Text = dirItem.Name;
+			DirTreeViewItem cur_tvi = root_tree;
+			DirTreeViewItem last_tvi = cur_tvi;
+			for(int i = 1; i < split.Length; i++)
+			{
+				if(cur_tvi == null)
+					break;
 
-		//			//아이템을 ListView(listView1)에 추가하기
-		//			listView1.Items.Add(lsvitem);
-		//			//listView1.Items.Add(dirItem.Name);
+				for(int j = 0; j < cur_tvi.Items.Count; j++)
+				{
+					DirTreeViewItem tvi = cur_tvi.Items[j] as DirTreeViewItem;
+					if(tvi == null)
+						continue;
 
-		//			listView1.Items[DirectCount].SubItems.Add(dirItem.CreationTime.ToString());
-		//			listView1.Items[DirectCount].SubItems.Add("폴더");
-		//			listView1.Items[DirectCount].SubItems.Add(dirItem.GetFiles().Length.ToString() + " files");
-		//			DirectCount++;
-		//		}
-
-		//		//디렉토리의 존재하는 파일목록 보여주기
-		//		FileInfo[] fishow = dir.GetFiles();
-		//		int Count = 0;
-		//		foreach(FileInfo fri in fishow)
-		//		{
-		//			listView1.Items.Add(fri.Name);
-		//			if(fri.LastWriteTime.ToString() != null)
-		//			{
-		//				listView1.Items[Count].SubItems.Add(fri.LastWriteTime.ToString());
-		//			}
-		//			else
-		//			{
-		//				listView1.Items[Count].SubItems.Add(fri.CreationTime.ToString());
-		//			}
-		//			listView1.Items[Count].SubItems.Add(fri.Attributes.ToString());
-		//			listView1.Items[Count].SubItems.Add(fri.Length.ToString());
-		//			Count++;
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		MessageBox.Show("예외 발생 : " + ex.Message);
-		//	}
-		//}
+					if(tvi.Header.ToString() == split[i])
+					{
+						tvi.IsExpanded = true;
+						cur_tvi = tvi;
+						last_tvi = cur_tvi;
+						break;
+					}
+				}
+			}
+			last_tvi.IsSelected = true;
+		}
+	}
+	public class MyListItem
+	{
+		public string Type { get; set; }
+		public string Name { get; set; }
 	}
 }

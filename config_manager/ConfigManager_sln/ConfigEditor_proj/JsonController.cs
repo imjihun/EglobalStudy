@@ -23,7 +23,7 @@ namespace ConfigEditor_proj
 			try
 			{
 				obj = JToken.Parse(json);
-				Console.WriteLine(obj);
+				//Console.WriteLine(obj);
 			}
 			catch(Exception e)
 			{

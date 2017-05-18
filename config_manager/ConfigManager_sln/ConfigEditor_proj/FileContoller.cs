@@ -56,7 +56,18 @@ namespace ConfigEditor_proj
 		}
 		public static string[] loadFile(string path, string searchPattern)
 		{
-			return Directory.GetFiles(path, searchPattern);
+			DirectoryInfo d = new DirectoryInfo(path);
+			if(!d.Exists)
+				return null;
+			try
+			{
+				return Directory.GetFiles(path, searchPattern);
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e.Message);
+				return null;
+			}
 		}
 	}
 }

@@ -5,8 +5,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ConfigEditor_proj"
         mc:Ignorable="d"
-        Title="Window_Search" Height="300" Width="300">
-    <Grid>
-        
-    </Grid>
+        Title="Window_Search" Height="400" Width="600">
+	<Grid>
+		<Grid Margin="0,0,0,25">
+			<Grid Margin="5,5,5,5" HorizontalAlignment="Left" Width="150">
+				<TreeView x:Name="treeView_dir" >
+				</TreeView>
+			</Grid>
+			<Grid Margin="160,5,5,5">
+				<ListView x:Name="listView_dir" HorizontalAlignment="Stretch">
+					<ListView.View>
+						<GridView>
+							<GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
+							<GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="{Binding ActualWidth, ElementName=listView_dir, Mode=OneWay}"/>
+						</GridView>
+					</ListView.View>
+				</ListView>
+
+			</Grid>
+		</Grid>
+		<Grid Height="30" VerticalAlignment="Bottom">
+			<TextBox x:Name="textBox_name"
+					 Margin="5,5,95,5"/>
+			<Button x:Name="button_save" Content="save"
+					Margin="5,5,50,5" Width="40" HorizontalAlignment="Right"/>
+			<Button x:Name="button_cancel" Content="cancel"
+					Margin="5" Width="40" HorizontalAlignment="Right"/>
+		</Grid>
+	</Grid>
 </Window>
