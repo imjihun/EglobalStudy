@@ -19,30 +19,27 @@ namespace ConfigEditor_proj
 	/// </summary>
 	public partial class Window_ViewFile : Window
 	{
-		string path_file;
-		public Window_ViewFile(string str_file, string path)
+		public Window_ViewFile(string str_file, string filename)
 		{
 			InitializeComponent();
 
 			tb_file.Text = str_file;
-			path_file = path;
 
 			btn_ok.Click += Btn_ok_Click;
 			btn_cancel.Click += Btn_cancel_Click;
-
-			string[] splited_path = path.Split('\\');
-			this.Title = splited_path[splited_path.Length - 1];
+			
+			this.Title = filename;
 		}
 		
 		private void Btn_ok_Click(object sender, RoutedEventArgs e)
 		{
-			FileContoller.write(path_file, tb_file.Text);
-			test3.m_wnd.refreshJsonItem();
+			this.DialogResult = true;
 			this.Close();
 		}
 
 		private void Btn_cancel_Click(object sender, RoutedEventArgs e)
 		{
+			this.DialogResult = false;
 			this.Close();
 		}
 	}

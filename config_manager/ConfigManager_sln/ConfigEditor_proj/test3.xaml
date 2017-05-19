@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ConfigEditor_proj"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="700">
+        Title="MainWindow" Height="500" Width="700"
+		ToolBarTray.IsLocked="True">
 	<Grid>
 		<TabControl x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 			<TabItem Header="TabItem">
@@ -28,28 +29,95 @@
 								  Margin="0,0,0,0"></TreeView>
 					</Grid>
 					<Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="2">
-						<TabControl x:Name="tabControl_json"
+						<!--<TabControl x:Name="tabControl_json"
 							HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<TabItem Header="option">
 								<Grid>
+									<DockPanel LastChildFill="True">
+										<Menu DockPanel.Dock="Top" Background="White">
+											<MenuItem Header="_File">
+												<MenuItem Header="저장"/>
+												<MenuItem Header="다른이름으로 저장"/>
+											</MenuItem>
+										</Menu>
+										<ToolBarTray DockPanel.Dock="Top">
+											<ToolBar>
+												<Button Command="New" Content="Edit" />
+												<Button Command="Delete" Content="Delete" />
+												<Button Command="Refresh" Content="Refresh" />
+											</ToolBar>
+										</ToolBarTray>
+										<StatusBar Name="statusbar" DockPanel.Dock="Bottom">statusbar</StatusBar>
+										<Grid>
+											<TreeView x:Name="treeView_common_option" Margin="0,0,0,0">
+											</TreeView>
+										</Grid>
+									</DockPanel>
 									<TreeView x:Name="treeView_common_option" Margin="0,0,0,0">
 									</TreeView>
 								</Grid>
 							</TabItem>
 							<TabItem Header="detail">
 								<Grid >
-									<!--<Grid Grid.Column="1" Grid.Row="1">-->
-										<TreeView x:Name="treeView_json" Margin="0,0,0,0">
+									<TreeView x:Name="treeView_json" Margin="0,0,0,0">
+										<StackPanel/>
 									</TreeView>
 
-									<Button x:Name="btn_view_filew" Content="view" Background="White"
-								Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
-									<Button x:Name="btn_save_jtree" Content="save" Background="White"
-								Margin="20,20,80,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
+									<Button x:Name="btn_view_jsonfile" Content="view" Background="White"
+											Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
+									<Button x:Name="btn_save_jsonfile" Content="save" Background="White"
+											Margin="20,20,80,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
+									<Button x:Name="btn_save_other_jsonfile" Content="other save" Background="White"
+											Margin="20,20,140,20" Width="65" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
+									<Button x:Name="btn_open_jsonfile" Content="open" Background="White"
+											Margin="20,20,215,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
+									<Button x:Name="btn_new_jsonfile" Content="new" Background="White"
+											Margin="20,20,275,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
 								</Grid>
 
 							</TabItem>
-						</TabControl>
+						</TabControl>-->
+						<Grid >
+							<DockPanel>
+								<Menu DockPanel.Dock="Top">
+									<MenuItem Header="_File">
+										<MenuItem Header="_New" Click="Btn_new_jsonfile_Click"/>
+										<MenuItem Header="_Open" Click="Btn_open_jsonfile_Click"/>
+										<MenuItem Header="_Save" Click="Btn_save_jtree_Click"/>
+										<MenuItem Header="_다른이름으로 저장" Click="Btn_save_other_jsonfile_Click"/>
+									</MenuItem>
+									<MenuItem Header="_ViewFile" Click="Btn_view_filew_Click"/>
+								</Menu>
+								<Grid>
+									<TreeView x:Name="treeView_json" Margin="0,0,0,0">
+										<StackPanel/>
+									</TreeView>
+								</Grid>
+							</DockPanel>
+							<!--<Button x:Name="btn_view_jsonfile" Content="view" Background="White"
+									Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_view_filew_Click"></Button>
+							<Button x:Name="btn_save_jsonfile" Content="save" Background="White"
+									Margin="20,20,80,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_save_jtree_Click"></Button>
+							<Button x:Name="btn_save_other_jsonfile" Content="other save" Background="White"
+									Margin="20,20,140,20" Width="65" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_save_other_jsonfile_Click"></Button>
+							<Button x:Name="btn_open_jsonfile" Content="open" Background="White"
+									Margin="20,20,215,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_open_jsonfile_Click"></Button>
+							<Button x:Name="btn_new_jsonfile" Content="new" Background="White"
+									Margin="20,20,275,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_new_jsonfile_Click"></Button>-->
+
+
+							<Button x:Name="btn_cancel_jsonfile" Content="cancel" Background="White"
+									Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_cancel_jsonfile_Click"></Button>
+							<Button x:Name="btn_save_jsonfile" Content="save" Background="White"
+									Margin="20,20,80,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+									Click="Btn_save_jtree_Click"></Button>
+						</Grid>
 					</Grid>
 					
 

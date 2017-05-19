@@ -22,7 +22,6 @@ namespace ConfigEditor_proj
 	{
 		public string key = "";
 		public JToken value = "";
-		public bool return_ok = false;
 		JToken[] value_type = new JToken[3];
 		public popup_AddJsonItem()
 		{
@@ -40,13 +39,13 @@ namespace ConfigEditor_proj
 		{
 			key = textBox_key.Text;
 			value = value_type[comboBox_type.SelectedIndex];
-			return_ok = true;
+			this.DialogResult = true;
 			this.Close();
 		}
 
 		private void Btn_cancel_Click(object sender, RoutedEventArgs e)
 		{
-			return_ok = false;
+			this.DialogResult = false;
 			this.Close();
 		}
 	}

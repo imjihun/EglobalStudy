@@ -19,6 +19,8 @@ namespace ConfigEditor_proj
 		public static string Error_message { get { return error_message; } }
 		public static JToken parseJson(string json)
 		{
+			if(json == null)
+				return null;
 			JToken obj = null;
 			try
 			{

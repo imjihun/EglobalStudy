@@ -12,6 +12,9 @@ namespace ConfigEditor_proj
 		const int MAX_BUFFER = 4096;
 		public static string read(string path)
 		{
+			if(path == null)
+				return null;
+
 			StringBuilder ret_str = new StringBuilder("");
 			try
 			{
@@ -35,6 +38,8 @@ namespace ConfigEditor_proj
 		}
 		public static void write(string path, string str)
 		{
+			if(path == null || str == null)
+				return;
 			try
 			{
 				FileStream fs = new FileStream(path, FileMode.Create);
