@@ -29,6 +29,27 @@ namespace ConfigEditor_proj
 		{
 			public static JSonInfo current = null;
 			public string path;
+			public string Path
+			{
+				get { return path; }
+				set
+				{
+					path = value;
+
+					if(this.Jtree_root == null)
+						return;
+
+					Panel pan = this.Jtree_root.Header as Panel;
+					if(pan == null)
+						return;
+
+					TextBox tb = pan.Children[0] as TextBox;
+					if(tb == null)
+						return;
+
+					tb.Text = Filename;
+				}
+			}
 			private JToken jtok_root;
 			public JToken Jtok_root
 			{
@@ -62,7 +83,7 @@ namespace ConfigEditor_proj
 
 			public void Clear()
 			{
-				path = null;
+				Path = null;
 				Jtok_root = null;
 				Jtree_root = null;
 			}
@@ -71,9 +92,9 @@ namespace ConfigEditor_proj
 			{
 				get
 				{
-					if(path != null)
+					if(Path != null)
 					{
-						string[] split = path.Split('\\');
+						string[] split = Path.Split('\\');
 						return split[split.Length - 1];
 					}
 					return null;
@@ -136,7 +157,7 @@ namespace ConfigEditor_proj
 				return;
 			}
 			
-			JSonInfo.current.path = selected.path;
+			JSonInfo.current.Path = selected.path;
 			refreshJsonItem();
 			//refreshCommonOption();
 		}
@@ -179,7 +200,7 @@ namespace ConfigEditor_proj
 
 				tvi.Items.Add(child);
 			}
-			JSonInfo.current.path = ((tvi.Items.GetItemAt(0) as TreeViewItem).Header as PathTextBlock).path as string;
+			JSonInfo.current.Path = ((tvi.Items.GetItemAt(0) as TreeViewItem).Header as PathTextBlock).path as string;
 			refreshJsonItem();
 			//refreshCommonOption();
 
@@ -554,7 +575,7 @@ namespace ConfigEditor_proj
 
 		public void refreshJsonItem()
 		{
-			string json = FileContoller.read(JSonInfo.current.path);
+			string json = FileContoller.read(JSonInfo.current.Path);
 			string filename = JSonInfo.current.Filename;
 			// 삭제
 			treeView_json.Items.Clear();
@@ -827,26 +848,26 @@ namespace ConfigEditor_proj
 
 		private void Btn_view_filew_Click(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null || JSonInfo.current.path == null)
+			if(JSonInfo.current == null || JSonInfo.current.Path == null)
 				return;
 
-			Window_ViewFile w = new Window_ViewFile(FileContoller.read(JSonInfo.current.path), JSonInfo.current.path);
+			Window_ViewFile w = new Window_ViewFile(FileContoller.read(JSonInfo.current.Path), JSonInfo.current.Path);
 
 			if(w.ShowDialog() == true)
 			{
-				FileContoller.write(JSonInfo.current.path, w.tb_file.Text);
+				FileContoller.write(JSonInfo.current.Path, w.tb_file.Text);
 				refreshJsonItem();
 			}
 		}
 		private void Btn_save_jtree_Click(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null || JSonInfo.current.path == null)
+			if(JSonInfo.current == null || JSonInfo.current.Path == null)
 			{
 				Btn_save_other_jsonfile_Click(sender, e);
 				return;
 			}
 
-			FileInfo f = new FileInfo(JSonInfo.current.path);
+			FileInfo f = new FileInfo(JSonInfo.current.Path);
 			if(!f.Exists)
 			{
 				Btn_save_other_jsonfile_Click(sender, e);
@@ -854,7 +875,7 @@ namespace ConfigEditor_proj
 			}
 
 			JSonInfo.current.Jtok_root = convertToJToken(JSonInfo.current.Jtree_root);
-			FileContoller.write(JSonInfo.current.path, JSonInfo.current.Jtok_root.ToString());
+			FileContoller.write(JSonInfo.current.Path, JSonInfo.current.Jtok_root.ToString());
 		}
 		private void Btn_save_other_jsonfile_Click(object sender, RoutedEventArgs e)
 		{
@@ -863,9 +884,9 @@ namespace ConfigEditor_proj
 			sfd.InitialDirectory = root_path;
 			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			if(JSonInfo.current != null && JSonInfo.current.path != null)
+			if(JSonInfo.current != null && JSonInfo.current.Path != null)
 			{
-				string dir_path = JSonInfo.current.path.Substring(0, JSonInfo.current.path.LastIndexOf('\\') + 1);
+				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					sfd.InitialDirectory = dir_path;
@@ -876,7 +897,9 @@ namespace ConfigEditor_proj
 			{
 				//Console.WriteLine(sfd.FileName);
 				JSonInfo.current.Jtok_root = convertToJToken(JSonInfo.current.Jtree_root);
+				JSonInfo.current.Path = sfd.FileName;
 				FileContoller.write(sfd.FileName, JSonInfo.current.Jtok_root.ToString());
+				//refreshJsonItem();
 				//refreshJsonFile();
 			}
 		}
@@ -887,9 +910,9 @@ namespace ConfigEditor_proj
 			ofd.InitialDirectory = root_path;
 			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			if(JSonInfo.current != null && JSonInfo.current.path != null)
+			if(JSonInfo.current != null && JSonInfo.current.Path != null)
 			{
-				string dir_path = JSonInfo.current.path.Substring(0, JSonInfo.current.path.LastIndexOf('\\') + 1);
+				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					ofd.InitialDirectory = dir_path;
@@ -900,7 +923,7 @@ namespace ConfigEditor_proj
 			{
 				Console.WriteLine(ofd.FileName);
 				string json = FileContoller.read(ofd.FileName);
-				JSonInfo.current.path = ofd.FileName;
+				JSonInfo.current.Path = ofd.FileName;
 				string[] split = ofd.FileName.Split('\\');
 				refreshJsonItem();
 				//refreshJsonFile();
@@ -925,10 +948,10 @@ namespace ConfigEditor_proj
 		}
 		private void Btn_cancel_jsonfile_Click(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null || JSonInfo.current.path == null)
+			if(JSonInfo.current == null || JSonInfo.current.Path == null)
 				return;
 
-			string dir_path = JSonInfo.current.path.Substring(0, JSonInfo.current.path.LastIndexOf('\\') + 1);
+			string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
 			DirectoryInfo d = new DirectoryInfo(dir_path);
 			if(!d.Exists)
 				return;
