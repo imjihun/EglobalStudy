@@ -31,9 +31,9 @@ namespace ConfigEditor_proj
 		{
 			InitializeComponent();
 			this.Closed += Test3_Closed;
+			new JsonInfo(json_tree_view);
 		}
-
-
+		
 		private void Test3_Closed(object sender, EventArgs e)
 		{
 			Application.Current.Shutdown();
@@ -41,30 +41,28 @@ namespace ConfigEditor_proj
 
 		#region json tree
 
-		public void refreshJsonItem()
+		public void refreshJsonItem(JToken jtok_root)
 		{
-			string json = FileContoller.read(JSonInfo.current.Path);
-			string filename = JSonInfo.current.Filename;
 			// 삭제
 			json_tree_view.Items.Clear();
 
-			// 추가
-			JToken jtok_root;
-			jtok_root = JsonController.parseJson(json);
-			if(jtok_root != null)
-			{
-				JsonTreeViewItem.convertToTreeView(json_tree_view, jtok_root, filename);
-			}
-			else
-			{
-				jtok_root = new JObject();
-				JsonTreeViewItem.convertToTreeView(json_tree_view, jtok_root, filename);
-			}
+			// Root JToken 이 없을 때,
+			if(jtok_root == null)
+				return;
+
+			JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
+			KeyTextBox tb = new KeyTextBox(JsonInfo.current.Filename, false);
+			root_jtree.Header.Children.Insert(0, tb);
+			json_tree_view.Items.Add(root_jtree);
 		}
 
 
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
+			if(JsonInfo.current == null)
+				return;
+
+			JsonInfo.current.Clear();
 			//if(JSonInfo.current.IsModify_tree)
 			//{
 			//	MessageBoxResult mbr = MessageBox.Show("변경사항을 저장하겠습니까?", "저장", MessageBoxButton.YesNoCancel);
@@ -77,70 +75,77 @@ namespace ConfigEditor_proj
 			//			return;
 			//	}
 			//}
-			new JSonInfo();
-			refreshJsonItem();
+			//JsonInfo.current.Jtok_root = new JObject();
+			refreshJsonItem(new JObject());
 		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
-			new JSonInfo();
+			if(JsonInfo.current == null)
+				return;
+
+			JsonInfo.current.Clear();
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			ofd.InitialDirectory = root_path;
-			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			if(JSonInfo.current != null && JSonInfo.current.Path != null)
+			if(JsonInfo.current.Path != null)
 			{
-				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
+				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					ofd.InitialDirectory = dir_path;
 			}
 
+			// 파일 열기
 			ofd.Filter = "JSon Files (.json)|*.json";
 			if(ofd.ShowDialog(this) == true)
 			{
 				Console.WriteLine(ofd.FileName);
+
 				string json = FileContoller.read(ofd.FileName);
-				JSonInfo.current.Path = ofd.FileName;
-				string[] split = ofd.FileName.Split('\\');
-				refreshJsonItem();
-				//refreshJsonFile();
+				refreshJsonItem(JsonController.parseJson(json));
+
+				JsonInfo.current.Path = ofd.FileName;
 			}
 		}
 		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null)
+			if(JsonInfo.current == null)
 				return;
 
-			if(JSonInfo.current.Path == null)
+			if(JsonInfo.current.Path == null)
 			{
 				OnClickButtonOtherSaveJsonFile(sender, e);
 				return;
 			}
 
-			FileInfo f = new FileInfo(JSonInfo.current.Path);
+			FileInfo f = new FileInfo(JsonInfo.current.Path);
 			if(!f.Exists)
 			{
 				OnClickButtonOtherSaveJsonFile(sender, e);
 				return;
 			}
 
-			JSonInfo.current.Jtok_root = JsonTreeViewItem.convertToJToken(JSonInfo.current.Jtree_root);
-			FileContoller.write(JSonInfo.current.Path, JSonInfo.current.Jtok_root.ToString());
+			// root JsonTreeViewItem = TreeView.Items[0]
+			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			if(root == null)
+				return;
+
+			JToken Jtok_root = JsonTreeViewItem.convertToJToken(root);
+			FileContoller.write(JsonInfo.current.Path, Jtok_root.ToString());
 		}
 		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null)
+			if(JsonInfo.current == null)
 				return;
 
 			SaveFileDialog sfd = new SaveFileDialog();
 
 			sfd.InitialDirectory = root_path;
-			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			if(JSonInfo.current != null && JSonInfo.current.Path != null)
+			if(JsonInfo.current.Path != null)
 			{
-				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
+				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					sfd.InitialDirectory = dir_path;
@@ -149,45 +154,52 @@ namespace ConfigEditor_proj
 			sfd.Filter = "JSon Files (.json)|*.json";
 			if(sfd.ShowDialog(this) == true)
 			{
-				//Console.WriteLine(sfd.FileName);
-				JSonInfo.current.Jtok_root = JsonTreeViewItem.convertToJToken(JSonInfo.current.Jtree_root);
-				JSonInfo.current.Path = sfd.FileName;
-				FileContoller.write(sfd.FileName, JSonInfo.current.Jtok_root.ToString());
-				//refreshJsonItem();
-				//refreshJsonFile();
+				// root JsonTreeViewItem = TreeView.Items[0]
+				JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+				if(root == null)
+					return;
+
+				JToken Jtok_root = JsonTreeViewItem.convertToJToken(root);
+				FileContoller.write(sfd.FileName, Jtok_root.ToString());
+				JsonInfo.current.Path = sfd.FileName;
 			}
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null || JSonInfo.current.Path == null)
+			if(JsonInfo.current == null || JsonInfo.current.Path == null)
 				return;
 
-			Window_ViewFile w = new Window_ViewFile(FileContoller.read(JSonInfo.current.Path), JSonInfo.current.Path);
+			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			if(root == null)
+				return;
+
+			Window_ViewFile w = new Window_ViewFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonInfo.current.Path);
+			//Window_ViewFile w = new Window_ViewFile(FileContoller.read(JsonInfo.current.Path), JsonInfo.current.Path);
 
 			if(w.ShowDialog() == true)
 			{
-				FileContoller.write(JSonInfo.current.Path, w.tb_file.Text);
-				refreshJsonItem();
+				refreshJsonItem(JsonController.parseJson(w.tb_file.Text));
 			}
 		}
 		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JSonInfo.current == null || JSonInfo.current.Path == null)
+			if(JsonInfo.current == null || JsonInfo.current.Path == null)
 				return;
 
-			string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
+			string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
 			DirectoryInfo d = new DirectoryInfo(dir_path);
 			if(!d.Exists)
 				return;
 
-			refreshJsonItem();
+			string json = FileContoller.read(JsonInfo.current.path);
+			refreshJsonItem(JsonController.parseJson(json));
 		}
 
 		#endregion
 	}
-	class JSonInfo
+	class JsonInfo
 	{
-		public static JSonInfo current = null;
+		public static JsonInfo current = null;
 		public string path;
 		public string Path
 		{
@@ -196,56 +208,62 @@ namespace ConfigEditor_proj
 			{
 				path = value;
 
-				if(this.Jtree_root == null)
+				// filename = treeView.Items[0].Header.Children[0].Text
+				if(treeView == null)
 					return;
 
-				JsonTreeViewItemHeader pan = this.Jtree_root.Header as JsonTreeViewItemHeader;
-				if(pan == null)
+				if(treeView.Items.Count < 1)
 					return;
 
-				JsonTextBox tb = pan.Children[0] as JsonTextBox;
+				JsonTreeViewItem tvi = treeView.Items[0] as JsonTreeViewItem;
+				if(tvi == null)
+					return;
+
+				JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
 				if(tb == null)
 					return;
 
 				tb.Text = Filename;
 			}
 		}
-		private JToken jtok_root;
-		public JToken Jtok_root
-		{
-			get { return jtok_root; }
-			set
-			{
-				jtok_root = value;
-				isModify_jtok = true;
-			}
-		}
-		private bool isModify_jtok = false;
-		public bool IsModify_jtok { get { return isModify_jtok; } }
+		//private JToken jtok_root;
+		//public JToken Jtok_root
+		//{
+		//	get { return jtok_root; }
+		//	set
+		//	{
+		//		jtok_root = value;
+		//		isModify_jtok = true;
+		//	}
+		//}
+		//private bool isModify_jtok = false;
+		//public bool IsModify_jtok { get { return isModify_jtok; } }
 
-		private JsonTreeViewItem jtree_root;
-		public JsonTreeViewItem Jtree_root
-		{
-			get { return jtree_root; }
-			set
-			{
-				jtree_root = value;
-				isModify_tree = true;
-			}
-		}
-		private bool isModify_tree = false;
-		public bool IsModify_tree { get { return isModify_tree; } }
+		//private JsonTreeViewItem jtree_root;
+		//public JsonTreeViewItem Jtree_root
+		//{
+		//	get { return jtree_root; }
+		//	set
+		//	{
+		//		jtree_root = value;
+		//		isModify_tree = true;
+		//	}
+		//}
+		//private bool isModify_tree = false;
+		//public bool IsModify_tree { get { return isModify_tree; } }
 
-		public JSonInfo()
+		TreeView treeView = null;
+		public JsonInfo(TreeView tv)
 		{
 			current = this;
+			treeView = tv;
 		}
 
 		public void Clear()
 		{
 			Path = null;
-			Jtok_root = null;
-			Jtree_root = null;
+			//Jtok_root = null;
+			//Jtree_root = null;
 		}
 
 		public string Filename
@@ -276,7 +294,6 @@ namespace ConfigEditor_proj
 		// now
 		//        if(root)    -> JObject
 		//        else        ->JProperty
-		public JToken linked_jtoken = null;
 		//public JProperty linked_jtoken = null
 
 		JsonToggleButton button_more = null;
@@ -286,10 +303,8 @@ namespace ConfigEditor_proj
 		static int count_tvi;
 
 		// ItemsControl = TreeView 와 MyTreeViewItem 의 상위 클래스 ItemsControl.Items 요소만 쓴다.
-		public JsonTreeViewItem(JToken _linked_jtoken)
+		public JsonTreeViewItem()
 		{
-			linked_jtoken = _linked_jtoken;
-
 			this.Header = new JsonTreeViewItemHeader();
 			this.Name = "tvi_" + count_tvi++;
 			this.AllowDrop = true;
@@ -298,22 +313,20 @@ namespace ConfigEditor_proj
 
 		public void Remove()
 		{
-			//Console.WriteLine(linked_jtoken.Type);
 			JsonTreeViewItem parent_tvi;
 			parent_tvi = this.Parent as JsonTreeViewItem;
 			// this 가 루트이거나 다른 예외상황이면 삭제하지 않는다.
 			if(parent_tvi == null)
 				return;
 
-			// JArray 삭제시 인덱스 수정
-			parent_tvi.refreshIndex();
-
 			// Json Tree Remove
 			parent_tvi.Items.Remove(this);
-			// Json Token Remove
-			//this.linked_jtoken.Remove();
+
+			// JArray 삭제시 인덱스 수정
+			if(this.type == JsonType.JArray)
+				parent_tvi.refreshIndex();
 		}
-		
+
 		public int getCountChildProperty()
 		{
 			int cnt_property = 0;
@@ -413,7 +426,7 @@ namespace ConfigEditor_proj
 		#region code for moving MyTreeViewItem in screen
 		// 외부에서 수정 불가 이벤트로만 수정
 		static JsonTreeViewItem selected_tvi = null;
-		public static JsonTreeViewItem Selectred_tvi { get { return selected_tvi; } }
+		static JsonTreeViewItem Selectred_tvi { get { return selected_tvi; } }
 
 		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
 		{
@@ -507,25 +520,11 @@ namespace ConfigEditor_proj
 						|| (tvi_parent.type != JsonType.JArray && tvi_src_parent.type == JsonType.JArray))
 					return;
 
+				// 중복 체크
 				if(tvi_parent.type != JsonType.JArray && tvi_src_parent.type != JsonType.JArray
-					&& tvi_parent != tvi_src_parent)
-				{
-					// 추가할 지점에 중복 체크
-					KeyTextBox tb_src = tvi_src.Header.Children[0] as KeyTextBox;
-					for(int i = 0; i < tvi_parent.Items.Count; i++)
-					{
-						JsonTreeViewItem child_tvi = tvi_parent.Items[i] as JsonTreeViewItem;
-						if(child_tvi == null)
-							continue;
-						KeyTextBox tb = child_tvi.Header.Children[0] as KeyTextBox;
-						if(tb == null)
-							continue;
-
-						// 키 중복
-						if(tb.Text == tb_src.Text)
-							return;
-					}
-				}
+					&& tvi_parent != tvi_src_parent
+					&& tvi_parent.checkDuplication(tvi_src) < 0)
+					return;
 
 				// remove
 				bool ischecked_more_button = false;
@@ -544,30 +543,45 @@ namespace ConfigEditor_proj
 		#endregion
 
 		#region modify
-		public static void convertToTreeView(TreeView treeView, JToken jtok_root, string filename)
+		public static JsonTreeViewItem convertToTreeViewItem(JToken jtok_root)
 		{
 			if(jtok_root == null)
 			{
 				MessageBox.Show(JsonController.Error_message, "JSon Context Error");
-				return;
+				return null;
 			}
+			// object 로 시작.
+			JsonTreeViewItem jtree_root = new JsonTreeViewItem();
 
-			JsonTreeViewItem jtree_root;
-
-			List<string> key_stack = new List<string>();
-
-			jtree_root = new JsonTreeViewItem(jtok_root);
-			treeView.Items.Add(jtree_root);
-
-
-
-			KeyTextBox tb_key = new KeyTextBox(filename, false);
-			jtree_root.Header.AddItem(tb_key);
-
-			JSonInfo.current.Jtok_root = jtok_root;
-			JSonInfo.current.Jtree_root = jtree_root;
+			//JsonInfo.current.Jtok_root = jtok_root;
+			//JsonInfo.current.Jtree_root = jtree_root;
 			convertToTreeView_recursive(jtree_root, jtok_root);
+			return jtree_root;
 		}
+		//public static void convertToTreeViewItem(TreeView treeView, JToken jtok_root, string filename)
+		//{
+		//	if(jtok_root == null)
+		//	{
+		//		MessageBox.Show(JsonController.Error_message, "JSon Context Error");
+		//		return;
+		//	}
+
+		//	JsonTreeViewItem jtree_root;
+
+		//	List<string> key_stack = new List<string>();
+
+		//	jtree_root = new JsonTreeViewItem(jtok_root);
+		//	treeView.Items.Add(jtree_root);
+
+
+
+		//	KeyTextBox tb_key = new KeyTextBox(filename, false);
+		//	jtree_root.Header.AddItem(tb_key);
+
+		//	JSonInfo.current.Jtok_root = jtok_root;
+		//	JSonInfo.current.Jtree_root = jtree_root;
+		//	convertToTreeView_recursive(jtree_root, jtok_root);
+		//}
 		public static void convertToTreeView_recursive(JsonTreeViewItem parent_tvi, JToken jtok)
 		{
 			if(jtok == null)
@@ -589,7 +603,7 @@ namespace ConfigEditor_proj
 					return parent_tvi;
 				if(jobj.Parent != null && jobj.Parent is JArray)
 				{
-					JsonTreeViewItem child_tvi = new JsonTreeViewItem(jobj);
+					JsonTreeViewItem child_tvi = new JsonTreeViewItem();
 					parent_tvi.AddItem(child_tvi);
 					KeyTextBox tb_key = new KeyTextBox((jobj.Parent as JArray).IndexOf(jobj).ToString(), false);
 					child_tvi.Header.AddItem(tb_key);
@@ -605,7 +619,7 @@ namespace ConfigEditor_proj
 			else if(jtok is JProperty)
 			{
 				JProperty jprop = jtok as JProperty;
-				JsonTreeViewItem child_tvi = new JsonTreeViewItem(jprop);
+				JsonTreeViewItem child_tvi = new JsonTreeViewItem();
 				parent_tvi.AddItem(child_tvi);
 
 				KeyTextBox tb_key = new KeyTextBox(jprop.Name);
@@ -639,31 +653,37 @@ namespace ConfigEditor_proj
 			}
 		}
 
-		public void AddItem(UIElement item, int idx = -1)
+		int checkDuplication(JsonTreeViewItem add_tvi)
 		{
-			//JsonTreeViewItem add_tvi = item as JsonTreeViewItem;
-			//if(add_tvi != null)
-			//{
-			//	JsonTextBox add_tb = add_tvi.Header.Children[0] as JsonTextBox;
-			//	if(add_tb != null)
-			//	{
-			//		// 중복 비교
-			//		// JsonTreeViewItem.Header.children
-			//		for(int i = 0; i < this.Items.Count; i++)
-			//		{
-			//			JsonTreeViewItem tvi = this.Items[i] as JsonTreeViewItem;
-			//			if(tvi == null)
-			//				continue;
+			if(add_tvi == null)
+				return 1;
+			
+			JsonTextBox add_tb = add_tvi.Header.Children[0] as JsonTextBox;
+			if(add_tb == null)
+				return 1;
 
-			//			JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
-			//			if(tb == null)
-			//				continue;
-			//			// 키중복이면 삽입 x
-			//			if(tb.Text == add_tb.Text)
-			//				return;
-			//		}
-			//	}
-			//}
+			// 중복 비교
+			for(int i = 0; i < this.Items.Count; i++)
+			{
+				JsonTreeViewItem tvi = this.Items[i] as JsonTreeViewItem;
+				if(tvi == null)
+					continue;
+
+				JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
+				if(tb == null)
+					continue;
+				// 키중복이면 삽입 x
+				if(tb.Text == add_tb.Text)
+					return -1;
+			}
+			return 0;
+		}
+		public int AddItem(UIElement item, int idx = -1)
+		{
+			// 키중복 체크
+			if(checkDuplication(item as JsonTreeViewItem) < 0)
+				return -1;
+
 			if(idx > -1 && idx < this.Items.Count)
 				this.Items.Insert(idx, item);
 			else
@@ -675,7 +695,9 @@ namespace ConfigEditor_proj
 
 
 			// JArray 삽입시 인덱스 수정
-			refreshIndex();
+			if(this.type == JsonType.JArray)
+				refreshIndex();
+			return 0;
 		}
 		void refreshIndex()
 		{
@@ -730,7 +752,7 @@ namespace ConfigEditor_proj
 
 			return jtok_root;
 		}
-		public static void convertToJToken_recursive(JsonTreeViewItem tvi_cur, JObject jobj_cur)
+		static void convertToJToken_recursive(JsonTreeViewItem tvi_cur, JObject jobj_cur)
 		{
 			if(tvi_cur == null || jobj_cur == null)
 				return;
@@ -860,7 +882,7 @@ namespace ConfigEditor_proj
 
 			if(jtvi.type == JsonTreeViewItem.JsonType.JArray)
 			{
-				JsonTreeViewItem child_tvi = new JsonTreeViewItem(null);
+				JsonTreeViewItem child_tvi = new JsonTreeViewItem();
 				KeyTextBox tb_key = new KeyTextBox(jtvi.getCountChildProperty().ToString(), false);
 				child_tvi.Header.AddItem(tb_key);
 				KeyTextBox tb_type = new KeyTextBox("object", false);
@@ -880,20 +902,6 @@ namespace ConfigEditor_proj
 				// cancel return
 				if(popup.ShowDialog() != true)
 					return;
-
-				for(int i = 0; i < jtvi.Items.Count; i++)
-				{
-					JsonTreeViewItem child_tvi = jtvi.Items[i] as JsonTreeViewItem;
-					if(child_tvi == null)
-						continue;
-					KeyTextBox tb = child_tvi.Header.Children[0] as KeyTextBox;
-					if(tb == null)
-						continue;
-
-					// 키 중복
-					if(tb.Text == popup.key)
-						return;
-				}
 
 				JsonTreeViewItem.convertToTreeView_recursive(jtvi, new JProperty(popup.key, popup.value));
 			}
