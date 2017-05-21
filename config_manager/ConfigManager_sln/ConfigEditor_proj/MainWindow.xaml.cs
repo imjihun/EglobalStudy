@@ -257,7 +257,7 @@ namespace ConfigEditor_proj
 
 		void addButtonAddjson(TreeViewItem viewitem, List<string> key_stack)
 		{
-			Button btn = new Button();
+			System.Windows.Controls.Button btn = new System.Windows.Controls.Button();
 			btn.Content = '+';
 			btn.Background = Brushes.White;
 			btn.BorderBrush = Brushes.Black;
@@ -274,7 +274,7 @@ namespace ConfigEditor_proj
 		}
 		void addButtonDeletejson(Panel pan, List<string> key_stack)
 		{
-			Button btn = new Button();
+			System.Windows.Controls.Button btn = new System.Windows.Controls.Button();
 			btn.Content = '-';
 			btn.Background = Brushes.White;
 			btn.BorderBrush = Brushes.Black;

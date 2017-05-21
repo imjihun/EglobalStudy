@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Collections.Specialized;
 
 namespace ConfigEditor_proj
 {
@@ -25,101 +26,11 @@ namespace ConfigEditor_proj
 	/// </summary>
 	public partial class test3 : Window
 	{
-		public class JSonInfo
-		{
-			public static JSonInfo current = null;
-			public string path;
-			public string Path
-			{
-				get { return path; }
-				set
-				{
-					path = value;
-
-					if(this.Jtree_root == null)
-						return;
-
-					Panel pan = this.Jtree_root.Header as Panel;
-					if(pan == null)
-						return;
-
-					TextBox tb = pan.Children[0] as TextBox;
-					if(tb == null)
-						return;
-
-					tb.Text = Filename;
-				}
-			}
-			private JToken jtok_root;
-			public JToken Jtok_root
-			{
-				get {return jtok_root; }
-				set
-				{
-					jtok_root = value;
-					isModify_jtok = true;
-				}
-			}
-			private bool isModify_jtok = false;
-			public bool IsModify_jtok { get { return isModify_jtok; } }
-
-			private MyTreeViewItem jtree_root;
-			public MyTreeViewItem Jtree_root
-			{
-				get { return jtree_root; }
-				set
-				{
-					jtree_root = value;
-					isModify_tree = true;
-				}
-			}
-			private bool isModify_tree = false;
-			public bool IsModify_tree { get { return isModify_tree; } }
-
-			public JSonInfo()
-			{
-				current = this;
-			}
-
-			public void Clear()
-			{
-				Path = null;
-				Jtok_root = null;
-				Jtree_root = null;
-			}
-
-			public string Filename
-			{
-				get
-				{
-					if(Path != null)
-					{
-						string[] split = Path.Split('\\');
-						return split[split.Length - 1];
-					}
-					return null;
-				}
-			}
-		}
 		string root_path = AppDomain.CurrentDomain.BaseDirectory;
-		public static test3 m_wnd = null;
-		//JSonInfo cur_jsonfile = new JSonInfo();
 		public test3()
 		{
 			InitializeComponent();
-
-			//refreshJsonFile();
-
-			//treeView_jsonfile.SelectedItemChanged += TreeView_jsonfile_SelectedItemChanged;
-
-			tb_root_path.Text = root_path;
-			m_wnd = this;
-
-			//tabControl_json.SelectionChanged += TabControl_json_SelectionChanged;
-
 			this.Closed += Test3_Closed;
-			//convertToJToken(JsonInfo.current.jtree_root);
-			new JSonInfo();
 		}
 
 
@@ -128,783 +39,50 @@ namespace ConfigEditor_proj
 			Application.Current.Shutdown();
 		}
 
-		//private void TabControl_json_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		//{
-		//	switch(tabControl_json.SelectedIndex)
-		//	{
-		//		case 0:
-		//			refreshJsonItem();
-		//			//refreshCommonOption();
-		//			break;
-		//		case 1:
-		//			refreshJsonItem();
-		//			break;
-		//	}
-		//}
-		
-		
-		#region json file
-		private void TreeView_jsonfile_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-		{
-			TreeViewItem selected_tvi = treeView_jsonfile.SelectedItem as TreeViewItem;
-			if(selected_tvi == null)
-			{
-				return;
-			}
-			PathTextBlock  selected = selected_tvi.Header as PathTextBlock ;
-			if(selected == null)
-			{
-				return;
-			}
-			
-			JSonInfo.current.Path = selected.path;
-			refreshJsonItem();
-			//refreshCommonOption();
-		}
-		class PathTextBlock : TextBlock
-		{
-			public string path;
-			public PathTextBlock(string _path)
-			{
-				path = _path;
-			}
-		}
-		public void refreshJsonFile()
-		{
-			// 삭제
-			treeView_jsonfile.Items.Clear();
-			JSonInfo.current.Clear();
-
-			// 추가
-			//string[] files = Directory.GetFiles(@"D:\git\config_manager\ConfigManager_sln\ConfigEditor_proj\bin\Debug", "*.json");
-			// 현재 application이 실행되는 경로의 json 파일을 찾아라
-			string[] files = FileContoller.loadFile(root_path, "*.json");
-			if(files == null)
-				return;
-			string[] filepath_splited = root_path.Split('\\');
-
-			TreeViewItem tvi = new TreeViewItem();
-			tvi.Header = filepath_splited[filepath_splited.Length - 2];
-			tvi.IsExpanded = true;
-			treeView_jsonfile.Items.Add(tvi);
-
-			for(int i = 0; i < files.Length; i++)
-			{
-
-				string[] filename_splited = files[i].Split('\\');
-				PathTextBlock  tblock = new PathTextBlock (root_path + filename_splited[filename_splited.Length - 1]);
-				tblock.Text = filename_splited[filename_splited.Length - 1];
-
-				TreeViewItem child = new TreeViewItem();
-				child.Header = tblock;
-
-				tvi.Items.Add(child);
-			}
-			JSonInfo.current.Path = ((tvi.Items.GetItemAt(0) as TreeViewItem).Header as PathTextBlock).path as string;
-			refreshJsonItem();
-			//refreshCommonOption();
-
-			(tvi.Items.GetItemAt(0) as TreeViewItem).IsSelected = true;
-			//(tvi.Items.GetItemAt(0) as TreeViewItem).Focus();
-		}
-
-		#endregion
-
 		#region json tree
-		// class for JSonTree Linked JToken(JObject, JArray, JProperty)
-		public class MyTreeViewItem : TreeViewItem
-		{
-			// JObject, JArray, JProperty
-			// now
-			//        if(root)    -> JObject
-			//        else        ->JProperty
-			public JToken linked_jtoken = null;
-			//public JProperty linked_jtoken = null
-
-			ToggleButton button_more = null;
-			const int IDX_MOREBUTTON = 3;
-
-			public new StackPanel Header { get { return base.Header as StackPanel; } set { base.Header = value; } }
-			static int count_tvi;
-
-			// ItemsControl = TreeView 와 MyTreeViewItem 의 상위 클래스 ItemsControl.Items 요소만 쓴다.
-			public MyTreeViewItem(ItemsControl parent_tvi, JToken _linked_jtoken)
-			{
-				linked_jtoken = _linked_jtoken;
-				CreateHeader();
-
-				this.Name = "tvi_" + count_tvi++;
-				this.AllowDrop = true;
-				this.IsExpanded = true;
-
-
-				int idx_insert = parent_tvi.Items.Count;
-				while(idx_insert > 0 && (parent_tvi.Items[idx_insert - 1] is MyButton))
-					idx_insert--;
-				parent_tvi.Items.Insert(idx_insert, this);
-
-				MyTreeViewItem tvi = this.Parent as MyTreeViewItem;
-				if(tvi == null)
-					return;
-
-				tvi.refreshMoreButtonPlace();
-				//addMoreButton(parent_tvi as MyTreeViewItem);
-				if(tvi.button_more != null && tvi.button_more.IsChecked == false)
-				{
-					tvi.hideMore();
-				}
-			}
-
-			private void CreateHeader()
-			{
-				StackPanel sp = new StackPanel();
-				sp.Height = 30;
-				sp.Orientation = Orientation.Horizontal;
-				this.Header = sp;
-			}
-
-			public void Remove()
-			{
-				//Console.WriteLine(linked_jtoken.Type);
-				MyTreeViewItem parent_tvi;
-				parent_tvi = this.Parent as MyTreeViewItem;
-				// this 가 루트이거나 다른 예외상황이면 삭제하지 않는다.
-				if(parent_tvi == null)
-					return;
-
-				// JArray 삭제시 인덱스 수정
-				if(this.linked_jtoken.Parent is JArray)
-				{
-					for(int i = parent_tvi.Items.IndexOf(this) + 1, newidx = parent_tvi.Items.IndexOf(this); i < parent_tvi.Items.Count; i++)
-					{
-						MyTreeViewItem child_tvi = parent_tvi.Items[i] as MyTreeViewItem;
-						if(child_tvi == null)
-							continue;
-
-						// JArray 의 자식 TreeViewItem 은 헤더에 TextBox, Button 하나씩 들어있음.
-						foreach(var v in child_tvi.Header.Children)
-						{
-							TextBox tb = v as TextBox;
-							if(tb == null)
-								continue;
-
-							tb.Text = newidx.ToString();
-							break;
-						}
-
-						newidx++;
-					}
-				}
-
-				// Json Tree Remove
-				parent_tvi.Items.Remove(this);
-				parent_tvi.refreshMoreButtonPlace();
-				// Json Token Remove
-				this.linked_jtoken.Remove();
-			}
-			public delegate void MakeTree(MyTreeViewItem cur_tvi, JToken jtok);
-			public void Add(Button sender, MakeTree makeTree)
-			{
-				if(sender == null)
-					return;
-
-				JToken tmp = this.linked_jtoken;
-				// tmp == root 일때
-				if(tmp is JObject)
-					;
-				else
-				{
-					JProperty jprop = tmp as JProperty;
-					tmp = jprop.Value;
-				}
-				JToken add_jtok = null;
-				if(tmp is JArray)
-				{
-					JArray jarr = tmp as JArray;
-					// add Jtok_root
-					add_jtok = new JObject();
-					jarr.Add(add_jtok);
-				}
-				else if(tmp is JObject)
-				{
-					JObject jobj = tmp as JObject;
-					// window_addJson showdialog()
-					popup_AddJsonItem popup = new popup_AddJsonItem();
-					Point pt = sender.PointToScreen(new Point(0, 0));
-					popup.Left = pt.X;
-					popup.Top = pt.Y;
-
-					// cancel return
-					if(popup.ShowDialog() != true)
-						return;
-
-					foreach(JProperty v in jobj.Properties())
-					{
-						// 키 중복
-						if(v.Name == popup.key)
-							return;
-					}
-
-					// ok return & add Jtok_root
-					add_jtok = new JProperty(popup.key, popup.value);
-					jobj.Add(add_jtok);
-
-				}
-
-				// add to jtree_root
-				if(add_jtok != null)
-					makeTree(this, add_jtok);
-			}
-
-			protected override void OnExpanded(RoutedEventArgs e)
-			{
-				base.OnExpanded(e);
-				this.hideMore();
-			}
-
-			public int getCountChildProperty()
-			{
-				int cnt_property = 0;
-				for(int i = 0; i < this.Items.Count; i++)
-				{
-					if(this.Items[i] is MyTreeViewItem)
-						cnt_property++;
-				}
-				return cnt_property;
-			}
-			private void addMoreButton(MyTreeViewItem tvi)
-			{
-				if(tvi == null)
-					return;
-
-				// 루트의 자식들에는 버튼생성 하지 않는다.
-				if(!(tvi.Parent is MyTreeViewItem))
-					return;
-
-				// 에러체크 와 property 개수가 IDX_MOREBUTTON 를 넘으면 생성한다.
-				if(tvi.button_more != null && IDX_MOREBUTTON >= tvi.getCountChildProperty())
-					return;
-
-				ToggleButton btn = new ToggleButton();
-				btn.Content = "more..";
-				btn.Background = Brushes.White;
-				btn.BorderBrush = null;
-				btn.Click += delegate (object sender, RoutedEventArgs e)
-				{
-					if(btn.IsChecked == true)
-					{
-						tvi.visibleMore();
-					}
-					else
-					{
-						tvi.hideMore();
-					}
-				};
-				int idx_insert = IDX_MOREBUTTON > tvi.Items.Count ? tvi.Items.Count : IDX_MOREBUTTON;
-				while(idx_insert > 0 && (tvi.Items[idx_insert - 1] is MyButton))
-					idx_insert--;
-
-				tvi.Items.Insert(idx_insert, btn);
-				btn.IsChecked = false;
-				tvi.button_more = btn;
-			}
-			public void visibleMore()
-			{
-				for(int i = 0; i < this.Items.Count; i++)
-				{
-					UIElement ui = this.Items[i] as UIElement;
-					if(ui == null)
-						continue;
-
-					ui.Visibility = Visibility.Visible; ;
-				}
-			}
-			public void hideMore()
-			{
-				for(int i = 4; i < this.Items.Count; i++)
-				{
-					UIElement ui = this.Items[i] as UIElement;
-					if(ui == null)
-						continue;
-
-					ui.Visibility = Visibility.Collapsed;
-				}
-			}
-			void refreshMoreButtonPlace()
-			{
-				int cnt_property = this.getCountChildProperty();
-				if(cnt_property <= IDX_MOREBUTTON)
-				{
-					if(this.button_more != null)
-					{
-						this.Items.Remove(button_more);
-						button_more = null;
-					}
-				}
-				else
-				{
-					if(this.button_more == null)
-					{
-						addMoreButton(this);
-					}
-					else if (this.Items.IndexOf(button_more) != IDX_MOREBUTTON)
-					{
-						bool tmp = button_more.IsChecked.Value;
-						this.Items.Remove(button_more);
-						button_more = null;
-						addMoreButton(this);
-						button_more.IsChecked = tmp;
-					}
-				}
-			}
-			#region code for moving MyTreeViewItem in screen
-			// 외부에서 수정 불가 이벤트로만 수정
-			static MyTreeViewItem selected_tvi = null;
-			public static MyTreeViewItem Selectred_tvi { get { return selected_tvi; } }
-
-			protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
-			{
-				base.OnMouseLeftButtonDown(e);
-				selected_tvi = this;
-				e.Handled = true;
-			}
-
-			protected override void OnMouseMove(MouseEventArgs e)
-			{
-				//Console.WriteLine(linked_jtoken);
-				base.OnMouseMove(e);
-				if(e.LeftButton == MouseButtonState.Pressed
-					&& MyTreeViewItem.selected_tvi != null && MyTreeViewItem.selected_tvi != this)
-				{
-					Console.WriteLine(this.Name + ", called DoDragDrop(" + MyTreeViewItem.selected_tvi.Name + ")");
-					DataObject data = new DataObject();
-					data.SetData("Object", MyTreeViewItem.selected_tvi);
-					DragDrop.DoDragDrop(this, data, DragDropEffects.Copy);
-					MyTreeViewItem.selected_tvi = null;
-				}
-
-				e.Handled = true;
-			}
-
-			// 옮길 위치(dst)가 선택된(src) 타겟의 자손인지 체크하기위해 tunneling 으로 위부터 접근.
-			protected override void OnPreviewMouseMove(MouseEventArgs e)
-			{
-				//Console.WriteLine(this.Name + ", OnMouseMove()");
-				base.OnMouseMove(e);
-
-				// 조상부터 자손까지 순서대로 터널링 수행. 선택된 타겟이 자손중 하나라면 이벤트 수행 X
-				if(this == MyTreeViewItem.selected_tvi)
-					e.Handled = true;
-			}
-
-			protected override void OnDragOver(DragEventArgs e)
-			{
-				PublicDragOver(e);
-			}
-			public void PublicDragOver(DragEventArgs e)
-			{
-				this.IsSelected = true;
-				e.Handled = true;
-			}
-			protected override void OnDrop(DragEventArgs e)
-			{
-				PublicDrop(e);
-			}
-			public void PublicDrop(DragEventArgs e)
-			{
-				base.OnDrop(e);
-				Console.WriteLine(this.Name + ", in OnDrop()");
-				// If the DataObject contains string data, extract it.
-
-				if(e.Data.GetDataPresent("Object"))
-				{
-					Object data_obj = (Object)e.Data.GetData("Object");
-
-					MyTreeViewItem tvi_src = data_obj as MyTreeViewItem;
-					if(tvi_src != null)
-					{
-						// dst 의 조상중에 src 가 있나 체크 & dst == src 인지 체크
-						MyTreeViewItem tmp_parent = this;
-						while(tmp_parent != null)
-						{
-							if(tmp_parent == tvi_src)
-								return;
-
-							tmp_parent = tmp_parent.Parent as MyTreeViewItem;
-						}
-
-						MyTreeViewItem tvi_parent = this.Parent as MyTreeViewItem;
-						MyTreeViewItem tvi_src_parent = tvi_src.Parent as MyTreeViewItem;
-						if(tvi_parent != null && tvi_src_parent != null)
-						{
-							int idx_insert = tvi_parent.Items.IndexOf(this);
-							tvi_src_parent.Items.Remove(tvi_src);
-							if(linked_jtoken is JProperty)
-							{
-								//// mouse pointer 에 따라 요소 위에 insert 할지 아래에 insert 할지 결정.
-								//// Mouse.GetPosition() 이상한 값 리턴
-								//Point pointToWindow = e.GetPosition(this);
-								//double height = 0;
-								//if(this.Header is Panel)
-								//    height = ((Panel)this.Header).Height;
-								//if(pointToWindow.Y > height / 2 && idx_insert < tvi_parent.Items.Count)
-								//    idx_insert++;
-
-								// insert
-								tvi_parent.Items.Insert(idx_insert, tvi_src);
-							}
-							else
-							{
-								if(this.Items.Count > 0)
-									this.Items.Insert(this.Items.Count - 1, tvi_src);
-								else
-									this.Items.Add(tvi_src);
-							}
-
-							//Console.WriteLine("src = " + tvi_src.Name + ", src_parent = " + tvi_src_parent.Name + ", dst = " + this.Name + ", dst_parent = " + tvi_parent.Name);
-							e.Handled = true;
-							MyTreeViewItem tvi = this.Parent as MyTreeViewItem;
-							if(tvi != null)
-								tvi.refreshMoreButtonPlace();
-						}
-					}
-				}
-			}
-			#endregion
-		}
 
 		public void refreshJsonItem()
 		{
 			string json = FileContoller.read(JSonInfo.current.Path);
 			string filename = JSonInfo.current.Filename;
 			// 삭제
-			treeView_json.Items.Clear();
+			json_tree_view.Items.Clear();
 
 			// 추가
 			JToken jtok_root;
 			jtok_root = JsonController.parseJson(json);
 			if(jtok_root != null)
 			{
-				convertToTreeView(treeView_json, jtok_root, filename);
+				JsonTreeViewItem.convertToTreeView(json_tree_view, jtok_root, filename);
 			}
 			else
 			{
 				jtok_root = new JObject();
-				convertToTreeView(treeView_json, jtok_root, filename);
-			}
-		}
-		void convertToTreeView(TreeView treeView, JToken jtok_root, string filename)
-		{
-			if(jtok_root == null)
-			{
-				MessageBox.Show(JsonController.Error_message, "JSon Context Error");
-				return;
-			}
-
-			MyTreeViewItem jtree_root;
-
-			List<string> key_stack = new List<string>();
-
-			jtree_root = new MyTreeViewItem(treeView, jtok_root);
-			jtree_root.IsExpanded = true;
-
-			addButtonAddjson(jtree_root);
-			addKeyTextBox(jtree_root.Header, filename, false);
-
-			JSonInfo.current.Jtok_root = jtok_root;
-			JSonInfo.current.Jtree_root = jtree_root;
-			makeJsonItem_recursive(jtree_root, jtok_root);
-		}
-		void makeJsonItem_recursive(MyTreeViewItem cur_tvi, JToken jtok)
-		{
-			if(jtok == null)
-				return;
-
-			MyTreeViewItem child_tvi = addToJsonTree(cur_tvi, jtok);
-
-			foreach(var v in jtok.Children())
-			{
-				makeJsonItem_recursive(child_tvi, v);
-			}
-		}
-		MyTreeViewItem addToJsonTree(MyTreeViewItem parent_tvi, JToken jtok)
-		{
-			if(jtok is JObject)
-			{
-				JObject jobj = jtok as JObject;
-				if(jobj.Parent == null)
-					return parent_tvi;
-				if(jobj.Parent != null && jobj.Parent is JArray)
-				{
-					MyTreeViewItem child_tvi = new MyTreeViewItem(parent_tvi, jobj);
-
-					addButtonAddjson(child_tvi);
-					addKeyTextBox(child_tvi.Header, (jobj.Parent as JArray).IndexOf(jobj).ToString(), false);
-					addButtonDeletejson(child_tvi);
-					return child_tvi;
-				}
-				else
-				{
-					addKeyTextBox(parent_tvi.Header, "object", false);
-					addButtonAddjson(parent_tvi);
-					return parent_tvi;
-				}
-			}
-			else if(jtok is JProperty)
-			{
-				JProperty jprop = jtok as JProperty;
-				MyTreeViewItem child_tvi = new MyTreeViewItem(parent_tvi, jprop);
-
-				addKeyTextBox(child_tvi.Header, jprop);
-				addButtonDeletejson(child_tvi);
-
-				return child_tvi;
-			}
-			else if(jtok is JValue)
-			{
-				JValue jval = jtok as JValue;
-				addValueTextBox(parent_tvi.Header, jval);
-				//parent_tvi.Items.Clear();
-				return parent_tvi;
-			}
-			else if(jtok is JArray)
-			{
-				addKeyTextBox(parent_tvi.Header, "array", false);
-				addButtonAddjson(parent_tvi);
-				return parent_tvi;
-			}
-			else
-			{
-				Console.WriteLine("[error] undefined type = " + jtok.GetType());
-				return parent_tvi;
+				JsonTreeViewItem.convertToTreeView(json_tree_view, jtok_root, filename);
 			}
 		}
 
-		class MyTextBox : TextBox
+
+		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
-			public MyTextBox()
-			{
-				this.AllowDrop = true;
-
-				this.Margin = new Thickness(5);
-				this.Width = 150;
-			}
-			protected override void OnDragOver(DragEventArgs e)
-			{
-				MyTreeViewItem tvi_parent = this.Parent as MyTreeViewItem;
-				if(tvi_parent == null)
-					return;
-
-				tvi_parent.PublicDragOver(e);
-				Console.WriteLine("KeyTextBox.OnDragOver()");
-				base.OnDragOver(e);
-			}
-			protected override void OnDrop(DragEventArgs e)
-			{
-				MyTreeViewItem tvi_parent = this.Parent as MyTreeViewItem;
-				if(tvi_parent == null)
-					return;
-
-				tvi_parent.PublicDrop(e);
-				Console.WriteLine("KeyTextBox.OnDrop()");
-				base.OnDrop(e);
-			}
+			//if(JSonInfo.current.IsModify_tree)
+			//{
+			//	MessageBoxResult mbr = MessageBox.Show("변경사항을 저장하겠습니까?", "저장", MessageBoxButton.YesNoCancel);
+			//	switch(mbr)
+			//	{
+			//		case MessageBoxResult.Yes:
+			//			Btn_save_jtree_Click(sender, e);
+			//			break;
+			//		case MessageBoxResult.Cancel:
+			//			return;
+			//	}
+			//}
+			new JSonInfo();
+			refreshJsonItem();
 		}
-		class KeyTextBox : MyTextBox
+		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
-			public enum Type
-			{
-				JProperty = 0,
-				JObject = 1,
-				JArray = 2
-			}
-			// 0 = JProperty, 1 = JObject, 2 = JArray
-			public Type type = 0;
-			public KeyTextBox(Panel parent, string _type, bool isModify)
-			{
-				switch(_type)
-				{
-					case "object":
-						type = Type.JObject;
-						break;
-					case "array":
-						type = Type.JArray;
-						break;
-					default:
-						type = Type.JProperty;
-						break;
-				}
-
-				this.Text = _type;
-				
-				if(!isModify)
-				{
-					this.IsEnabled = false;
-					this.BorderBrush = null;
-				}
-				
-				int idx_insert = parent.Children.Count;
-				while(idx_insert > 0 && !(parent.Children[idx_insert - 1] is TextBox))
-					idx_insert--;
-
-				parent.Children.Insert(idx_insert, this);
-			}
-
-		}
-		class ValueTextBox : MyTextBox
-		{
-			public ValueTextBox(Panel parent, string data)
-			{
-				this.Text = data;
-
-				//Binding myBinding = new Binding("Value");
-				//myBinding.Source = jval;
-				//myBinding.Mode = BindingMode.TwoWay;
-				//myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-				//this.SetBinding(TextBox.TextProperty, myBinding);
-
-				//this.TextChanged += delegate (object sender, TextChangedEventArgs e)
-				//{
-				//	//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
-				//};
-
-				int idx_insert = parent.Children.Count;
-				while(idx_insert > 0 && !(parent.Children[idx_insert - 1] is TextBox))
-					idx_insert--;
-
-				parent.Children.Insert(idx_insert, this);
-			}
-		}
-		void addKeyTextBox(Panel pan, JProperty jprop, bool isModify = true)
-		{
-			string key = jprop.Name;
-			addKeyTextBox(pan, key, isModify);
-		}
-		void addKeyTextBox(Panel pan, string key, bool isModify = true)
-		{
-			KeyTextBox tb_key = new KeyTextBox(pan, key, isModify);
-		}
-		void addValueTextBox(Panel pan, JValue jval)
-		{
-			string data = jval.ToString();
-
-			ValueTextBox tb_value = new ValueTextBox(pan, data);
-		}
-
-		class MyButton : Button
-		{
-		}
-		void addButtonDeletejson(MyTreeViewItem tvi)
-		{
-			MyButton btn = new MyButton();
-			btn.Content = '-';
-			btn.Background = Brushes.LightPink;
-			btn.BorderBrush = Brushes.Black;
-			btn.Margin = new Thickness(2.5);
-			btn.Width = 20;
-			btn.Height = 20;
-			btn.VerticalContentAlignment = VerticalAlignment.Center;
-			btn.HorizontalContentAlignment = HorizontalAlignment.Center;
-
-			btn.Click += delegate (object sender, RoutedEventArgs e)
-			{
-				tvi.Remove();
-				//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
-			};
-
-			Panel pan = tvi.Header as Panel;
-			if(pan != null)
-				pan.Children.Add(btn);
-		}
-		void addButtonAddjson(MyTreeViewItem tvi)
-		{
-			MyButton btn = new MyButton();
-			btn.Content = '+';
-			btn.Background = Brushes.LightGreen;
-			btn.BorderBrush = Brushes.Black;
-			btn.Margin = new Thickness(2.5);
-			btn.Width = 20;
-			btn.Height = 20;
-			btn.VerticalContentAlignment = VerticalAlignment.Center;
-			btn.HorizontalContentAlignment = HorizontalAlignment.Center;
-
-			btn.Click += delegate (object sender, RoutedEventArgs e)
-			{
-				MyButton button = sender as MyButton;
-				tvi.Add(sender as Button, makeJsonItem_recursive);
-				//FileContoller.write(JSonInfo.current.filename, JSonInfo.current.jtok_root.ToString());
-			};
-			Panel parent = tvi.Header as Panel;
-			if(parent == null)
-				return;
-
-			int idx_insert = parent.Children.Count;
-			while(idx_insert > 0 && !(parent.Children[idx_insert - 1] is TextBox))
-				idx_insert--;
-
-			parent.Children.Insert(idx_insert, btn);
-			//pan.Children.Add(btn);
-		}
-
-		private void Btn_view_filew_Click(object sender, RoutedEventArgs e)
-		{
-			if(JSonInfo.current == null || JSonInfo.current.Path == null)
-				return;
-
-			Window_ViewFile w = new Window_ViewFile(FileContoller.read(JSonInfo.current.Path), JSonInfo.current.Path);
-
-			if(w.ShowDialog() == true)
-			{
-				FileContoller.write(JSonInfo.current.Path, w.tb_file.Text);
-				refreshJsonItem();
-			}
-		}
-		private void Btn_save_jtree_Click(object sender, RoutedEventArgs e)
-		{
-			if(JSonInfo.current == null || JSonInfo.current.Path == null)
-			{
-				Btn_save_other_jsonfile_Click(sender, e);
-				return;
-			}
-
-			FileInfo f = new FileInfo(JSonInfo.current.Path);
-			if(!f.Exists)
-			{
-				Btn_save_other_jsonfile_Click(sender, e);
-				return;
-			}
-
-			JSonInfo.current.Jtok_root = convertToJToken(JSonInfo.current.Jtree_root);
-			FileContoller.write(JSonInfo.current.Path, JSonInfo.current.Jtok_root.ToString());
-		}
-		private void Btn_save_other_jsonfile_Click(object sender, RoutedEventArgs e)
-		{
-			SaveFileDialog sfd = new SaveFileDialog();
-
-			sfd.InitialDirectory = root_path;
-			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-			if(JSonInfo.current != null && JSonInfo.current.Path != null)
-			{
-				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					sfd.InitialDirectory = dir_path;
-			}
-
-			sfd.Filter = "JSon Files (.json)|*.json";
-			if(sfd.ShowDialog(this) == true)
-			{
-				//Console.WriteLine(sfd.FileName);
-				JSonInfo.current.Jtok_root = convertToJToken(JSonInfo.current.Jtree_root);
-				JSonInfo.current.Path = sfd.FileName;
-				FileContoller.write(sfd.FileName, JSonInfo.current.Jtok_root.ToString());
-				//refreshJsonItem();
-				//refreshJsonFile();
-			}
-		}
-		private void Btn_open_jsonfile_Click(object sender, RoutedEventArgs e)
-		{
+			new JSonInfo();
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			ofd.InitialDirectory = root_path;
@@ -929,24 +107,70 @@ namespace ConfigEditor_proj
 				//refreshJsonFile();
 			}
 		}
-		private void Btn_new_jsonfile_Click(object sender, RoutedEventArgs e)
+		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
 		{
-			//if(JSonInfo.current.IsModify_tree)
-			//{
-			//	MessageBoxResult mbr = MessageBox.Show("변경사항을 저장하겠습니까?", "저장", MessageBoxButton.YesNoCancel);
-			//	switch(mbr)
-			//	{
-			//		case MessageBoxResult.Yes:
-			//			Btn_save_jtree_Click(sender, e);
-			//			break;
-			//		case MessageBoxResult.Cancel:
-			//			return;
-			//	}
-			//}
-			JSonInfo.current.Clear();
-			refreshJsonItem();
+			if(JSonInfo.current == null)
+				return;
+
+			if(JSonInfo.current.Path == null)
+			{
+				OnClickButtonOtherSaveJsonFile(sender, e);
+				return;
+			}
+
+			FileInfo f = new FileInfo(JSonInfo.current.Path);
+			if(!f.Exists)
+			{
+				OnClickButtonOtherSaveJsonFile(sender, e);
+				return;
+			}
+
+			JSonInfo.current.Jtok_root = JsonTreeViewItem.convertToJToken(JSonInfo.current.Jtree_root);
+			FileContoller.write(JSonInfo.current.Path, JSonInfo.current.Jtok_root.ToString());
 		}
-		private void Btn_cancel_jsonfile_Click(object sender, RoutedEventArgs e)
+		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(JSonInfo.current == null)
+				return;
+
+			SaveFileDialog sfd = new SaveFileDialog();
+
+			sfd.InitialDirectory = root_path;
+			//sfd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+			if(JSonInfo.current != null && JSonInfo.current.Path != null)
+			{
+				string dir_path = JSonInfo.current.Path.Substring(0, JSonInfo.current.Path.LastIndexOf('\\') + 1);
+				DirectoryInfo d = new DirectoryInfo(dir_path);
+				if(d.Exists)
+					sfd.InitialDirectory = dir_path;
+			}
+
+			sfd.Filter = "JSon Files (.json)|*.json";
+			if(sfd.ShowDialog(this) == true)
+			{
+				//Console.WriteLine(sfd.FileName);
+				JSonInfo.current.Jtok_root = JsonTreeViewItem.convertToJToken(JSonInfo.current.Jtree_root);
+				JSonInfo.current.Path = sfd.FileName;
+				FileContoller.write(sfd.FileName, JSonInfo.current.Jtok_root.ToString());
+				//refreshJsonItem();
+				//refreshJsonFile();
+			}
+		}
+		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(JSonInfo.current == null || JSonInfo.current.Path == null)
+				return;
+
+			Window_ViewFile w = new Window_ViewFile(FileContoller.read(JSonInfo.current.Path), JSonInfo.current.Path);
+
+			if(w.ShowDialog() == true)
+			{
+				FileContoller.write(JSonInfo.current.Path, w.tb_file.Text);
+				refreshJsonItem();
+			}
+		}
+		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
 		{
 			if(JSonInfo.current == null || JSonInfo.current.Path == null)
 				return;
@@ -959,16 +183,535 @@ namespace ConfigEditor_proj
 			refreshJsonItem();
 		}
 
-		JObject convertToJToken(MyTreeViewItem root_tvi)
+		#endregion
+	}
+	class JSonInfo
+	{
+		public static JSonInfo current = null;
+		public string path;
+		public string Path
+		{
+			get { return path; }
+			set
+			{
+				path = value;
+
+				if(this.Jtree_root == null)
+					return;
+
+				JsonTreeViewItemHeader pan = this.Jtree_root.Header as JsonTreeViewItemHeader;
+				if(pan == null)
+					return;
+
+				JsonTextBox tb = pan.Children[0] as JsonTextBox;
+				if(tb == null)
+					return;
+
+				tb.Text = Filename;
+			}
+		}
+		private JToken jtok_root;
+		public JToken Jtok_root
+		{
+			get { return jtok_root; }
+			set
+			{
+				jtok_root = value;
+				isModify_jtok = true;
+			}
+		}
+		private bool isModify_jtok = false;
+		public bool IsModify_jtok { get { return isModify_jtok; } }
+
+		private JsonTreeViewItem jtree_root;
+		public JsonTreeViewItem Jtree_root
+		{
+			get { return jtree_root; }
+			set
+			{
+				jtree_root = value;
+				isModify_tree = true;
+			}
+		}
+		private bool isModify_tree = false;
+		public bool IsModify_tree { get { return isModify_tree; } }
+
+		public JSonInfo()
+		{
+			current = this;
+		}
+
+		public void Clear()
+		{
+			Path = null;
+			Jtok_root = null;
+			Jtree_root = null;
+		}
+
+		public string Filename
+		{
+			get
+			{
+				if(Path != null)
+				{
+					string[] split = Path.Split('\\');
+					return split[split.Length - 1];
+				}
+				return null;
+			}
+		}
+	}
+	class JsonTreeViewItem : TreeViewItem
+	{
+		public enum JsonType
+		{
+			JValue = 0,
+			JObject = 1,
+			JArray = 2
+		}
+		// 0 = JValue, 1 = JObject, 2 = JArray
+		public JsonType type = 0;
+
+		// JObject, JArray, JProperty
+		// now
+		//        if(root)    -> JObject
+		//        else        ->JProperty
+		public JToken linked_jtoken = null;
+		//public JProperty linked_jtoken = null
+
+		JsonToggleButton button_more = null;
+		const int IDX_MOREBUTTON = 3;
+
+		public new JsonTreeViewItemHeader Header { get { return base.Header as JsonTreeViewItemHeader; } set { base.Header = value; } }
+		static int count_tvi;
+
+		// ItemsControl = TreeView 와 MyTreeViewItem 의 상위 클래스 ItemsControl.Items 요소만 쓴다.
+		public JsonTreeViewItem(JToken _linked_jtoken)
+		{
+			linked_jtoken = _linked_jtoken;
+
+			this.Header = new JsonTreeViewItemHeader();
+			this.Name = "tvi_" + count_tvi++;
+			this.AllowDrop = true;
+			this.IsExpanded = true;
+		}
+
+		public void Remove()
+		{
+			//Console.WriteLine(linked_jtoken.Type);
+			JsonTreeViewItem parent_tvi;
+			parent_tvi = this.Parent as JsonTreeViewItem;
+			// this 가 루트이거나 다른 예외상황이면 삭제하지 않는다.
+			if(parent_tvi == null)
+				return;
+
+			// JArray 삭제시 인덱스 수정
+			parent_tvi.refreshIndex();
+
+			// Json Tree Remove
+			parent_tvi.Items.Remove(this);
+			// Json Token Remove
+			//this.linked_jtoken.Remove();
+		}
+		
+		public int getCountChildProperty()
+		{
+			int cnt_property = 0;
+			for(int i = 0; i < this.Items.Count; i++)
+			{
+				if(this.Items[i] is JsonTreeViewItem)
+					cnt_property++;
+			}
+			return cnt_property;
+		}
+
+		public void visibleMore()
+		{
+			for(int i = 0; i < this.Items.Count; i++)
+			{
+				JsonTreeViewItem ui = this.Items[i] as JsonTreeViewItem;
+				if(ui == null)
+					continue;
+
+				ui.Visibility = Visibility.Visible;
+			}
+		}
+		public void hideMore()
+		{
+			for(int i = IDX_MOREBUTTON; i < this.Items.Count; i++)
+			{
+				JsonTreeViewItem ui = this.Items[i] as JsonTreeViewItem;
+				if(ui == null)
+					continue;
+
+				ui.Visibility = Visibility.Collapsed;
+			}
+		}
+		void refreshMoreButton()
+		{
+			// 루트의 자식들에는 버튼생성 하지 않는다.
+			if(!(this.Parent is JsonTreeViewItem))
+				return;
+
+			int cnt_property = this.getCountChildProperty();
+			// 정상적인 위치에 morebutton이 존재한다.
+			if(cnt_property > IDX_MOREBUTTON && this.button_more != null && this.Items.IndexOf(button_more) == IDX_MOREBUTTON)
+			{
+				return;
+			}
+
+			if(cnt_property <= IDX_MOREBUTTON)
+			{
+				this.Items.Remove(button_more);
+				button_more = null;
+				visibleMore();
+			}
+			else
+			{
+				bool ischecked = false;
+
+				if(this.button_more != null)
+				{
+					ischecked = button_more.IsChecked.Value;
+					
+					// 삭제
+					this.Items.Remove(button_more);
+					button_more = null;
+					Console.WriteLine(ischecked);
+				}
+
+				// 추가
+				this.button_more = new JsonToggleButton(ischecked);
+				this.Items.Insert(IDX_MOREBUTTON, this.button_more);
+				visibleMore();
+				if(!ischecked)
+					hideMore();
+			}
+		}
+		protected override void OnItemsChanged(NotifyCollectionChangedEventArgs e)
+		{
+			base.OnItemsChanged(e);
+
+			// items 의 add 작업중 more button 의 add 가 아닐때,
+			if(e.NewItems != null && e.NewItems.IndexOf(this.button_more) < 0)
+			{
+				Console.WriteLine(e.Action.ToString());
+				refreshMoreButton();
+			}
+
+			// items 의 remove 작업중 more button 의 remove 가 아닐때, 
+			if(e.OldItems != null && e.OldItems.IndexOf(this.button_more) < 0)
+			{
+				Console.WriteLine(e.Action.ToString());
+				refreshMoreButton();
+			}
+
+			//Console.WriteLine("new = " + e.NewStartingIndex + ", " + e.NewItems.Count);
+			//Console.WriteLine(",old = " + e.OldStartingIndex + ", " + e.OldItems.Count);
+			//Console.WriteLine(e.NewItems[e.NewStartingIndex].GetType());
+		}
+		#region code for moving MyTreeViewItem in screen
+		// 외부에서 수정 불가 이벤트로만 수정
+		static JsonTreeViewItem selected_tvi = null;
+		public static JsonTreeViewItem Selectred_tvi { get { return selected_tvi; } }
+
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+		{
+			Console.WriteLine("OnMouseLeftButtonDown()");
+			PublicMouseLeftButtonDown(e);
+		}
+		public void PublicMouseLeftButtonDown(MouseButtonEventArgs e)
+		{
+			base.OnMouseLeftButtonDown(e);
+			selected_tvi = this;
+			e.Handled = true;
+		}
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			PublicMouseMove(e);
+		}
+		public void PublicMouseMove(MouseEventArgs e)
+		{
+			//Console.WriteLine(linked_jtoken);
+			base.OnMouseMove(e);
+			if(e.LeftButton == MouseButtonState.Pressed
+				&& JsonTreeViewItem.selected_tvi != null)
+			{
+				Console.WriteLine(this.Name + ", called DoDragDrop(" + JsonTreeViewItem.selected_tvi.Name + ")");
+				DataObject data = new DataObject();
+				data.SetData("Object", JsonTreeViewItem.selected_tvi);
+				JsonTreeViewItem.selected_tvi = null;
+				Console.WriteLine(this.GetType());
+				DragDrop.DoDragDrop(this, data, DragDropEffects.Copy);
+			}
+
+			e.Handled = true;
+		}
+		//// 옮길 위치(dst)가 선택된(src) 타겟의 자손인지 체크하기위해 tunneling 으로 위부터 접근.
+		//protected override void OnPreviewMouseMove(MouseEventArgs e)
+		//{
+		//	//Console.WriteLine(this.Name + ", OnMouseMove()");
+		//	base.OnMouseMove(e);
+
+		//	// 조상부터 자손까지 순서대로 터널링 수행. 선택된 타겟이 자손중 하나라면 이벤트 수행 X
+		//	if(this == JsonTreeViewItem.selected_tvi)
+		//		e.Handled = true;
+		//}
+
+		protected override void OnDragOver(DragEventArgs e)
+		{
+			PublicDragOver(e);
+		}
+		public void PublicDragOver(DragEventArgs e)
+		{
+			this.IsSelected = true;
+			e.Handled = true;
+		}
+		protected override void OnDrop(DragEventArgs e)
+		{
+			PublicDrop(e);
+		}
+		public void PublicDrop(DragEventArgs e)
+		{
+			base.OnDrop(e);
+
+			// bubble (자식부터 부모요소로 이벤트 전달 방식) 이므로 처음 수행할때 (제일 자식에서 이벤트를 받았을 때), 이벤트 수행처리.
+			e.Handled = true;
+
+			// If the DataObject contains string data, extract it.
+			if(e.Data.GetDataPresent("Object"))
+			{
+				Object data_obj = (Object)e.Data.GetData("Object");
+
+				JsonTreeViewItem tvi_src = data_obj as JsonTreeViewItem;
+				if(tvi_src == null)
+					return;
+
+				// dst 의 조상중에 src 가 있나 체크 & dst == src 인지 체크
+				JsonTreeViewItem tmp_parent = this;
+				while(tmp_parent != null)
+				{
+					if(tmp_parent == tvi_src)
+						return;
+
+					tmp_parent = tmp_parent.Parent as JsonTreeViewItem;
+				}
+
+				JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
+				JsonTreeViewItem tvi_src_parent = tvi_src.Parent as JsonTreeViewItem;
+				if(tvi_parent == null || tvi_src_parent == null)
+					return;
+
+				// JArray 타입과 다른타입과는 드래그앤드롭 불가. (src==JArray && dst==JArray) 이거나 (src != JArray && dst==JArray) 일떄 수행
+				if((tvi_parent.type == JsonType.JArray && tvi_src_parent.type != JsonType.JArray)
+						|| (tvi_parent.type != JsonType.JArray && tvi_src_parent.type == JsonType.JArray))
+					return;
+
+				if(tvi_parent.type != JsonType.JArray && tvi_src_parent.type != JsonType.JArray
+					&& tvi_parent != tvi_src_parent)
+				{
+					// 추가할 지점에 중복 체크
+					KeyTextBox tb_src = tvi_src.Header.Children[0] as KeyTextBox;
+					for(int i = 0; i < tvi_parent.Items.Count; i++)
+					{
+						JsonTreeViewItem child_tvi = tvi_parent.Items[i] as JsonTreeViewItem;
+						if(child_tvi == null)
+							continue;
+						KeyTextBox tb = child_tvi.Header.Children[0] as KeyTextBox;
+						if(tb == null)
+							continue;
+
+						// 키 중복
+						if(tb.Text == tb_src.Text)
+							return;
+					}
+				}
+
+				// remove
+				bool ischecked_more_button = false;
+				if(tvi_parent.button_more != null)
+					ischecked_more_button = tvi_parent.button_more.IsChecked.Value;
+
+				int idx_insert = tvi_parent.Items.IndexOf(this);
+				tvi_src.Remove();
+
+				// insert
+				tvi_parent.AddItem(tvi_src, idx_insert);
+				if(tvi_parent.button_more != null)
+					tvi_parent.button_more.IsChecked = ischecked_more_button;
+			}
+		}
+		#endregion
+
+		#region modify
+		public static void convertToTreeView(TreeView treeView, JToken jtok_root, string filename)
+		{
+			if(jtok_root == null)
+			{
+				MessageBox.Show(JsonController.Error_message, "JSon Context Error");
+				return;
+			}
+
+			JsonTreeViewItem jtree_root;
+
+			List<string> key_stack = new List<string>();
+
+			jtree_root = new JsonTreeViewItem(jtok_root);
+			treeView.Items.Add(jtree_root);
+
+
+
+			KeyTextBox tb_key = new KeyTextBox(filename, false);
+			jtree_root.Header.AddItem(tb_key);
+
+			JSonInfo.current.Jtok_root = jtok_root;
+			JSonInfo.current.Jtree_root = jtree_root;
+			convertToTreeView_recursive(jtree_root, jtok_root);
+		}
+		public static void convertToTreeView_recursive(JsonTreeViewItem parent_tvi, JToken jtok)
+		{
+			if(jtok == null)
+				return;
+
+			JsonTreeViewItem child_tvi = addToJsonTree(parent_tvi, jtok);
+
+			foreach(var v in jtok.Children())
+			{
+				convertToTreeView_recursive(child_tvi, v);
+			}
+		}
+		static JsonTreeViewItem addToJsonTree(JsonTreeViewItem parent_tvi, JToken jtok)
+		{
+			if(jtok is JObject)
+			{
+				JObject jobj = jtok as JObject;
+				if(jobj.Parent == null)
+					return parent_tvi;
+				if(jobj.Parent != null && jobj.Parent is JArray)
+				{
+					JsonTreeViewItem child_tvi = new JsonTreeViewItem(jobj);
+					parent_tvi.AddItem(child_tvi);
+					KeyTextBox tb_key = new KeyTextBox((jobj.Parent as JArray).IndexOf(jobj).ToString(), false);
+					child_tvi.Header.AddItem(tb_key);
+					child_tvi.type = JsonType.JObject;
+					parent_tvi = child_tvi;
+				}
+
+				KeyTextBox tb_type = new KeyTextBox("object", false);
+				parent_tvi.Header.AddItem(tb_type);
+				parent_tvi.type = JsonType.JObject;
+				return parent_tvi;
+			}
+			else if(jtok is JProperty)
+			{
+				JProperty jprop = jtok as JProperty;
+				JsonTreeViewItem child_tvi = new JsonTreeViewItem(jprop);
+				parent_tvi.AddItem(child_tvi);
+
+				KeyTextBox tb_key = new KeyTextBox(jprop.Name);
+				child_tvi.Header.AddItem(tb_key);
+
+				return child_tvi;
+			}
+			else if(jtok is JValue)
+			{
+				JValue jval = jtok as JValue;
+
+				string data = jval.ToString();
+				ValueTextBox tb_value = new ValueTextBox(data);
+				parent_tvi.Header.AddItem(tb_value);
+
+				parent_tvi.Header.addButtn.Visibility = Visibility.Hidden;
+				//parent_tvi.Items.Clear();
+				return parent_tvi;
+			}
+			else if(jtok is JArray)
+			{
+				KeyTextBox tb_type = new KeyTextBox("array", false);
+				parent_tvi.Header.AddItem(tb_type);
+				parent_tvi.type = JsonType.JArray;
+				return parent_tvi;
+			}
+			else
+			{
+				Console.WriteLine("[error] undefined type = " + jtok.GetType());
+				return parent_tvi;
+			}
+		}
+
+		public void AddItem(UIElement item, int idx = -1)
+		{
+			//JsonTreeViewItem add_tvi = item as JsonTreeViewItem;
+			//if(add_tvi != null)
+			//{
+			//	JsonTextBox add_tb = add_tvi.Header.Children[0] as JsonTextBox;
+			//	if(add_tb != null)
+			//	{
+			//		// 중복 비교
+			//		// JsonTreeViewItem.Header.children
+			//		for(int i = 0; i < this.Items.Count; i++)
+			//		{
+			//			JsonTreeViewItem tvi = this.Items[i] as JsonTreeViewItem;
+			//			if(tvi == null)
+			//				continue;
+
+			//			JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
+			//			if(tb == null)
+			//				continue;
+			//			// 키중복이면 삽입 x
+			//			if(tb.Text == add_tb.Text)
+			//				return;
+			//		}
+			//	}
+			//}
+			if(idx > -1 && idx < this.Items.Count)
+				this.Items.Insert(idx, item);
+			else
+				this.Items.Add(item);
+
+			visibleMore();
+			if(this.button_more != null && !this.button_more.IsChecked.Value)
+				hideMore();
+
+
+			// JArray 삽입시 인덱스 수정
+			refreshIndex();
+		}
+		void refreshIndex()
+		{
+			if(this.type != JsonType.JArray)
+				return;
+			
+			//if(start_idx < 0 || start_new_idx < 0)
+			//	return;
+
+			// JArray 삽입시 인덱스 수정
+			int cnt = this.Items.Count;
+			for(int i = 0, newidx = 0; i < cnt; i++)
+			{
+				JsonTreeViewItem tvi = this.Items[i] as JsonTreeViewItem;
+				if(tvi == null)
+					continue;
+
+				KeyTextBox tb = tvi.Header.Children[0] as KeyTextBox;
+				if(tb == null)
+					continue;
+
+				tb.Text = newidx.ToString();
+				newidx++;
+			}
+		}
+
+		public static JObject convertToJToken(JsonTreeViewItem root_tvi)
 		{
 			if(root_tvi == null)
 				return null;
 
 			/*
                 MyTreeViewItem.Items     --N-> MyTreeViewItem * N + Add_Button
-                MyTreeViewItem.Header     --1-> Panel_Header
-                Panel_Header            --3-> TextBox * 2 (key, val or val.type) + Delete_Button
-                MyTreeViewItem.Items => MyTreeViewItem 타입의 자식개념, MyTreeViewItem.Header => Panel 타입의 해당 property
+                MyTreeViewItem.Header     --1-> JsonPanel_Header
+                JsonPanel_Header            --3-> TextBox * 2 (key, val or val.type) + Delete_Button
+                MyTreeViewItem.Items => MyTreeViewItem 타입의 자식개념, MyTreeViewItem.Header => JsonPanel 타입의 해당 property
             */
 			/*
                  JToken 상위 클래스
@@ -987,7 +730,7 @@ namespace ConfigEditor_proj
 
 			return jtok_root;
 		}
-		void convertToJToken_recursive(MyTreeViewItem tvi_cur, JObject jobj_cur)
+		public static void convertToJToken_recursive(JsonTreeViewItem tvi_cur, JObject jobj_cur)
 		{
 			if(tvi_cur == null || jobj_cur == null)
 				return;
@@ -996,24 +739,24 @@ namespace ConfigEditor_proj
 			// 여기서부터는 property 로 시작
 			foreach(var v in tvi_cur.Items)
 			{
-				MyTreeViewItem tvi_child = v as MyTreeViewItem;
+				JsonTreeViewItem tvi_child = v as JsonTreeViewItem;
 				if(tvi_child == null)
 					continue;
 
-				Panel pan = tvi_child.Header as Panel;
+				JsonTreeViewItemHeader pan = tvi_child.Header as JsonTreeViewItemHeader;
 				if(pan == null)
 					continue;
 
 				// pan(MyTreeViewItem.Header) = key, val or val.type, button
-				KeyTextBox tb_key = pan.Children[0] as KeyTextBox;
-				TextBox tb_val = pan.Children[1] as TextBox;
+				JsonTextBox tb_key = pan.Children[0] as JsonTextBox;
+				JsonTextBox tb_val = pan.Children[1] as JsonTextBox;
 
 				if(tb_val is KeyTextBox)
 				{
 					KeyTextBox tb_type = tb_val as KeyTextBox;
-					switch(tb_type.type)
+					switch(tvi_child.type)
 					{
-						case KeyTextBox.Type.JObject:
+						case JsonTreeViewItem.JsonType.JObject:
 							{
 								JObject jobj = new JObject();
 								JProperty jprop = new JProperty(tb_key.Text, jobj);
@@ -1021,7 +764,7 @@ namespace ConfigEditor_proj
 								convertToJToken_recursive(tvi_child, jobj);
 							}
 							break;
-						case KeyTextBox.Type.JArray:
+						case JsonTreeViewItem.JsonType.JArray:
 							{
 								JArray jarr = new JArray();
 								JProperty jprop = new JProperty(tb_key.Text, jarr);
@@ -1030,7 +773,7 @@ namespace ConfigEditor_proj
 								{
 									JObject jobj = new JObject();
 									jarr.Add(jobj);
-									convertToJToken_recursive(tvi_child.Items[i] as MyTreeViewItem, jobj);
+									convertToJToken_recursive(tvi_child.Items[i] as JsonTreeViewItem, jobj);
 								}
 							}
 							break;
@@ -1044,113 +787,326 @@ namespace ConfigEditor_proj
 			}
 		}
 		#endregion
+	}
+	class JsonTreeViewItemHeader : StackPanel
+	{
+		public JsonAddButton addButtn;
+		public JsonDeleteButton deleteButton;
+		public JsonTreeViewItemHeader()
+		{
+			this.Height = 30;
+			this.Orientation = Orientation.Horizontal;
 
-		#region common option
-		// to have to do after json tree refresh
-		//void refreshCommonOption()
+			deleteButton = new JsonDeleteButton();
+			AddItem(deleteButton);
+
+			addButtn = new JsonAddButton();
+			AddItem(addButtn);
+
+		}
+		public void AddItem(UIElement item)
+		{
+			int idx_insert = this.Children.Count;
+			while(idx_insert > 0 && !(this.Children[idx_insert - 1] is JsonTextBox))
+				idx_insert--;
+
+			this.Children.Insert(idx_insert, item);
+		}
+	}
+	class JsonButton : Button
+	{
+		public JsonButton()
+		{
+			this.BorderBrush = Brushes.Black;
+			this.Margin = new Thickness(2.5);
+			this.Width = 20;
+			this.Height = 20;
+			this.VerticalContentAlignment = VerticalAlignment.Center;
+			this.HorizontalContentAlignment = HorizontalAlignment.Center;
+		}
+	}
+	class JsonAddButton : JsonButton
+	{
+		public JsonAddButton()
+		{
+			this.Content = '+';
+			this.Background = Brushes.LightGreen;
+
+			// Json 버튼은 JsonTreeViewItem.Header.children 에 존재
+			this.Click += delegate (object sender, RoutedEventArgs e)
+			{
+				JsonTreeViewItemHeader jtvih = this.Parent as JsonTreeViewItemHeader;
+				if(jtvih == null)
+					return;
+				JsonTreeViewItem jtvi = jtvih.Parent as JsonTreeViewItem;
+				if(jtvi == null)
+					return;
+
+				JsonButton button = sender as JsonButton;
+				//tvi.Add(sender as JsonButton, convertToTreeView_recursive);
+				//FileContoller.write(JSonInfo.current.filename, JSonInfo.current.jtok_root.ToString());
+			};
+		}
+		// Json 버튼은 JsonTreeViewItem.Header.children 에 존재
+		protected override void OnClick()
+		{
+			base.OnClick();
+			JsonTreeViewItemHeader jtvih = this.Parent as JsonTreeViewItemHeader;
+			if(jtvih == null)
+				return;
+			JsonTreeViewItem jtvi = jtvih.Parent as JsonTreeViewItem;
+			if(jtvi == null)
+				return;
+
+			if(jtvi.type == JsonTreeViewItem.JsonType.JArray)
+			{
+				JsonTreeViewItem child_tvi = new JsonTreeViewItem(null);
+				KeyTextBox tb_key = new KeyTextBox(jtvi.getCountChildProperty().ToString(), false);
+				child_tvi.Header.AddItem(tb_key);
+				KeyTextBox tb_type = new KeyTextBox("object", false);
+				child_tvi.Header.AddItem(tb_type);
+				child_tvi.type = JsonTreeViewItem.JsonType.JObject;
+
+				jtvi.AddItem(child_tvi);
+			}
+			else
+			{
+				// window_addJson showdialog()
+				popup_AddJsonItem popup = new popup_AddJsonItem();
+				Point pt = this.PointToScreen(new Point(0, 0));
+				popup.Left = pt.X;
+				popup.Top = pt.Y;
+
+				// cancel return
+				if(popup.ShowDialog() != true)
+					return;
+
+				for(int i = 0; i < jtvi.Items.Count; i++)
+				{
+					JsonTreeViewItem child_tvi = jtvi.Items[i] as JsonTreeViewItem;
+					if(child_tvi == null)
+						continue;
+					KeyTextBox tb = child_tvi.Header.Children[0] as KeyTextBox;
+					if(tb == null)
+						continue;
+
+					// 키 중복
+					if(tb.Text == popup.key)
+						return;
+				}
+
+				JsonTreeViewItem.convertToTreeView_recursive(jtvi, new JProperty(popup.key, popup.value));
+			}
+
+			//JToken tmp = jtvi.Parent;
+			//// tmp == root 일때
+			//if(tmp is JObject)
+			//	;
+			//else
+			//{
+			//	JProperty jprop = tmp as JProperty;
+			//	tmp = jprop.Value;
+			//}
+			//JToken add_jtok = null;
+			//if(tmp is JArray)
+			//{
+			//	JArray jarr = tmp as JArray;
+			//	// add Jtok_root
+			//	add_jtok = new JObject();
+			//	jarr.Add(add_jtok);
+			//}
+			//else if(tmp is JObject)
+			//{
+			//	JObject jobj = tmp as JObject;
+			//	// window_addJson showdialog()
+			//	popup_AddJsonItem popup = new popup_AddJsonItem();
+			//	Point pt = sender.PointToScreen(new Point(0, 0));
+			//	popup.Left = pt.X;
+			//	popup.Top = pt.Y;
+
+			//	// cancel return
+			//	if(popup.ShowDialog() != true)
+			//		return;
+
+			//	foreach(JProperty v in jobj.Properties())
+			//	{
+			//		// 키 중복
+			//		if(v.Name == popup.key)
+			//			return;
+			//	}
+
+			//	// ok return & add Jtok_root
+			//	add_jtok = new JProperty(popup.key, popup.value);
+			//	jobj.Add(add_jtok);
+
+			//}
+
+			//// add to jtree_root
+			//if(add_jtok != null)
+			//	makeTree(this, add_jtok);
+			////tvi.Add(sender as JsonButton, convertToTreeView_recursive);
+			////FileContoller.write(JSonInfo.current.filename, JSonInfo.current.jtok_root.ToString());
+		}
+	}
+	class JsonDeleteButton : JsonButton
+	{
+		public JsonDeleteButton()
+		{
+			this.Content = '-';
+			this.Background = Brushes.LightPink;
+			this.BorderBrush = Brushes.Black;
+			this.Margin = new Thickness(2.5);
+			this.Width = 20;
+			this.Height = 20;
+			this.VerticalContentAlignment = VerticalAlignment.Center;
+			this.HorizontalContentAlignment = HorizontalAlignment.Center;
+		}
+
+		// Json 버튼은 JsonTreeViewItem.Header.children 에 존재
+		protected override void OnClick()
+		{
+			base.OnClick();
+			JsonTreeViewItemHeader jtvih = this.Parent as JsonTreeViewItemHeader;
+			if(jtvih == null)
+				return;
+			JsonTreeViewItem jtvi = jtvih.Parent as JsonTreeViewItem;
+			if(jtvi == null)
+				return;
+
+			jtvi.Remove();
+			//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
+		}
+	}
+	class JsonToggleButton : ToggleButton
+	{
+		public JsonToggleButton(bool _ischecked = false)
+		{
+			this.Content = "more..";
+			this.Background = Brushes.White;
+			this.BorderBrush = null;
+			this.IsChecked = _ischecked;
+			//this.Visibility = Visibility.Collapsed;
+		}
+		protected override void OnUnchecked(RoutedEventArgs e)
+		{
+			// this 는 JsonTreeViewItem.Children 에 위치
+			JsonTreeViewItem tvi = this.Parent as JsonTreeViewItem;
+			if(tvi == null)
+				return;
+			base.OnUnchecked(e);
+
+			tvi.hideMore();
+		}
+		protected override void OnChecked(RoutedEventArgs e)
+		{
+			// this 는 JsonTreeViewItem.Children 에 위치
+			JsonTreeViewItem tvi = this.Parent as JsonTreeViewItem;
+			if(tvi == null)
+				return;
+
+			tvi.visibleMore();
+		}
+	}
+	class JsonTextBox : TextBox
+	{
+		public JsonTextBox()
+		{
+			this.AllowDrop = true;
+
+			this.Margin = new Thickness(5);
+			this.Width = 150;
+		}
+
+		// JsonTextBox 는 JsonTreeViewItem.Header.Children 에 존재
+		protected override void OnDragOver(DragEventArgs e)
+		{
+			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
+			if(tvi_parent == null)
+				return;
+
+			tvi_parent.PublicDragOver(e);
+			Console.WriteLine("KeyTextBox.OnDragOver()");
+			base.OnDragOver(e);
+		}
+		protected override void OnDrop(DragEventArgs e)
+		{
+			Console.WriteLine("KeyTextBox.OnDrop()");
+			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
+			if(tvi_parent == null)
+				return;
+
+			tvi_parent.PublicDrop(e);
+			base.OnDrop(e);
+		}
+		//protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 		//{
-		//	// 삭제
-		//	treeView_common_option.Items.Clear();
-
-		//	// 추가
-		//	List<string> key_stack = new List<string>();
-		//	TreeViewItem trvItem = new TreeViewItem();
-		//	trvItem.Header = JsonInfo.current.filename;
-		//	trvItem.IsExpanded = true;
-
-		//	treeView_common_option.Items.Add(trvItem);
-
-		//	JToken jtok_root = JsonInfo.current.jtok_root;
-		//	if(JsonInfo.current.jtok_root == null)
-		//		return;
-
-		//	JToken jtok_root_local = jtok_root;
-		//	if(jtok_root["type"] != null)
-		//	{
-		//		//List<string> key_stack = new List<string>();
-		//		jtok_root_local = jtok_root["type"];
-
-		//		StackPanel sp = new StackPanel();
-		//		sp.Orientation = Orientation.Horizontal;
-		//		addKeyTextBox(sp, jtok_root_local.Parent as JProperty, false);
-
-		//		TreeViewItem child_tvi = new TreeViewItem();
-		//		child_tvi.Header = sp;
-		//		child_tvi.IsExpanded = true;
-		//		trvItem.Items.Add(child_tvi);
-
-		//		addJsonCommonOption(child_tvi, jtok_root_local);
-
-		//	}
-		//	if(jtok_root["comm_option"] != null)
-		//	{
-		//		jtok_root_local = jtok_root["comm_option"];
-
-		//		StackPanel sp = new StackPanel();
-		//		sp.Orientation = Orientation.Horizontal;
-		//		addKeyTextBox(sp, jtok_root_local.Parent as JProperty, false);
-
-		//		TreeViewItem child_tvi = new TreeViewItem();
-		//		child_tvi.Header = sp;
-		//		child_tvi.IsExpanded = true;
-		//		trvItem.Items.Add(child_tvi);
-
-		//		addJsonCommonOption(child_tvi, jtok_root_local);
-
-		//	}
-
+		//	Console.WriteLine("OnMouseLeftButtonDown");
+		//	base.OnPreviewMouseLeftButtonDown(e);
 		//}
-
-
-		//void addJsonCommonOption(TreeViewItem tvi, JToken jtok)
+		//protected override void OnDragLeave(DragEventArgs e)
 		//{
-		//	if(jtok == null)
-		//		return;
-
-		//	TreeViewItem child_tvi = tvi;
-		//	if(jtok as JObject != null)
-		//	{
-		//		if(jtok.Parent as JArray != null)
-		//		{
-		//			JObject jobj = jtok as JObject;
-		//			child_tvi = new TreeViewItem();
-		//			tvi.Items.Add(child_tvi);
-
-		//			StackPanel sp = new StackPanel();
-		//			sp.Orientation = Orientation.Horizontal;
-		//			child_tvi.Header = sp;
-
-		//			addKeyTextBox(sp, (jobj.Parent as JArray).IndexOf(jobj).ToString(), false);
-		//		}
-		//	}
-		//	else if(jtok as JProperty != null)
-		//	{
-		//		JProperty jprop = jtok as JProperty;
-		//		child_tvi = new TreeViewItem();
-		//		tvi.Items.Add(child_tvi);
-
-		//		StackPanel sp = new StackPanel();
-		//		sp.Orientation = Orientation.Horizontal;
-		//		child_tvi.Header = sp;
-
-		//		addKeyTextBox(sp, jprop, false);
-		//	}
-		//	else if(jtok as JValue != null)
-		//	{
-		//		JValue jval = jtok as JValue;
-		//		addValueTextBox(tvi.Header as Panel, jval);
-		//	}
-		//	else
-		//	{
-		//		Console.WriteLine(jtok.GetType());
-		//	}
-
-		//	foreach(var v in jtok.Children())
-		//	{
-		//		addJsonCommonOption(child_tvi, v);
-		//	}
+		//	Console.WriteLine("OnDragLeave");
+		//	base.OnDragLeave(e);
 		//}
+		//protected override void OnMouseLeave(MouseEventArgs e)
+		//{
+		//	Console.WriteLine("OnMouseLeave");
+		//	base.OnMouseLeave(e);
+		//}
+		//protected override void OnTouchLeave(TouchEventArgs e)
+		//{
+		//	Console.WriteLine("OnTouchLeave");
+		//	base.OnTouchLeave(e);
+		//}
+		//protected override void OnStylusLeave(StylusEventArgs e)
+		//{
+		//	Console.WriteLine("OnStylusLeave");
+		//	base.OnStylusLeave(e);
+		//}
+		//protected override void OnPreviewMouseMove(MouseEventArgs e)
+		//{
+		//	base.OnMouseMove(e);
 
-		#endregion
+		//	//JsonTreeViewItemHeader header = this.Parent as JsonTreeViewItemHeader;
+		//	//if(header == null)
+		//	//	return;
+		//	//JsonTreeViewItem tvi = header.Parent as JsonTreeViewItem;
+		//	//if(tvi == null)
+		//	//	return;
+
+		//	//tvi.PublicMouseMove(e);
+		//	//Console.WriteLine("KeyTextBox.OnPreviewMouseMove()");
+		//}
+	}
+	class KeyTextBox : JsonTextBox
+	{
+		public KeyTextBox(string text, bool isModify = true)
+		{
+			this.Text = text;
+
+			if(!isModify)
+			{
+				this.IsEnabled = false;
+				this.BorderBrush = null;
+			}
+		}
+	}
+	class ValueTextBox : JsonTextBox
+	{
+		public ValueTextBox(string data)
+		{
+			this.Text = data;
+
+			//Binding myBinding = new Binding("Value");
+			//myBinding.Source = jval;
+			//myBinding.Mode = BindingMode.TwoWay;
+			//myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+			//this.SetBinding(TextBox.TextProperty, myBinding);
+
+			//this.TextChanged += delegate (object sender, TextChangedEventArgs e)
+			//{
+			//	//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
+			//};
+		}
 	}
 }
