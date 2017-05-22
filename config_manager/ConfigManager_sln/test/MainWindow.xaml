@@ -6,17 +6,17 @@
         xmlns:local="clr-namespace:test"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-	<Grid>
-		<!--<Ellipse Height="50" Width="50" Fill="White"
-     MouseMove="ellipse_MouseMove"
-     GiveFeedback="ellipse_GiveFeedback"
-     AllowDrop="True"
-     DragEnter="ellipse_DragEnter" DragLeave="ellipse_DragLeave"
-     DragOver="ellipse_DragOver" Drop="ellipse_Drop" Stroke="Black" />-->
-		<Ellipse Height="50" Width="50" Fill="White"
-     MouseMove="ellipse_MouseMove"
-     AllowDrop="True"
-     DragEnter="ellipse_DragEnter" DragLeave="ellipse_DragLeave"
-     DragOver="ellipse_DragOver" Drop="ellipse_Drop" Stroke="Black" />
+	<Grid x:Name="grid">
+		<TextBox x:Name="tb_ip" Text="192.168.233.5"
+				 Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+		<TextBox x:Name="tb_name" Text="root"
+				 Margin="5,55,5,5" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+		<TextBox x:Name="tb_password" Text="root00"
+				 Margin="5,105,5,5" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+		<TextBox x:Name="tb_command" Text="mkdir test"
+				 Margin="5,155,5,5" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+
+		<Button x:Name="btn_start" Content="Button"
+				 Margin="5,205,5,5" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 	</Grid>
 </Window>

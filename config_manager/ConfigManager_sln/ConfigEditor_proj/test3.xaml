@@ -9,7 +9,26 @@
 		ToolBarTray.IsLocked="True">
 	<Grid>
 		<TabControl x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<TabItem Header="TabItem">
+			<TabItem Header="Server">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="2*"/>
+					</Grid.ColumnDefinitions>
+
+					<Grid Grid.Column="0">
+
+					</Grid>
+					<Grid Grid.Column="1">
+
+					</Grid>
+
+					<GridSplitter Background="Gray"
+								Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+								HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="2"/>
+				</Grid>
+			</TabItem>
+			<TabItem Header="Config">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="1*"/>
@@ -51,9 +70,6 @@
 									Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
 									HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="2"/>
 				</Grid>
-			</TabItem>
-			<TabItem Header="TabItem">
-				<Grid Background="#FFE5E5E5"/>
 			</TabItem>
 		</TabControl>
 	</Grid>

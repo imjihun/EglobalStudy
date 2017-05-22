@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Renci.SshNet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,109 +24,39 @@ namespace test
 		public MainWindow()
 		{
 			InitializeComponent();
+			btn_start.Click += Btn_start_Click;
 		}
-		private void ellipse_MouseMove(object sender, MouseEventArgs e)
-		{
-			Ellipse ellipse = sender as Ellipse;
-			if(ellipse != null && e.LeftButton == MouseButtonState.Pressed)
-			{
-				DragDrop.DoDragDrop(ellipse,
-									 ellipse.Fill.ToString(),
-									 DragDropEffects.Copy);
-			}
-		}
-		private Brush _previousFill = null;
-		private void ellipse_DragEnter(object sender, DragEventArgs e)
-		{
-			Console.WriteLine("ellipse_DragEnter");
-			Ellipse ellipse = sender as Ellipse;
-			if(ellipse != null)
-			{
-				// Save the current Fill brush so that you can revert back to this value in DragLeave.
-				_previousFill = ellipse.Fill;
 
-				// If the DataObject contains string data, extract it.
-				if(e.Data.GetDataPresent(DataFormats.StringFormat))
-				{
-					string dataString = (string)e.Data.GetData(DataFormats.StringFormat);
-
-					// If the string can be converted into a Brush, convert it.
-					BrushConverter converter = new BrushConverter();
-					if(converter.IsValid(dataString))
-					{
-						Brush newFill = (Brush)converter.ConvertFromString(dataString);
-						ellipse.Fill = newFill;
-					}
-				}
-			}
-		}
-		private void ellipse_DragOver(object sender, DragEventArgs e)
+		private void Btn_start_Click(object sender, RoutedEventArgs e)
 		{
-			Console.WriteLine("ellipse_DragOver");
-			e.Effects = DragDropEffects.None;
+			string ip = tb_ip.Text;
+			string name = tb_name.Text;
+			string password = tb_password.Text;
+			string command = tb_command.Text;
 
-			// If the DataObject contains string data, extract it.
-			if(e.Data.GetDataPresent(DataFormats.StringFormat))
+			Console.WriteLine("work");
+			try
 			{
-				string dataString = (string)e.Data.GetData(DataFormats.StringFormat);
+				SshClient client = new SshClient(ip, 22, name, password);
+				client.Connect();
+				SshCommand x = client.RunCommand(command);
+				client.Disconnect();
 
-				// If the string can be converted into a Brush, allow copying.
-				BrushConverter converter = new BrushConverter();
-				if(converter.IsValid(dataString))
-				{
-					e.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-				}
+				Console.WriteLine();
+				Console.WriteLine("CommandText = " + x.CommandText);
+				Console.WriteLine("CommandTimeout = " + x.CommandTimeout);
+				Console.WriteLine("Error = " + x.Error);
+				Console.WriteLine("ExitStatus = " + x.ExitStatus);
+				Console.WriteLine("Result = " + x.Result);
+				Console.WriteLine("OutputStream = " + x.OutputStream);
+				Console.WriteLine("ExtendedOutputStream = " + x.ExtendedOutputStream);
+				Console.WriteLine();
 			}
-		}
-		private void ellipse_DragLeave(object sender, DragEventArgs e)
-		{
-			Console.WriteLine("ellipse_DragLeave");
-			Ellipse ellipse = sender as Ellipse;
-			if(ellipse != null)
+			catch(Exception ex)
 			{
-				ellipse.Fill = _previousFill;
+				Console.WriteLine(ex.Message);
 			}
+			Console.WriteLine("finish");
 		}
-		private void ellipse_Drop(object sender, DragEventArgs e)
-		{
-			Console.WriteLine("ellipse_Drop");
-			Ellipse ellipse = sender as Ellipse;
-			if(ellipse != null)
-			{
-				// If the DataObject contains string data, extract it.
-				if(e.Data.GetDataPresent(DataFormats.StringFormat))
-				{
-					string dataString = (string)e.Data.GetData(DataFormats.StringFormat);
-
-					// If the string can be converted into a Brush, 
-					// convert it and apply it to the ellipse.
-					BrushConverter converter = new BrushConverter();
-					if(converter.IsValid(dataString))
-					{
-						Brush newFill = (Brush)converter.ConvertFromString(dataString);
-						ellipse.Fill = newFill;
-					}
-				}
-			}
-		}
-		//protected override void OnGiveFeedback(GiveFeedbackEventArgs e)
-		//{
-		//	base.OnGiveFeedback(e);
-		//	// These Effects values are set in the drop target's
-		//	// DragOver event handler.
-		//	if(e.Effects.HasFlag(DragDropEffects.Copy))
-		//	{
-		//		Mouse.SetCursor(Cursors.Cross);
-		//	}
-		//	else if(e.Effects.HasFlag(DragDropEffects.Move))
-		//	{
-		//		Mouse.SetCursor(Cursors.Pen);
-		//	}
-		//	else
-		//	{
-		//		Mouse.SetCursor(Cursors.No);
-		//	}
-		//	e.Handled = true;
-		//}
 	}
 }
