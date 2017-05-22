@@ -109,8 +109,8 @@
 						<ColumnDefinition Width="2*"/>
 					</Grid.ColumnDefinitions>
 
-					<Grid Grid.Column="0" Margin="5">
-						<Grid x:Name="grid_menu">
+					<Grid Grid.Column="0">
+						<Grid x:Name="grid_server" Margin="5">
 							<Border BorderBrush="Black" BorderThickness="1"/>
 						</Grid>
 					</Grid>

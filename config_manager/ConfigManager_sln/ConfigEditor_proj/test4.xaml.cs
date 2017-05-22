@@ -27,13 +27,18 @@ namespace ConfigEditor_proj
 	/// </summary>
 	public partial class test4 : Window
 	{
+		public static test4 wnd;
 		public test4()
 		{
+			wnd = this;
+
 			InitializeComponent();
 			this.Closed += test4_Closed;
 
 			initJsonTab();
 			initServerTab();
+
+			test4.wnd.grid_second.Visibility = Visibility.Hidden;
 		}
 
 		private void test4_Closed(object sender, EventArgs e)
@@ -44,27 +49,34 @@ namespace ConfigEditor_proj
 		#region Server Area
 		void initServerTab()
 		{
-			//ServerButton.sp_top = stackPanel_menu_top;
-			//ServerButton.sp_bottom = stackPanel_menu_bottom;
-			ServerButton.grid_menu = grid_menu;
-			ServerButtonChildrenMenu.grid_detail = grid_second;
-			new ServerButton("Real Server");
-			new ServerButton("Devel Server");
-			new ServerButton("DB Server");
-			new ServerButton("WAS Server");
-			//stackPanel_menu.Children.Add(new ServerButton("Real Server"));
-			//stackPanel_menu.Children.Add(new ServerButton("Devel Server"));
-			//stackPanel_menu.Children.Add(new ServerButton("DB Server"));
-			//stackPanel_menu.Children.Add(new ServerButton("WAS Server"));
+			ServerMenuButton smbtn;
+			smbtn = new ServerMenuButton("Real Server");
+			grid_server.Children.Add(smbtn);
+			grid_server.Children.Add(smbtn.child);
+
+			smbtn = new ServerMenuButton("Devel Server");
+			grid_server.Children.Add(smbtn);
+			grid_server.Children.Add(smbtn.child);
+
+			smbtn = new ServerMenuButton("DB Server");
+			grid_server.Children.Add(smbtn);
+			grid_server.Children.Add(smbtn.child);
+
+			smbtn = new ServerMenuButton("WAS Server");
+			grid_server.Children.Add(smbtn);
+			grid_server.Children.Add(smbtn.child);
 
 			button_send.Click += Button_send_Click;
 		}
 
 		private void Button_send_Click(object sender, RoutedEventArgs e)
 		{
-			string ip = ServerButtonChildrenMenu.selectedItem.ip;
-			string id = ServerButtonChildrenMenu.selectedItem.id;
-			string password = ServerButtonChildrenMenu.selectedItem.password;
+			if(ServerButtonChildren.selected_server_info == null)
+				return;
+
+			string ip = ServerButtonChildren.selected_server_info.ip;
+			string id = ServerButtonChildren.selected_server_info.id;
+			string password = ServerButtonChildren.selected_server_info.password;
 			string command = textBox_command.Text;
 
 			Console.WriteLine("work");
@@ -115,12 +127,11 @@ namespace ConfigEditor_proj
 				password = _pass;
 			}
 		}
-
-		class ServerButtonChildrenMenu : ListBox
+		class ServerButtonChildren : ListBox
 		{
-			public static Grid grid_detail;
-			public static ServerInfoTextBlock selectedItem;
-			public ServerButtonChildrenMenu()
+			public static ServerInfoTextBlock selected_server_info;
+
+			public ServerButtonChildren()
 			{
 				this.Margin = new Thickness(20, 0, 0, 0);
 				this.BorderBrush = null;
@@ -138,10 +149,12 @@ namespace ConfigEditor_proj
 				this.Items.Add(btn);
 			}
 
-
 			private void Btn_Click(object sender, RoutedEventArgs e)
 			{
 				Window_MakeSession wms = new Window_MakeSession();
+				Point pt = this.PointToScreen(new Point(0, 0));
+				wms.Left = pt.X;
+				wms.Top = pt.Y;
 				if(wms.ShowDialog() == true)
 				{
 					string name = wms.textBox_name.Text;
@@ -157,43 +170,31 @@ namespace ConfigEditor_proj
 
 			protected override void OnSelectionChanged(SelectionChangedEventArgs e)
 			{
-				ServerInfoTextBlock tb = this.SelectedItem as ServerInfoTextBlock;
-				if(tb == null)
+				//ServerInfoTextBlock tb = this.SelectedItem as ServerInfoTextBlock;
+				//if(tb == null)
+				//	return;
+
+				//selectedItem = tb;
+				selected_server_info = this.SelectedItem as ServerInfoTextBlock;
+				if(selected_server_info == null)
+				{
+					test4.wnd.grid_second.Visibility = Visibility.Hidden;
 					return;
-
-				selectedItem = tb;
-
-				grid_detail.IsEnabled = true;
-
-				TextBlock tb_name = grid_detail.Children[0] as TextBlock;
-				if(tb_name == null)
-					return;
-
-				tb_name.Text = tb.Name;
+				}
+				else
+				{
+					test4.wnd.grid_second.Visibility = Visibility.Visible;
+				}
 			}
 		}
-		class ServerButtonChildren : Grid
+		class ServerMenuButton : ToggleButton
 		{
-			public ServerButtonChildrenMenu menus;
-			public ServerButtonChildren()
-			{
-				menus = new ServerButtonChildrenMenu();
-				this.Margin = new Thickness(20, 0, 0, 0);
-				this.VerticalAlignment = VerticalAlignment.Stretch;
-				this.HorizontalAlignment = HorizontalAlignment.Stretch;
-
-				this.Children.Add(menus);
-			}
-		}
-		class ServerButton : ToggleButton
-		{
-			public static Grid grid_menu;
-			static List<ServerButton> group = new List<ServerButton>();
+			static List<ServerMenuButton> group = new List<ServerMenuButton>();
 
 			const double HEIGHT = 20;
 
-			public ServerButtonChildren child = new ServerButtonChildren();
-			public ServerButton(string header)
+			public ServerButtonChildren child;
+			public ServerMenuButton(string header)
 			{
 				this.Content = header;
 				this.Background = Brushes.White;
@@ -201,20 +202,8 @@ namespace ConfigEditor_proj
 				this.HorizontalAlignment = HorizontalAlignment.Stretch;
 				this.VerticalAlignment = VerticalAlignment.Bottom;
 
-				if(grid_menu != null)
-				{
-					grid_menu.Children.Add(this);
-					grid_menu.Children.Add(child);
-
-					child.Visibility = Visibility.Collapsed;
-
-					for(int i = 0; i < 4; i++)
-					{
-						TextBlock tblock = new TextBlock();
-						tblock.Text = i.ToString();
-						child.menus.Items.Add(tblock);
-					}
-				}
+				this.child = new ServerButtonChildren();
+				this.child.Visibility = Visibility.Collapsed;
 
 				group.Add(this);
 				for(int i = 0; i < group.Count; i++)
@@ -256,13 +245,23 @@ namespace ConfigEditor_proj
 
 				this.child.Margin = new Thickness(0, HEIGHT * (idx + 1), 0, HEIGHT * (group.Count - (idx + 1)));
 				this.child.Visibility = Visibility.Visible;
-
-				//Console.WriteLine();
-				//Console.WriteLine(ServerButton.sp_top.ActualHeight + ", " + ServerButton.sp_bottom.ActualHeight);
-				//Console.WriteLine(this.child.ActualHeight);
+				Console.WriteLine(this.child.Items.Count);
 			}
 		}
 
+
+
+		class ServerGrid : Grid
+		{
+			public ServerGrid()
+			{
+				Border bd = new Border();
+				bd.BorderBrush = Brushes.Black;
+				bd.BorderThickness = new Thickness(1);
+
+				this.Children.Add(bd);
+			}
+		}
 		#endregion
 
 
