@@ -530,6 +530,7 @@ namespace Manager_proj
 
 		class CommandView : Grid
 		{
+			int PORT = 22;
 			SshClient client;
 
 			public static CommandView current;
@@ -613,13 +614,13 @@ namespace Manager_proj
 
 					if((CommandView.current.client == null || !CommandView.current.client.IsConnected)
 						|| (CommandView.current.client.ConnectionInfo.Host != ip
-							|| CommandView.current.client.ConnectionInfo.Port != 22
+							|| CommandView.current.client.ConnectionInfo.Port != PORT
 							|| CommandView.current.client.ConnectionInfo.Username != id))
 					{
 						if(CommandView.current.client != null && CommandView.current.client.IsConnected)
 							CommandView.current.client.Disconnect();
 
-						CommandView.current.client = new SshClient(ip, 22, id, password);
+						CommandView.current.client = new SshClient(ip, PORT, id, password);
 						CommandView.current.client.Connect();
 						Console.WriteLine("////////////////////reConnection");
 						Console.WriteLine(CommandView.current.client.ConnectionInfo.Host + " / " + CommandView.current.client.ConnectionInfo.Port + " / " + CommandView.current.client.ConnectionInfo.Username + " / " + CommandView.current.client.ConnectionInfo.ProxyUsername + " / " + CommandView.current.client.ConnectionInfo.ProxyPassword);
@@ -629,9 +630,9 @@ namespace Manager_proj
 					//SshClient client = new SshClient(ip, 22, id, password);
 					////client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(1);
 					//client.Connect();
-					//Console.WriteLine(client.CreateCommand("cd /tmp && ls -lah").Execute());
-					//Console.WriteLine(client.CreateCommand("pwd").Execute());
-					//Console.WriteLine(client.CreateCommand("cd /tmp/uploadtest && ls -lah").Execute());
+					Console.WriteLine(client.CreateCommand("cd /tmp && ls -lah").Execute());
+					Console.WriteLine(client.CreateCommand("pwd").Execute());
+					Console.WriteLine(client.CreateCommand("cd /tmp/uploadtest && ls -lah").Execute());
 					SshCommand x = client.RunCommand(command);
 					//client.Disconnect();
 

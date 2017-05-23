@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ConfigEditor_proj.Properties
+namespace Manager_proj.Properties
 {
 
 
