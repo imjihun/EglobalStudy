@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Manager_proj.Properties
+namespace Manager_proj_2.Properties
 {
 
 

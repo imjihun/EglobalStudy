@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Manager_proj
+namespace Manager_proj_2
 {
 	class FileContoller
 	{

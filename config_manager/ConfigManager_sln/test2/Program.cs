@@ -15,6 +15,9 @@ namespace test2
 	{
 		static void Main(string[] args)
 		{
+			string a = "abc";
+
+			Console.WriteLine(a.Substring(1,0).Length);
 		}
 	}
 }
