@@ -18,12 +18,12 @@ namespace Manager_proj
 	/// <summary>
 	/// popup_AddJsonItem.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class popup_AddJsonItem : Window
+	public partial class Window_AddJsonItem : Window
 	{
 		public string key = "";
 		public JToken value = "";
 		JToken[] value_type = new JToken[3];
-		public popup_AddJsonItem()
+		public Window_AddJsonItem()
 		{
 			InitializeComponent();
 
@@ -33,8 +33,18 @@ namespace Manager_proj
 
 			btn_ok.Click += Btn_ok_Click;
 			btn_cancel.Click += Btn_cancel_Click;
+
+			textBox_key.KeyDown += TextBox_KeyDown;
 		}
 
+		private void TextBox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if(e.Key != Key.Enter)
+				return;
+
+			this.DialogResult = true;
+			this.Close();
+		}
 		private void Btn_ok_Click(object sender, RoutedEventArgs e)
 		{
 			key = textBox_key.Text;

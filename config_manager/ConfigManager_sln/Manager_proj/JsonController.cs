@@ -744,7 +744,7 @@ namespace Manager_proj
 			else
 			{
 				// window_addJson showdialog()
-				popup_AddJsonItem popup = new popup_AddJsonItem();
+				Window_AddJsonItem popup = new Window_AddJsonItem();
 				Point pt = this.PointToScreen(new Point(0, 0));
 				popup.Left = pt.X;
 				popup.Top = pt.Y;

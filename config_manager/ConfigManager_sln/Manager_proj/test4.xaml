@@ -7,103 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="700"
 		ToolBarTray.IsLocked="True">
-	<Window.Resources>
-		<BooleanToVisibilityConverter x:Key="MyBoolToVisibilityConverter"/>
-
-		<Style x:Key="TreeViewItemFocusVisual">
-			<Setter Property="Control.Template">
-				<Setter.Value>
-					<ControlTemplate>
-						<Border>
-							<Rectangle Margin="0,0,0,0"
-             StrokeThickness="5"
-             Stroke="Black"
-             StrokeDashArray="1 2"
-             Opacity="0"/>
-						</Border>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		<Style x:Key="TreeViewItemLessArrow" TargetType="{x:Type TreeViewItem}">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="HorizontalContentAlignment" Value="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-			<Setter Property="VerticalContentAlignment" Value="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-			<Setter Property="Padding" Value="1,0,0,0"/>
-			<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-			<Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type TreeViewItem}">
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="10"/>
-								<ColumnDefinition Width="Auto"/>
-								<ColumnDefinition Width="*"/>
-							</Grid.ColumnDefinitions>
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto"/>
-								<RowDefinition/>
-							</Grid.RowDefinitions>
-							<Border Name="Bd"
-                              Grid.Column="1"                                
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}"
-                              Padding="{TemplateBinding Padding}">
-								<ContentPresenter x:Name="PART_Header"
-                                        ContentSource="Header"
-                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-							</Border>
-							<ItemsPresenter x:Name="ItemsHost"
-                          Grid.Row="1"
-                          Grid.Column="1"
-                          Grid.ColumnSpan="2"/>
-						</Grid>
-
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsExpanded" Value="false">
-								<Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
-							</Trigger>
-							<MultiTrigger>
-								<MultiTrigger.Conditions>
-									<Condition Property="HasHeader" Value="false"/>
-									<Condition Property="Width" Value="Auto"/>
-								</MultiTrigger.Conditions>
-								<Setter TargetName="PART_Header" Property="MinWidth" Value="75"/>
-							</MultiTrigger>
-							<MultiTrigger>
-								<MultiTrigger.Conditions>
-									<Condition Property="HasHeader" Value="false"/>
-									<Condition Property="Height" Value="Auto"/>
-								</MultiTrigger.Conditions>
-								<Setter TargetName="PART_Header" Property="MinHeight" Value="19"/>
-							</MultiTrigger>
-							<Trigger Property="IsSelected" Value="true">
-								<Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-								<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
-							</Trigger>
-							<MultiTrigger>
-								<MultiTrigger.Conditions>
-									<Condition Property="IsSelected" Value="true"/>
-									<Condition Property="IsSelectionActive" Value="false"/>
-								</MultiTrigger.Conditions>
-								<Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
-								<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-							</MultiTrigger>
-							<Trigger Property="IsEnabled" Value="false">
-								<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	</Window.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="1*"/>
-			<ColumnDefinition Width="3*"/>
+			<ColumnDefinition Width="4*"/>
 		</Grid.ColumnDefinitions>
 		<Grid x:Name="grid_server" Grid.Column="0" Background="{x:Null}"
 			  Margin="0,25,0,3" VerticalAlignment="Stretch"></Grid>
@@ -113,53 +20,16 @@
 					HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{x:Null}">
 			<TabItem Header="Server">
 				<Grid x:Name="grid" Background="{x:Null}">
-					<!--<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="1*"/>
-						<ColumnDefinition Width="4*"/>
-					</Grid.ColumnDefinitions>
-
-					<Grid Grid.Column="0"
-						  Background="{x:Null}">
-						<Grid x:Name="grid_server" Margin="5">
-							<Border BorderBrush="Black" BorderThickness="1"/>
-						</Grid>
-					</Grid>-->
 					<Grid Grid.Column="1"
 						  HorizontalAlignment="Right" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" >
 						<Grid x:Name="grid_second" Margin="5">
-							<!--<TextBlock x:Name="textBlock_serverName"
-									   Margin="5" VerticalAlignment="Top"/>
-							<Grid Margin="0,30,0,0">
-								<TextBlock Text="Command : "
-										   Margin="5" VerticalAlignment="Top" HorizontalAlignment="Left" Width="70"/>
-								<TextBox x:Name="textBox_command"
-										 Margin="80,5,95,5" VerticalAlignment="Top" HorizontalAlignment="Stretch"/>
-								<Button x:Name="button_send" Background="White" Content="Send(or Run)"
-										Margin="5,5,5,5" VerticalAlignment="Top" HorizontalAlignment="Right" Width="85"/>
-
-
-								<TextBox x:Name="textBlock_result" IsReadOnly="True"
-										 Margin="5,30,5,5"/>
-							</Grid>-->
 							<Border BorderBrush="Black" BorderThickness="1"/>
 						</Grid>
 					</Grid>
-
-					<!--<GridSplitter Background="Gray"
-								Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-								HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="2"/>-->
 				</Grid>
 			</TabItem>
 			<TabItem Header="Config">
 				<Grid Background="{x:Null}">
-					<!--<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="1*"/>
-						<ColumnDefinition Width="2*"/>
-					</Grid.ColumnDefinitions>
-
-					<Grid Grid.Column="0" Grid.Row="0"
-						  Background="{x:Null}">
-					</Grid>-->
 					<Grid Grid.Column="1" Grid.Row="0" 
 						  HorizontalAlignment="Right" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}">
 						<Grid Margin="5">
@@ -175,7 +45,6 @@
 								</Menu>
 								<Grid>
 									<TreeView x:Name="json_tree_view" Margin="0,0,0,0">
-										<!--<StackPanel/>-->
 									</TreeView>
 								</Grid>
 							</DockPanel>
@@ -189,11 +58,6 @@
 							<Border BorderBrush="Black" BorderThickness="1"/>
 						</Grid>
 					</Grid>
-
-
-					<!--<GridSplitter Background="Gray"
-									Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-									HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="2"/>-->
 				</Grid>
 			</TabItem>
 		</TabControl>

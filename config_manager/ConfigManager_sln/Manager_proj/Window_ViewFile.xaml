@@ -7,10 +7,8 @@
         mc:Ignorable="d"
         Title="Window_ViewFile" Height="600" Width="400">
 	<Grid>
-		<ScrollViewer Margin="0,0,0,30" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-			<TextBox x:Name="tb_file" 
-					 AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas"/>
-		</ScrollViewer>
+		<TextBox x:Name="tb_file" 
+					 AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
 		<Button x:Name="btn_ok" Content="ok" Background="White"
 				Margin="0,0,70,5" Width="50" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right"></Button>
 		<Button x:Name="btn_cancel" Content="cancel" Background="White"
