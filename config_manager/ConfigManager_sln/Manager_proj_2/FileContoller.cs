@@ -36,10 +36,10 @@ namespace Manager_proj_2
 
 			return ret_str.ToString();
 		}
-		public static void write(string path, string str)
+		public static bool write(string path, string str)
 		{
 			if(path == null || str == null)
-				return;
+				return false;
 			try
 			{
 				FileStream fs = new FileStream(path, FileMode.Create);
@@ -53,11 +53,13 @@ namespace Manager_proj_2
 				fs.Write(buffer, 0, size_write);
 
 				fs.Close();
+				return true;
 			}
 			catch(Exception e)
 			{
 				Console.WriteLine(e.Message);
 			}
+			return false;
 		}
 		public static string[] loadFile(string path, string searchPattern)
 		{

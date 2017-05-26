@@ -17,9 +17,9 @@ namespace Manager_proj_2
 	/// <summary>
 	/// Window_MakeSession.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class Window_MakeSession : Window
+	public partial class Window_AddServer : Window
 	{
-		public Window_MakeSession()
+		public Window_AddServer()
 		{
 			InitializeComponent();
 			textBox_name.Focus();

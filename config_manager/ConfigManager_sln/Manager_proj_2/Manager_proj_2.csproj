@@ -67,11 +67,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CommonFunction.cs" />
+    <Compile Include="LinuxTreeViewItem.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="test4.xaml.cs">
       <DependentUpon>test4.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Window_MakeSession.xaml.cs">
-      <DependentUpon>Window_MakeSession.xaml</DependentUpon>
+    <Compile Include="Window_AddServerMenu.xaml.cs">
+      <DependentUpon>Window_AddServerMenu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Window_AddServer.xaml.cs">
+      <DependentUpon>Window_AddServer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Window_ViewFile.xaml.cs">
       <DependentUpon>Window_ViewFile.xaml</DependentUpon>
@@ -90,7 +95,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Window_MakeSession.xaml">
+    <Page Include="Window_AddServerMenu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Window_AddServer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

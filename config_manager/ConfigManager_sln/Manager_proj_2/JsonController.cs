@@ -17,6 +17,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Collections.Specialized;
 using System.Windows.Input;
+using System.Windows.Data;
 
 namespace Manager_proj_2
 {
@@ -131,15 +132,18 @@ namespace Manager_proj_2
 	}
 	class JsonTreeViewItem : TreeViewItem
 	{
-		public enum JsonType
-		{
-			JValue = 0,
-			JObject = 1,
-			JArray = 2
-		}
+		//public enum JTokenType
+		//{
+		//	String = 0,
+		//	Boolean,
+		//	Null,
+		//	Integer,
+		//	JObject,
+		//	JArray,
+		//}
 		// 0 = JValue, 1 = JObject, 2 = JArray
-		public JsonType type = 0;
-
+		public JTokenType value_token_type = 0;
+		//public JTokenType type;
 		// JObject, JArray, JProperty
 		// now
 		//        if(root)    -> JObject
@@ -173,7 +177,7 @@ namespace Manager_proj_2
 			parent_tvi.Items.Remove(this);
 
 			// JArray 삭제시 인덱스 수정
-			if(this.type == JsonType.JArray)
+			if(this.value_token_type == JTokenType.Array)
 				parent_tvi.refreshIndex();
 		}
 
@@ -366,12 +370,12 @@ namespace Manager_proj_2
 					return;
 
 				// JArray 타입과 다른타입과는 드래그앤드롭 불가. (src==JArray && dst==JArray) 이거나 (src != JArray && dst==JArray) 일떄 수행
-				if((tvi_parent.type == JsonType.JArray && tvi_src_parent.type != JsonType.JArray)
-						|| (tvi_parent.type != JsonType.JArray && tvi_src_parent.type == JsonType.JArray))
+				if((tvi_parent.value_token_type == JTokenType.Array && tvi_src_parent.value_token_type != JTokenType.Array)
+						|| (tvi_parent.value_token_type != JTokenType.Array && tvi_src_parent.value_token_type == JTokenType.Array))
 					return;
 
 				// 중복 체크
-				if(tvi_parent.type != JsonType.JArray && tvi_src_parent.type != JsonType.JArray
+				if(tvi_parent.value_token_type != JTokenType.Array && tvi_src_parent.value_token_type != JTokenType.Array
 					&& tvi_parent != tvi_src_parent
 					&& tvi_parent.checkDuplication(tvi_src) < 0)
 					return;
@@ -457,13 +461,17 @@ namespace Manager_proj_2
 					parent_tvi.AddItem(child_tvi);
 					KeyTextBox tb_key = new KeyTextBox((jobj.Parent as JArray).IndexOf(jobj).ToString(), false);
 					child_tvi.Header.AddItem(tb_key);
-					child_tvi.type = JsonType.JObject;
+					child_tvi.value_token_type = JTokenType.Object;
 					parent_tvi = child_tvi;
 				}
 
-				KeyTextBox tb_type = new KeyTextBox("object", false);
-				parent_tvi.Header.AddItem(tb_type);
-				parent_tvi.type = JsonType.JObject;
+				//KeyTextBox tb_type = new KeyTextBox("object", false);
+				//parent_tvi.Header.AddItem(tb_type);
+				//parent_tvi.value_token_type = JTokenType.Object;
+				//return parent_tvi;
+				ValuePanel panel_value = new ValuePanel(JTokenType.Object, "object");
+				parent_tvi.Header.AddItem(panel_value);
+				parent_tvi.value_token_type = JTokenType.Object;
 				return parent_tvi;
 			}
 			else if(jtok is JProperty)
@@ -480,10 +488,9 @@ namespace Manager_proj_2
 			else if(jtok is JValue)
 			{
 				JValue jval = jtok as JValue;
-
-				string data = jval.ToString();
-				ValueTextBox tb_value = new ValueTextBox(data);
-				parent_tvi.Header.AddItem(tb_value);
+				ValuePanel panel_value = new ValuePanel(jval.Type, jval.Value);
+				parent_tvi.Header.AddItem(panel_value);
+				parent_tvi.value_token_type = jval.Type;
 
 				parent_tvi.Header.addButtn.Visibility = Visibility.Hidden;
 				//parent_tvi.Items.Clear();
@@ -491,9 +498,13 @@ namespace Manager_proj_2
 			}
 			else if(jtok is JArray)
 			{
-				KeyTextBox tb_type = new KeyTextBox("array", false);
-				parent_tvi.Header.AddItem(tb_type);
-				parent_tvi.type = JsonType.JArray;
+				//KeyTextBox tb_type = new KeyTextBox("array", false);
+				//parent_tvi.Header.AddItem(tb_type);
+				//parent_tvi.value_token_type = JTokenType.Array;
+				//return parent_tvi;
+				ValuePanel panel_value = new ValuePanel(JTokenType.Array, "array");
+				parent_tvi.Header.AddItem(panel_value);
+				parent_tvi.value_token_type = JTokenType.Array;
 				return parent_tvi;
 			}
 			else
@@ -545,13 +556,13 @@ namespace Manager_proj_2
 
 
 			// JArray 삽입시 인덱스 수정
-			if(this.type == JsonType.JArray)
+			if(this.value_token_type == JTokenType.Array)
 				refreshIndex();
 			return 0;
 		}
 		void refreshIndex()
 		{
-			if(this.type != JsonType.JArray)
+			if(this.value_token_type != JTokenType.Array)
 				return;
 
 			//if(start_idx < 0 || start_new_idx < 0)
@@ -599,7 +610,7 @@ namespace Manager_proj_2
 			JObject jtok_root = new JObject();
 
 			convertToJToken_recursive(root_tvi, jtok_root);
-
+			Console.WriteLine(jtok_root);
 			return jtok_root;
 		}
 		static void convertToJToken_recursive(JsonTreeViewItem tvi_cur, JObject jobj_cur)
@@ -621,40 +632,37 @@ namespace Manager_proj_2
 
 				// pan(MyTreeViewItem.Header) = key, val or val.type, button
 				JsonTextBox tb_key = pan.Children[0] as JsonTextBox;
-				JsonTextBox tb_val = pan.Children[1] as JsonTextBox;
+				ValuePanel panel_value = pan.Children[1] as ValuePanel;
 
-				if(tb_val is KeyTextBox)
+				switch(panel_value.type)
 				{
-					KeyTextBox tb_type = tb_val as KeyTextBox;
-					switch(tvi_child.type)
-					{
-						case JsonTreeViewItem.JsonType.JObject:
+					case JTokenType.Object:
+						{
+							JObject jobj = new JObject();
+							JProperty jprop = new JProperty(tb_key.Text, jobj);
+							(cur_jtok as JObject).Add(jprop);
+							convertToJToken_recursive(tvi_child, jobj);
+						}
+						break;
+					case JTokenType.Array:
+						{
+							JArray jarr = new JArray();
+							JProperty jprop = new JProperty(tb_key.Text, jarr);
+							(cur_jtok as JObject).Add(jprop);
+							for(int i = 0; i < tvi_child.Items.Count; i++)
 							{
 								JObject jobj = new JObject();
-								JProperty jprop = new JProperty(tb_key.Text, jobj);
-								(cur_jtok as JObject).Add(jprop);
-								convertToJToken_recursive(tvi_child, jobj);
+								jarr.Add(jobj);
+								convertToJToken_recursive(tvi_child.Items[i] as JsonTreeViewItem, jobj);
 							}
-							break;
-						case JsonTreeViewItem.JsonType.JArray:
-							{
-								JArray jarr = new JArray();
-								JProperty jprop = new JProperty(tb_key.Text, jarr);
-								(cur_jtok as JObject).Add(jprop);
-								for(int i = 0; i < tvi_child.Items.Count; i++)
-								{
-									JObject jobj = new JObject();
-									jarr.Add(jobj);
-									convertToJToken_recursive(tvi_child.Items[i] as JsonTreeViewItem, jobj);
-								}
-							}
-							break;
-					}
-				}
-				else
-				{
-					JProperty jprop = new JProperty(tb_key.Text, tb_val.Text);
-					(cur_jtok as JObject).Add(jprop);
+						}
+						break;
+					default:
+						{
+							JProperty jprop = new JProperty(tb_key.Text, new JValue(panel_value.value));
+							(cur_jtok as JObject).Add(jprop);
+						}
+						break;
 				}
 			}
 		}
@@ -730,30 +738,30 @@ namespace Manager_proj_2
 			if(jtvi == null)
 				return;
 
-			if(jtvi.type == JsonTreeViewItem.JsonType.JArray)
+			if(jtvi.value_token_type == JTokenType.Array)
 			{
 				JsonTreeViewItem child_tvi = new JsonTreeViewItem();
 				KeyTextBox tb_key = new KeyTextBox(jtvi.getCountChildProperty().ToString(), false);
 				child_tvi.Header.AddItem(tb_key);
 				KeyTextBox tb_type = new KeyTextBox("object", false);
 				child_tvi.Header.AddItem(tb_type);
-				child_tvi.type = JsonTreeViewItem.JsonType.JObject;
+				child_tvi.value_token_type = JTokenType.Object;
 
 				jtvi.AddItem(child_tvi);
 			}
 			else
 			{
 				// window_addJson showdialog()
-				Window_AddJsonItem popup = new Window_AddJsonItem();
+				Window_AddJsonItem wnd_add = new Window_AddJsonItem();
 				Point pt = this.PointToScreen(new Point(0, 0));
-				popup.Left = pt.X;
-				popup.Top = pt.Y;
+				wnd_add.Left = pt.X;
+				wnd_add.Top = pt.Y;
 
 				// cancel return
-				if(popup.ShowDialog() != true)
+				if(wnd_add.ShowDialog() != true)
 					return;
 
-				JsonTreeViewItem.convertToTreeView_recursive(jtvi, new JProperty(popup.key, popup.value));
+				JsonTreeViewItem.convertToTreeView_recursive(jtvi, new JProperty(wnd_add.key, wnd_add.value));
 			}
 
 			//JToken tmp = jtvi.Parent;
@@ -949,23 +957,153 @@ namespace Manager_proj_2
 			}
 		}
 	}
-	class ValueTextBox : JsonTextBox
+	class ValuePanel : StackPanel
 	{
-		public ValueTextBox(string data)
+		// UI input => Grid.children[0]
+		public JTokenType type;
+		public object value;
+		public ValuePanel(JTokenType _type, object _value)
 		{
-			this.Text = data;
+			this.AllowDrop = true;
 
-			//Binding myBinding = new Binding("Value");
-			//myBinding.Source = jval;
-			//myBinding.Mode = BindingMode.TwoWay;
-			//myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-			//this.SetBinding(TextBox.TextProperty, myBinding);
+			this.Margin = new Thickness(5);
+			this.Width = 150;
+			this.Orientation = Orientation.Horizontal;
 
-			//this.TextChanged += delegate (object sender, TextChangedEventArgs e)
-			//{
-			//	//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
-			//};
+			type = _type;
+			value = _value;
+
+			switch(type)
+			{
+				case JTokenType.Array:
+					break;
+				case JTokenType.Boolean:
+					TextBlock tblock = new TextBlock();
+					tblock.Text = value.ToString();
+
+					CheckBox cb = new CheckBox();
+					cb.IsChecked = (bool)value;
+					this.Children.Add(cb);
+					cb.Checked += delegate { tblock.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
+					cb.Unchecked += delegate { tblock.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
+
+					this.Children.Add(tblock);
+					break;
+				case JTokenType.Bytes:
+					break;
+				case JTokenType.Comment:
+					break;
+				case JTokenType.Constructor:
+					break;
+				case JTokenType.Date:
+					break;
+				case JTokenType.Float:
+					break;
+				case JTokenType.Guid:
+					break;
+				case JTokenType.Integer:
+					TextBox tb_integer = new TextBox();
+					tb_integer.Text = value.ToString();
+					tb_integer.Width = this.Width;
+					tb_integer.TextChanged += TextBox_TextChanged;
+					this.Children.Add(tb_integer);
+					break;
+				case JTokenType.None:
+					break;
+				case JTokenType.Null:
+					break;
+				case JTokenType.Object:
+					break;
+				case JTokenType.Property:
+					break;
+				case JTokenType.Raw:
+					break;
+				case JTokenType.String:
+					TextBox tb_string = new TextBox();
+					tb_string.Text = "\"" + value.ToString() + "\"";
+					tb_string.Width = this.Width;
+					tb_string.TextChanged += TextBox_TextChanged;
+					this.Children.Add(tb_string);
+					break;
+				case JTokenType.TimeSpan:
+					break;
+				case JTokenType.Undefined:
+					break;
+				case JTokenType.Uri:
+					break;
+			}
+		}
+
+		private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			TextBox tb = sender as TextBox;
+			if(tb == null)
+				return;
+
+			string str = tb.Text;
+			if(str[0] == str[str.Length - 1])
+			{
+				if(str[0] == '\'')
+					this.value = str.Trim('\'');
+				else if(str[0] == '\"')
+					this.value = str.Trim('\"');
+				else
+					Console.WriteLine("[TextBox_TextChanged] error");
+			}
+			else
+			{
+				try
+				{
+					this.value = Convert.ToInt64(str);
+				}
+				catch(Exception ex)
+				{
+					Console.WriteLine("[TextBox_TextChanged] " + ex.Message);
+				}
+			}
+		}
+
+
+		// JsonTextBox 는 JsonTreeViewItem.Header.Children 에 존재
+		protected override void OnDragOver(DragEventArgs e)
+		{
+			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
+			if(tvi_parent == null)
+				return;
+
+			tvi_parent.PublicDragOver(e);
+			Console.WriteLine("KeyTextBox.OnDragOver()");
+			base.OnDragOver(e);
+		}
+		protected override void OnDrop(DragEventArgs e)
+		{
+			Console.WriteLine("KeyTextBox.OnDrop()");
+			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
+			if(tvi_parent == null)
+				return;
+
+			tvi_parent.PublicDrop(e);
+			base.OnDrop(e);
 		}
 	}
+	//class ValueTextBox : JsonTextBox
+	//{
+	//	public JValue val;
+	//	public ValueTextBox(JValue _val)
+	//	{
+	//		val = _val;
+	//		this.Text = val.Value.ToString();
+	//		//Binding myBinding = new Binding("Value");
+	//		//myBinding.Source = jval;
+	//		//myBinding.Mode = BindingMode.TwoWay;
+	//		//myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+	//		//this.SetBinding(TextBox.TextProperty, myBinding);
+
+	//		//this.TextChanged += delegate (object sender, TextChangedEventArgs e)
+	//		//{
+	//		//	//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
+	//		//};
+	//	}
+	//}
 	#endregion
 }

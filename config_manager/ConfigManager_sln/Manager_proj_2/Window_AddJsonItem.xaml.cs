@@ -22,14 +22,16 @@ namespace Manager_proj_2
 	{
 		public string key = "";
 		public JToken value = "";
-		JToken[] value_type = new JToken[3];
+		JToken[] value_type = new JToken[5];
 		public Window_AddJsonItem()
 		{
 			InitializeComponent();
 
 			value_type[0] = new JValue("");
-			value_type[1] = new JObject();
-			value_type[2] = new JArray(new JObject());
+			value_type[1] = new JValue(false);
+			value_type[2] = new JValue(0);
+			value_type[3] = new JObject();
+			value_type[4] = new JArray(new JObject());
 
 			btn_ok.Click += Btn_ok_Click;
 			btn_cancel.Click += Btn_cancel_Click;
