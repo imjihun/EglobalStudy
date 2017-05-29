@@ -66,9 +66,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CommonFunction.cs" />
+    <Compile Include="CommandView.cs" />
     <Compile Include="LinuxTreeViewItem.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="ServerInfo.cs" />
     <Compile Include="test4.xaml.cs">
       <DependentUpon>test4.xaml</DependentUpon>
     </Compile>
@@ -86,7 +87,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FileContoller.cs" />
-    <Compile Include="JsonController.cs" />
+    <Compile Include="JsonTreeViewItem.cs" />
     <Page Include="Window_AddJsonItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

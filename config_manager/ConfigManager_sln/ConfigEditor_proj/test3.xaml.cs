@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Collections.Specialized;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	/// <summary>
 	/// test3.xaml에 대한 상호 작용 논리

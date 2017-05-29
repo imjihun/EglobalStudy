@@ -2,17 +2,21 @@
 using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	class LinuxTreeViewItem : TreeViewItem
 	{
@@ -26,7 +30,7 @@ namespace Manager_proj_2
 		#region header
 		public class Grid_Header : Grid
 		{
-			const int HEIGHT = 25;
+			const int HEIGHT = 30;
 			public Grid_Header(string header)
 			{
 				//this.Height = HEIGHT;
@@ -35,6 +39,24 @@ namespace Manager_proj_2
 				tb.Text = header;
 				tb.VerticalAlignment = VerticalAlignment.Center;
 				this.Children.Add(tb);
+			}
+			public string Text
+			{
+				get
+				{
+					TextBlock tb = this.Children[0] as TextBlock;
+					if(tb == null)
+						return null;
+					return tb.Text;
+					//tb.Text = newText;
+				}
+				set
+				{
+					TextBlock tb = this.Children[0] as TextBlock;
+					if(tb == null)
+						return;
+					tb.Text = value;
+				}
 			}
 			public void SetText(string newText)
 			{
@@ -98,11 +120,25 @@ namespace Manager_proj_2
 		}
 		private void OnClickEncrypt(object sender, RoutedEventArgs e)
 		{
-			sendCofileCommand(true);
+			if(MessageBox.Show("Encrypt?", "Encrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+			{
+				//Log.ViewMessage("Encrypting..", "Encrypt", test4.m_wnd.richTextBox_status);
+				TextRange txt = new TextRange(test4.m_wnd.richTextBox_status.Document.ContentStart, test4.m_wnd.richTextBox_status.Document.ContentEnd);
+				txt.Text = "";
+				view_message_caption = "Encrypt";
+				sendCofileCommand(true);
+			}
 		}
 		private void OnClickDecrypt(object sender, RoutedEventArgs e)
 		{
-			sendCofileCommand(false);
+			if(MessageBox.Show("Decrypt?", "Decrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+			{
+				//Log.ViewMessage("Decrypting..", "Decrypt", test4.m_wnd.richTextBox_status);
+				TextRange txt = new TextRange(test4.m_wnd.richTextBox_status.Document.ContentStart, test4.m_wnd.richTextBox_status.Document.ContentEnd);
+				txt.Text = "";
+				view_message_caption = "Decrypt";
+				sendCofileCommand(false);
+			}
 		}
 		private void sendCofileCommand(bool isEncrypt)
 		{
@@ -172,6 +208,7 @@ namespace Manager_proj_2
 			{
 				this.Items.Clear();
 				loadDirectory();
+				LinuxTreeViewItem.filter(this, filter_string);
 			}
 		}
 		void loadDirectory()
@@ -188,12 +225,24 @@ namespace Manager_proj_2
 				if(i != IGNORE_FILENAME.Length)
 					continue;
 
+				LinuxTreeViewItem ltvi;
 				if(file.IsDirectory)
+				{
 					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, true));
-					this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
+					//this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
+					ltvi = new LinuxTreeViewItem(file.FullName, file.Name, true);
+					this.Items.Insert(0, ltvi);
+				}
 				else
+				{
 					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, false));
-					this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, false));
+					ltvi = new LinuxTreeViewItem(file.FullName, file.Name, false);
+					this.Items.Add(ltvi);
+					//if(file.Name.Substring(file.Name.Length - test_filter.Length, test_filter.Length) != test_filter)
+					//	ltvi.Visibility = Visibility.Collapsed;
+				}
+
+
 			}
 		}
 		#endregion
@@ -228,7 +277,7 @@ namespace Manager_proj_2
 
 			if(env_co_home == "")
 			{
-				Log.PrintError("not defined $CO_HOME", "load $CO_HOME");
+				Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", test4.m_wnd.richTextBox_status);
 				return null;
 			}
 
@@ -252,7 +301,7 @@ namespace Manager_proj_2
 
 			return true;
 		}
-		static bool ReConnection()
+		static bool ReConnect()
 		{
 			if(ServerList.selected_serverinfo_textblock == null)
 				return false;
@@ -280,7 +329,7 @@ namespace Manager_proj_2
 					}
 					LinuxTreeViewItem.shell_stream_read_timer.Stop();
 					LinuxTreeViewItem.shell_stream_read_timer.Start();
-					Log.Print(ip + " / " + port + " / " + id, "reconnection", test4.m_wnd.richTextBox_status);
+					Log.Print(ip + " / " + port + " / " + id, "reconnection"/*, test4.m_wnd.richTextBox_status*/);
 
 					LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
 					return true;
@@ -293,9 +342,50 @@ namespace Manager_proj_2
 			}
 			return false;
 		}
+		static void TimeoutReConnect(TimeSpan timeout)
+		{
+			if(ServerList.selected_serverinfo_textblock == null)
+				return;
+
+			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
+			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			int port = 22;
+
+			try
+			{
+				if(!CheckConnection(LinuxTreeViewItem.sftp, ip, port, id) || !CheckConnection(LinuxTreeViewItem.ssh, ip, port, id))
+				{
+					LinuxTreeViewItem.sftp = new SftpClient(ip, port, id, password);
+					LinuxTreeViewItem.sftp.ConnectionInfo.Timeout = timeout;
+					LinuxTreeViewItem.sftp.Connect();
+					LinuxTreeViewItem.ssh = new SshClient(ip, port, id, password);
+					LinuxTreeViewItem.ssh.ConnectionInfo.Timeout = timeout;
+					LinuxTreeViewItem.ssh.Connect();
+
+					if(LinuxTreeViewItem.ssh.IsConnected)
+						LinuxTreeViewItem.shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 1024);
+
+					if(shell_stream_read_timer == null)
+					{
+						LinuxTreeViewItem.shell_stream_read_timer = new DispatcherTimer();
+						LinuxTreeViewItem.shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+						LinuxTreeViewItem.shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
+					}
+					LinuxTreeViewItem.shell_stream_read_timer.Stop();
+					LinuxTreeViewItem.shell_stream_read_timer.Start();
+					LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
+				}
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine("[Thread][Error] = " + e.Message);
+			}
+		}
 		SftpFile[] PollListInDirectory()
 		{
-			ReConnection();
+			//BackgroundReConnector.RunWorkerAsync();
+			LinuxTreeViewItem.ReConnect();
 
 			string local_directory = AppDomain.CurrentDomain.BaseDirectory;
 			IEnumerable<SftpFile> files = null;
@@ -308,7 +398,7 @@ namespace Manager_proj_2
 				Log.PrintError(e.Message, "load directory", test4.m_wnd.richTextBox_status);
 			}
 
-			Log.Print(this.path, "load directory", test4.m_wnd.richTextBox_status);
+			Log.Print(this.path, "load directory"/*, test4.m_wnd.richTextBox_status*/);
 			return files.ToArray();
 		}
 
@@ -316,18 +406,18 @@ namespace Manager_proj_2
 		static string current_cofile_name = "";
 		bool UploadFile(string local_path, string remote_directory)
 		{
-			ReConnection();
+			//BackgroundReConnector.RunWorkerAsync();
+			LinuxTreeViewItem.ReConnect();
 			try
 			{
-				var files = sftp.ListDirectory(remote_directory);
-
 				FileInfo fi = new FileInfo(local_path);
 				if(fi.Exists)
 				{
 					FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
 					sftp.UploadFile(fs, remote_directory + fi.Name);
-					Log.Print(fi.Name + " => " + remote_directory + fi.Name, "upload file", test4.m_wnd.richTextBox_status);
+					Log.Print(fi.Name + " => " + remote_directory + fi.Name, "upload file"/*, test4.m_wnd.richTextBox_status*/);
 					LinuxTreeViewItem.current_cofile_name = fi.Name;
+					fs.Close();
 				}
 				else
 				{
@@ -344,7 +434,8 @@ namespace Manager_proj_2
 		}
 		private static void sendCommand(string command)
 		{
-			ReConnection();
+			//BackgroundReConnector.RunWorkerAsync();
+			LinuxTreeViewItem.ReConnect();
 
 			try
 			{
@@ -354,7 +445,7 @@ namespace Manager_proj_2
 					shell_stream.Write(command);
 					shell_stream.Write("\n");
 					shell_stream.Flush();
-					Log.Print(command, "send command", test4.m_wnd.richTextBox_status);
+					Log.Print(command, "send command"/*, test4.m_wnd.richTextBox_status*/);
 				}
 			}
 			catch(Exception ex)
@@ -363,25 +454,46 @@ namespace Manager_proj_2
 			}
 		}
 
+		static string read_line_ssh = "";
+		static string[] view_log_start = new string[] {"inform"};
+		static string[] view_error_start = new string[] {"error" };
+		static string view_message_caption = "";
 		private static string read()
 		{
 			int size_buffer = 4096;
 			byte[] buffer = new byte[size_buffer];
-			string read = null;
 			try
 			{
 				int cnt = shell_stream.Read(buffer, 0, size_buffer);
 
-				read = Encoding.UTF8.GetString(buffer, 0, cnt);
-				if(read.Length > 0)
-					Log.Print(read, "read");
+				read_line_ssh += Encoding.UTF8.GetString(buffer, 0, cnt);
+				if(read_line_ssh.Length > 0)
+				{
+					//Log.Print(read_line_ssh, "read"/*, test4.m_wnd.richTextBox_status*/);
+					int idx_newline = 0;
+					if((idx_newline = read_line_ssh.IndexOf('\n')) >= 0)
+					{
+						string line = read_line_ssh.Substring(0, idx_newline);
+						for(int i = 0; i < view_log_start.Length; i++)
+						{
+							if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
+								Log.ViewMessage(line, view_message_caption, test4.m_wnd.richTextBox_status);
+						}
+						for(int i = 0; i < view_error_start.Length; i++)
+						{
+							if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
+								Log.PrintError(line, view_message_caption, test4.m_wnd.richTextBox_status);
+						}
+						read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
+					}
+				}
 
 			}
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "read", test4.m_wnd.richTextBox_status);
 			}
-			return read;
+			return read_line_ssh;
 		}
 		private static string read2(string cmd_send)
 		{
@@ -460,14 +572,77 @@ namespace Manager_proj_2
 		}
 		#endregion
 
+		public static BackgroundWorker BackgroundReConnector = new BackgroundWorker();
+		public static void ReconnectServer()
+		{
+			if(LinuxTreeViewItem.root == null)
+				return;
+
+			LinuxTreeViewItem.root.IsEnabled = false;
+			ServerPanel.SubPanel.IsEnabled = false;
+
+			if(BackgroundReConnector.IsBusy)
+				;
+			else
+				BackgroundReConnector.RunWorkerAsync();
+		}
+		public static void BackgroundReConnectCallBack(object sender, RunWorkerCompletedEventArgs e)
+		{
+			if(LinuxTreeViewItem.root != null && sftp != null && sftp.IsConnected)
+			{
+				LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
+				LinuxTreeViewItem.root.IsEnabled = true;
+			}
+			ServerPanel.SubPanel.IsEnabled = true;
+		}
+		public static void BackgroundReConnect(object sender, DoWorkEventArgs e)
+		{
+			if(ServerList.selected_serverinfo_textblock == null)
+				return;
+
+			TimeSpan timeout = new TimeSpan(0,0,0,0,500);
+
+			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
+			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			int port = 22;
+
+			try
+			{
+				if(!CheckConnection(LinuxTreeViewItem.sftp, ip, port, id) || !CheckConnection(LinuxTreeViewItem.ssh, ip, port, id))
+				{
+					LinuxTreeViewItem.sftp = new SftpClient(ip, port, id, password);
+					LinuxTreeViewItem.sftp.ConnectionInfo.Timeout = timeout;
+					LinuxTreeViewItem.sftp.Connect();
+					LinuxTreeViewItem.ssh = new SshClient(ip, port, id, password);
+					LinuxTreeViewItem.ssh.ConnectionInfo.Timeout = timeout;
+					LinuxTreeViewItem.ssh.Connect();
+
+					if(LinuxTreeViewItem.ssh.IsConnected)
+						LinuxTreeViewItem.shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 1024);
+
+					if(shell_stream_read_timer == null)
+					{
+						LinuxTreeViewItem.shell_stream_read_timer = new DispatcherTimer();
+						LinuxTreeViewItem.shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+						LinuxTreeViewItem.shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
+					}
+					LinuxTreeViewItem.shell_stream_read_timer.Stop();
+					LinuxTreeViewItem.shell_stream_read_timer.Start();
+					//LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
+				}
+			}
+			catch(Exception ex)
+			{
+				Console.WriteLine("[Thread][Error] = " + ex.Message);
+			}
+		}
+
 		public static void Refresh()
 		{
 			if(test4.m_wnd == null)
 				return;
 
-			//// 연결 체크
-			//if(!LinuxTreeViewItem.ReConnection())
-			//	return;
 			if(ssh != null && ssh.IsConnected)
 				ssh.Disconnect();
 			if(sftp != null && sftp.IsConnected)
@@ -482,6 +657,51 @@ namespace Manager_proj_2
 			LinuxTreeViewItem.root = new LinuxTreeViewItem(home_dir, home_dir, true);
 			test4.m_wnd.treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			Log.Print("[refresh]");
+
+			//연결 체크
+			//Thread connect = new Thread(LinuxTreeViewItem.ThreadReConnect);
+			//connect.Start();
+			//if(!LinuxTreeViewItem.ReConnect())
+			//	return;
+
+			//LinuxTreeViewItem.ReconnectServer();
+		}
+
+		static string filter_string = "";
+		public static string Filter_string { get { return filter_string; } set { filter_string = value; LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_string); } }
+		static void filter(LinuxTreeViewItem parent, string filter_string)
+		{
+			if(parent == null)
+				return;
+			try
+			{
+				Regex r = new Regex(filter_string);
+				filter_recursive(parent, r);
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+		}
+		static void filter_recursive(LinuxTreeViewItem cur, Regex filter_string)
+		{
+			for(int i = 0; i < cur.Items.Count; i++)
+			{
+				LinuxTreeViewItem child = cur.Items[i] as LinuxTreeViewItem;
+				if(child == null)
+					continue;
+
+				string name = child.Header.Text;
+				if(!child.isDirectory &&
+					!filter_string.IsMatch(name))
+				{
+					child.Visibility = Visibility.Collapsed;
+				}
+				else if(child.isDirectory)
+					filter_recursive(child, filter_string);
+				else
+					child.Visibility = Visibility.Visible;
+			}
 		}
 	}
 }

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.IO;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	/// <summary>
 	/// Window_Search.xaml에 대한 상호 작용 논리

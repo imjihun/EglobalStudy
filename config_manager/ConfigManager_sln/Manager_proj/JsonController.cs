@@ -18,7 +18,7 @@ using System.Windows.Media;
 using System.Collections.Specialized;
 using System.Windows.Input;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	class JsonController
 	{

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 //using System.Net;
 //using System.IO;
-using System.Net.Http;
+//using System.Net.Http;
 
 using System.Windows.Controls;
 using System.Windows;
@@ -19,7 +19,7 @@ using System.Collections.Specialized;
 using System.Windows.Input;
 using System.Windows.Data;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	class JsonController
 	{

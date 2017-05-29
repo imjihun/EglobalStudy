@@ -10,7 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace Manager_proj_2
+namespace Manager_proj_3
 {
 	/// <summary>
 	/// MainWindow.xaml에 대한 상호 작용 논리
