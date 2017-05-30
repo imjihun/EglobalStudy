@@ -15,7 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace Manager_proj_3
+namespace Manager_proj_4
 {
 	/// <summary>
 	/// test.xaml에 대한 상호 작용 논리

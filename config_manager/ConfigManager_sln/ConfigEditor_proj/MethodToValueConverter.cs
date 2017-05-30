@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace Manager_proj_3
+namespace Manager_proj_4
 {
 
 	public sealed class MethodToValueConverter : IValueConverter

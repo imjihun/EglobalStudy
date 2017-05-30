@@ -11,7 +11,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace Manager_proj_3
+namespace Manager_proj_4
 {
 	#region Server Panel
 	public class ServerInfo

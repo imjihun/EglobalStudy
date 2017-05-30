@@ -1,0 +1,23 @@
+﻿<Controls:MetroWindow x:Class="ModernUIApp3.MainWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:mui="http://firstfloorsoftware.com/ModernUI"
+                  xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                  Title="mui" 
+                  Style="{StaticResource BlankWindow}">
+	<Grid>
+		<!--<Controls:ToggleSwitch Content="dfsa" Width="100" Height="100"/>-->
+		<Controls:MetroAnimatedTabControl>
+			<Controls:MetroTabItem Header="dfa">
+				<Grid>
+					<Button Content="dsa" Width="100" Height="100"/>
+				</Grid>
+			</Controls:MetroTabItem>
+			<Controls:MetroTabItem Header="dfa">
+				<Grid>
+					<Button Content="dsa" Width="100" Height="100"/>
+				</Grid>
+			</Controls:MetroTabItem>
+		</Controls:MetroAnimatedTabControl>
+	</Grid>
+</Controls:MetroWindow>

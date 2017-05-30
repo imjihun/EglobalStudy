@@ -21,7 +21,7 @@ using System.Collections.Specialized;
 using Renci.SshNet;
 using System.Reflection;
 
-namespace Manager_proj_3
+namespace Manager_proj_4
 {
 	/// <summary>
 	/// test4.xaml에 대한 상호 작용 논리

@@ -66,53 +66,33 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CommandView.cs" />
-    <Compile Include="LinuxTreeViewItem.cs" />
-    <Compile Include="Log.cs" />
-    <Compile Include="ServerInfo.cs" />
-    <Compile Include="WindowMain.xaml.cs">
-      <DependentUpon>WindowMain.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Window_AddServerMenu.xaml.cs">
-      <DependentUpon>Window_AddServerMenu.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Window_AddServer.xaml.cs">
-      <DependentUpon>Window_AddServer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Window_ViewFile.xaml.cs">
-      <DependentUpon>Window_ViewFile.xaml</DependentUpon>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FileContoller.cs" />
-    <Compile Include="JsonTreeViewItem.cs" />
-    <Page Include="Window_AddJsonItem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="WindowMain.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Window_AddServerMenu.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Window_AddServer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Window_ViewFile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Window_AddJsonItem.xaml.cs">
+    <Compile Include="Classes\CommandView.cs" />
+    <Compile Include="Classes\FileContoller.cs" />
+    <Compile Include="Classes\JsonTreeViewItem.cs" />
+    <Compile Include="Classes\LinuxTreeViewItem.cs" />
+    <Compile Include="Classes\Log.cs" />
+    <Compile Include="Classes\ServerInfo.cs" />
+    <Compile Include="Windows\WindowMain.xaml.cs">
+      <DependentUpon>WindowMain.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_AddJsonItem.xaml.cs">
       <DependentUpon>Window_AddJsonItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\Window_AddServer.xaml.cs">
+      <DependentUpon>Window_AddServer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_AddServerMenu.xaml.cs">
+      <DependentUpon>Window_AddServerMenu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_ViewFile.xaml.cs">
+      <DependentUpon>Window_ViewFile.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -130,7 +110,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -139,6 +118,28 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Windows\WindowMain.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_AddJsonItem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_AddServer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_AddServerMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_ViewFile.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

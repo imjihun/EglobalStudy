@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Manager_proj_3
+namespace Manager_proj_4
 {
 	class CommandView : Grid
 	{
