@@ -37,6 +37,8 @@ namespace Manager_proj_4
 			btn_cancel.Click += Btn_cancel_Click;
 
 			textBox_key.KeyDown += TextBox_KeyDown;
+
+			textBox_key.Focus();
 		}
 
 		private void TextBox_KeyDown(object sender, KeyEventArgs e)

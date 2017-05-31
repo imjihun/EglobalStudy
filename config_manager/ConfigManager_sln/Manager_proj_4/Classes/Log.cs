@@ -108,5 +108,37 @@ namespace Manager_proj_4
 				}
 			}
 		}
+		public static void ViewUndefine(string message, string caption, TextBoxBase output_ui)
+		{
+			//string str = System.Environment.NewLine;
+			string str = "";
+
+			if(caption != null)
+				str += "[" + caption + "] ";
+
+			str += message;
+
+			//Console.WriteLine(str);
+			CheckNewLine(ref str);
+			//str += System.Environment.NewLine;
+
+			if(output_ui != null)
+			{
+				TextBox tb = output_ui as TextBox;
+				if(tb != null)
+					tb.Text += str;
+
+
+				RichTextBox rtb = output_ui as RichTextBox;
+				if(rtb != null)
+				{
+					TextRange rangeOfWord = new TextRange(rtb.Document.ContentEnd, rtb.Document.ContentEnd);
+					rangeOfWord.Text = str;
+					rangeOfWord.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.LightGray);
+					//rtb.AppendText(str);
+					//rtb.Document.Blocks.Add(new Paragraph(new Inline()))
+				}
+			}
+		}
 	}
 }

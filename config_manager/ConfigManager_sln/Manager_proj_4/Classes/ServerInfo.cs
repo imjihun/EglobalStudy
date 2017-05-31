@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using MahApps.Metro;
+using MahApps.Metro.IconPacks;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -211,21 +213,37 @@ namespace Manager_proj_4
 		public ServerMenuButton parent;
 		public static ServerInfoTextBlock selected_serverinfo_textblock;
 
-		public ServerList()
+		private void InitContextMenu()
 		{
-			this.Margin = new Thickness(20, 0, 0, 0);
-			this.BorderBrush = null;
-
 			this.ContextMenu = new ContextMenu();
 			MenuItem item = new MenuItem();
 			item.Click += BtnAddServer_Click;
 			item.Header = "Add Server";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.ServerPlus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
 			this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
 			item.Click += BtnDelServer_Click;
 			item.Header = "Delete Server";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.ServerMinus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
 			this.ContextMenu.Items.Add(item);
+		}
+		public ServerList()
+		{
+			this.Margin = new Thickness(20, 0, 0, 0);
+			this.BorderBrush = null;
+
+			InitContextMenu();
 
 			//// 추가버튼
 			//Button btn = new Button();
@@ -266,7 +284,7 @@ namespace Manager_proj_4
 				catch(Exception ex)
 				{
 					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
-					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", WindowMain.m_wnd.richTextBox_status);
+					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", WindowMain.current.richTextBox_status);
 				}
 			}
 
@@ -289,7 +307,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Del Server", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(ex.Message, "Del Server", WindowMain.current.richTextBox_status);
 			}
 
 		}
@@ -349,8 +367,64 @@ namespace Manager_proj_4
 		const double HEIGHT = 30;
 		const double FONTSIZE = 13;
 		public ServerList child;
+		private void InitStyle()
+		{
+			Style style = new Style(typeof(ServerMenuButton), (Style)App.Current.Resources["MetroToggleButton"]);
+			Trigger trigger_selected = new Trigger() {Property = ToggleButton.IsCheckedProperty, Value = true };
+			trigger_selected.Setters.Add(new Setter(ToggleButton.BackgroundProperty, (SolidColorBrush)App.Current.Resources["AccentColorBrush"]));
+			trigger_selected.Setters.Add(new Setter(ToggleButton.ForegroundProperty, Brushes.White));
+			style.Triggers.Add(trigger_selected);
+			
+			Trigger trigger_mouseover = new Trigger() {Property = ToggleButton.IsMouseOverProperty, Value = true };
+			SolidColorBrush s = new SolidColorBrush(((SolidColorBrush)App.Current.Resources["AccentColorBrush"]).Color);
+			s.Opacity = .5;
+			trigger_mouseover.Setters.Add(new Setter(ToggleButton.BackgroundProperty, s));
+			style.Triggers.Add(trigger_mouseover);
+
+			this.Style = style;
+		}
+		private void InitContextMenu()
+		{
+			this.ContextMenu = new ContextMenu();
+			MenuItem item;
+
+			item = new MenuItem();
+			item.Click += BtnAddServerMenu_Click;
+			item.Header = "Add Server Menu";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.FolderPlus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			this.ContextMenu.Items.Add(item);
+
+			item = new MenuItem();
+			item.Click += BtnDelServerMenu_Click;
+			item.Header = "Del Server Menu";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.FolderRemove,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			this.ContextMenu.Items.Add(item);
+
+			item = new MenuItem();
+			item.Click += BtnAddServer_Click;
+			item.Header = "Add Server";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.ServerPlus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			this.ContextMenu.Items.Add(item);
+		}
 		public ServerMenuButton(string header)
 		{
+			this.InitStyle();
+
 			this.Content = header;
 			//this.Background = Brushes.White;
 			this.Height = HEIGHT;
@@ -369,21 +443,7 @@ namespace Manager_proj_4
 				group[i].Margin = new Thickness(0, i * HEIGHT, 0, (group.Count - (i + 1)) * HEIGHT);
 			}
 
-			this.ContextMenu = new ContextMenu();
-			MenuItem item = new MenuItem();
-			item.Click += BtnAddServer_Click;
-			item.Header = "Add Server";
-			this.ContextMenu.Items.Add(item);
-
-			item = new MenuItem();
-			item.Click += BtnAddServerMenu_Click;
-			item.Header = "Add Server Menu";
-			this.ContextMenu.Items.Add(item);
-
-			item = new MenuItem();
-			item.Click += BtnDelServerMenu_Click;
-			item.Header = "Del Server Menu";
-			this.ContextMenu.Items.Add(item);
+			InitContextMenu();
 		}
 		private void BtnAddServer_Click(object sender, RoutedEventArgs e)
 		{
@@ -413,7 +473,7 @@ namespace Manager_proj_4
 				catch(Exception ex)
 				{
 					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
-					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", WindowMain.m_wnd.richTextBox_status);
+					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", WindowMain.current.richTextBox_status);
 				}
 			}
 		}
@@ -442,7 +502,7 @@ namespace Manager_proj_4
 				catch(Exception ex)
 				{
 					//Log.PrintError(ex.Message, "Add Server Menu", test4.m_wnd.richTextBox_status);
-					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", WindowMain.m_wnd.richTextBox_status);
+					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", WindowMain.current.richTextBox_status);
 				}
 			}
 		}
@@ -467,7 +527,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Del Server Menu", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(ex.Message, "Del Server Menu", WindowMain.current.richTextBox_status);
 			}
 		}
 
@@ -485,6 +545,7 @@ namespace Manager_proj_4
 			base.OnUnchecked(e);
 			this.child.Visibility = Visibility.Collapsed;
 		}
+		Brush background_unchecked = null;
 		protected override void OnChecked(RoutedEventArgs e)
 		{
 			base.OnChecked(e);
@@ -502,7 +563,6 @@ namespace Manager_proj_4
 
 			ServerPanel.SubPanel.Margin = new Thickness(0, HEIGHT * (idx + 1), 0, HEIGHT * (group.Count - (idx + 1)));
 			this.child.Visibility = Visibility.Visible;
-			//Console.WriteLine(this.child.Items.Count);
 		}
 		protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
 		{

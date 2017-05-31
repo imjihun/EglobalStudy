@@ -26,5 +26,13 @@
 				Margin="0,100,0,0" Width="100" Height="25"/>
 		<ToggleButton Content="toggle button" 
 				Margin="0,150,0,0" Width="100" Height="25"/>
+		<Controls:ToggleSwitch x:Name="enabledSwitch"
+                                   Margin="0,0,0,50"
+                                   Header="Win10 Style"
+                                   IsChecked="True"
+                                   OffLabel="Disabled"
+                                   OnLabel="Enabled"
+							   Click="click"
+                                   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}" />
 	</Grid>
 </Controls:MetroWindow>

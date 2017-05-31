@@ -15,8 +15,12 @@ namespace test2
 	{
 		static void Main(string[] args)
 		{
-			func();
-			Console.WriteLine("main finish");
+			//func();
+			//Console.WriteLine("main finish");
+			double? a;
+			System.Int64 b = 10;
+			object c = b;
+			a = (System.Int64)c;
 		}
 		async static Task<int> sum(int a, int b)
 		{

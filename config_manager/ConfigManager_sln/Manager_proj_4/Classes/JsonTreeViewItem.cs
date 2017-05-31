@@ -70,11 +70,15 @@ namespace Manager_proj_4
 				if(tvi == null)
 					return;
 
-				JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
-				if(tb == null)
-					return;
+				//JsonTextBox tb = tvi.Header.Children[0] as JsonTextBox;
+				//if(tb == null)
+				//	return;
+				//tb.Text = Filename;
 
-				tb.Text = Filename;
+				Label label = tvi.Header.Children[0] as Label;
+				if(label == null)
+					return;
+				label.Content = Filename;
 			}
 		}
 		//private JToken jtok_root;
@@ -170,9 +174,12 @@ namespace Manager_proj_4
 		{
 			JsonTreeViewItem parent_tvi;
 			parent_tvi = this.Parent as JsonTreeViewItem;
-			// this 가 루트이거나 다른 예외상황이면 삭제하지 않는다.
+			// this 가 루트이면 다른 방법으로 삭제한다.
 			if(parent_tvi == null)
+			{
+				this.Items.Clear();
 				return;
+			}
 
 			// Json Tree Remove
 			parent_tvi.Items.Remove(this);
@@ -403,7 +410,8 @@ namespace Manager_proj_4
 		{
 			if(jtok_root == null)
 			{
-				MessageBox.Show(JsonController.Error_message, "JSon Context Error");
+				WindowMain.current.ShowMessageDialog("Json Context Error!!", JsonController.Error_message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				//MessageBox.Show(JsonController.Error_message, "JSon Context Error");
 				return null;
 			}
 			// object 로 시작.
@@ -443,14 +451,14 @@ namespace Manager_proj_4
 			if(jtok == null)
 				return;
 
-			JsonTreeViewItem child_tvi = addToJsonTree(parent_tvi, jtok);
+			JsonTreeViewItem child_tvi = addUIToJsonTreeItem(parent_tvi, jtok);
 
 			foreach(var v in jtok.Children())
 			{
 				convertToTreeView_recursive(child_tvi, v);
 			}
 		}
-		static JsonTreeViewItem addToJsonTree(JsonTreeViewItem parent_tvi, JToken jtok)
+		static JsonTreeViewItem addUIToJsonTreeItem(JsonTreeViewItem parent_tvi, JToken jtok)
 		{
 			if(jtok is JObject)
 			{
@@ -471,7 +479,7 @@ namespace Manager_proj_4
 				//parent_tvi.Header.AddItem(tb_type);
 				//parent_tvi.value_token_type = JTokenType.Object;
 				//return parent_tvi;
-				ValuePanel panel_value = new ValuePanel(JTokenType.Object, "object");
+				ValuePanel panel_value = new ValuePanel(JTokenType.Object, "Object");
 				parent_tvi.Header.AddItem(panel_value);
 				parent_tvi.value_token_type = JTokenType.Object;
 				return parent_tvi;
@@ -504,7 +512,7 @@ namespace Manager_proj_4
 				//parent_tvi.Header.AddItem(tb_type);
 				//parent_tvi.value_token_type = JTokenType.Array;
 				//return parent_tvi;
-				ValuePanel panel_value = new ValuePanel(JTokenType.Array, "array");
+				ValuePanel panel_value = new ValuePanel(JTokenType.Array, "Array");
 				parent_tvi.Header.AddItem(panel_value);
 				parent_tvi.value_token_type = JTokenType.Array;
 				return parent_tvi;
@@ -673,18 +681,19 @@ namespace Manager_proj_4
 
 	class Size
 	{
-		public const int HEIGHT = 35;
+		public const int HEIGHT_HEADER = 40;
 		//public const int WIDTH = 30;
 		
 		public const int MARGIN_TEXTBOX = 5;
 		public const int WIDTH_TEXTBOX = 150;
+		//public const int HEIGHT_TEXTBOX = 25;
 
 		public const double MARGIN_BUTTON = 2.5;
 		public const int HEIGHT_BUTTON = 30;
 		public const int WIDTH_BUTTON = 30;
 
 		public const int HEIGHT_MOREBUTTON = 30;
-		public const int WIDTH_MOREBUTTON = 30;
+		public const int WIDTH_MOREBUTTON = 35;
 	}
 	class JsonTreeViewItemHeader : Grid
 	{
@@ -692,7 +701,7 @@ namespace Manager_proj_4
 		public JsonDeleteButton deleteButton;
 		public JsonTreeViewItemHeader()
 		{
-			this.Height = Size.HEIGHT;
+			this.Height = Size.HEIGHT_HEADER;
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			//this.Orientation = Orientation.Horizontal;
 
@@ -738,9 +747,9 @@ namespace Manager_proj_4
 	{
 		public JsonButton()
 		{
-			this.BorderBrush = null;
-			this.Background = Brushes.White;
-			this.Margin = new Thickness(Size.MARGIN_BUTTON);
+			//this.BorderBrush = null;
+			//this.Background = Brushes.White;
+			//this.Margin = new Thickness(Size.MARGIN_BUTTON, Size.MARGIN_BUTTON, 150, Size.MARGIN_BUTTON);
 			this.Width = Size.WIDTH_BUTTON;
 			this.Height = Size.HEIGHT_BUTTON;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
@@ -754,6 +763,7 @@ namespace Manager_proj_4
 			this.Content = new PackIconModern()
 			{
 				Kind = PackIconModernKind.Add,
+				//Height = Size.HEIGHT_BUTTON-15,
 				VerticalAlignment = VerticalAlignment.Stretch,
 				HorizontalAlignment = HorizontalAlignment.Stretch
 			};
@@ -921,8 +931,8 @@ namespace Manager_proj_4
 		{
 			this.AllowDrop = true;
 
-			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
 			this.Width = Size.WIDTH_TEXTBOX;
+			//this.Height = Size.HEIGHT_TEXTBOX;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 		}
 
@@ -992,6 +1002,7 @@ namespace Manager_proj_4
 		public KeyTextBox(string text, bool isModify = true)
 		{
 			this.Text = text;
+			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
 
 			if(!isModify)
 			{
@@ -1009,6 +1020,7 @@ namespace Manager_proj_4
 		{
 			this.AllowDrop = true;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
+			this.VerticalAlignment = VerticalAlignment.Stretch;
 			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
 			this.Width = Size.WIDTH_TEXTBOX;
 			this.Orientation = Orientation.Horizontal;
@@ -1019,19 +1031,36 @@ namespace Manager_proj_4
 			switch(type)
 			{
 				case JTokenType.Array:
+					//ValueTextBox tblock_array = new ValueTextBox(value.ToString(), false);
+					//this.Children.Add(tblock_array);
+					Label tblock_array = new Label();
+					tblock_array.VerticalAlignment = VerticalAlignment.Center;
+					tblock_array.Content = value.ToString();
+					this.Children.Add(tblock_array);
 					break;
 				case JTokenType.Boolean:
-					TextBlock tblock = new TextBlock();
-					tblock.VerticalAlignment = VerticalAlignment.Center;
-					tblock.Text = value.ToString();
+					//TextBlock tb_boolean = new TextBlock();
+					//tb_boolean.Text = value.ToString();
+					//tb_boolean.VerticalAlignment = VerticalAlignment.Center;
+					//tb_boolean.Background = null;
 
-					CheckBox cb = new CheckBox();
-					cb.IsChecked = (bool)value;
-					this.Children.Add(cb);
-					cb.Checked += delegate { tblock.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
-					cb.Unchecked += delegate { tblock.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
+					//CheckBox cb = new CheckBox();
+					//cb.IsChecked = (bool)value;
+					//this.Children.Add(cb);
+					//cb.Checked += delegate { tb_boolean.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
+					//cb.Unchecked += delegate { tb_boolean.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
 
-					this.Children.Add(tblock);
+					//this.Children.Add(tb_boolean);
+					
+					ToggleSwitch ts = new ToggleSwitch();
+					ts.IsChecked = (bool)value;
+					ts.FontSize = 13;
+					ts.OffLabel = "False";
+					ts.OnLabel = "True";
+					ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+					ts.Checked += delegate { this.value = ts.IsChecked; };
+					ts.Unchecked += delegate { this.value = ts.IsChecked; };
+					this.Children.Add(ts);
 					break;
 				case JTokenType.Bytes:
 					break;
@@ -1046,10 +1075,18 @@ namespace Manager_proj_4
 				case JTokenType.Guid:
 					break;
 				case JTokenType.Integer:
-					TextBox tb_integer = new TextBox();
-					tb_integer.Text = value.ToString();
+					//ValueTextBox tb_integer = new ValueTextBox(value.ToString());
+					////tb_integer.Text = value.ToString();
+					////tb_integer.Width = this.Width;
+					//tb_integer.TextChanged += TextBox_TextChanged;
+					//this.Children.Add(tb_integer);
+
+					NumericUpDown tb_integer = new NumericUpDown();
 					tb_integer.Width = this.Width;
-					tb_integer.TextChanged += TextBox_TextChanged;
+					//Console.WriteLine("\t\tval = " + this.value.GetType());
+					tb_integer.Value = (System.Int64)this.value;
+					tb_integer.HorizontalContentAlignment = HorizontalAlignment.Left;
+					tb_integer.ValueChanged += delegate { this.value = (int)tb_integer.Value; };
 					this.Children.Add(tb_integer);
 					break;
 				case JTokenType.None:
@@ -1057,15 +1094,22 @@ namespace Manager_proj_4
 				case JTokenType.Null:
 					break;
 				case JTokenType.Object:
+					//ValueTextBox tblock_object = new ValueTextBox(value.ToString(), false);
+					//this.Children.Add(tblock_object);
+					Label label_object = new Label();
+					label_object.VerticalAlignment = VerticalAlignment.Center;
+					label_object.Content = value.ToString();
+					this.Children.Add(label_object);
 					break;
 				case JTokenType.Property:
 					break;
 				case JTokenType.Raw:
 					break;
 				case JTokenType.String:
-					TextBox tb_string = new TextBox();
-					tb_string.Text = "\"" + value.ToString() + "\"";
-					tb_string.Width = this.Width;
+					//ValueTextBox tb_string = new ValueTextBox(value.ToString());
+					ValueTextBox tb_string = new ValueTextBox("\"" + value.ToString() + "\"");
+					//tb_string.Text = "\"" + value.ToString() + "\"";
+					//tb_string.Width = this.Width;
 					tb_string.TextChanged += TextBox_TextChanged;
 					this.Children.Add(tb_string);
 					break;
@@ -1084,8 +1128,9 @@ namespace Manager_proj_4
 			if(tb == null)
 				return;
 
+			//this.value = tb.Text;
 			string str = tb.Text;
-			if(str[0] == str[str.Length - 1])
+			if(str.Length > 1 && str[0] == str[str.Length - 1])
 			{
 				if(str[0] == '\'')
 					this.value = str.Trim('\'');
@@ -1128,6 +1173,19 @@ namespace Manager_proj_4
 
 			tvi_parent.PublicDrop(e);
 			base.OnDrop(e);
+		}
+	}
+	class ValueTextBox : JsonTextBox
+	{
+		public ValueTextBox(string str, bool isModify = true)
+		{
+			this.Text = str;
+			if(!isModify)
+			{
+				this.IsEnabled = false;
+				this.BorderBrush = null;
+				this.Background = null;
+			}
 		}
 	}
 	//class ValueTextBox : JsonTextBox

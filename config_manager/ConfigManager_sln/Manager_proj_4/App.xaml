@@ -15,7 +15,7 @@
 				<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
 				<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
 			</ResourceDictionary.MergedDictionaries>
-
+			<!-- MyCustom -->
 			<BooleanToVisibilityConverter x:Key="MyBoolToVisibilityConverter"/>
 
 			<Style TargetType="local:ServerInfoTextBlock" BasedOn="{StaticResource MetroTextBlock}" />
@@ -31,6 +31,7 @@
 			<Style TargetType="local:JsonToggleButton" BasedOn="{StaticResource MetroCircleToggleButtonStyle}" />
 			<Style TargetType="local:JsonTextBox" BasedOn="{StaticResource MetroTextBox}" />
 			<Style TargetType="local:KeyTextBox" BasedOn="{StaticResource MetroTextBox}" />
+			<Style TargetType="local:ValueTextBox" BasedOn="{StaticResource MetroTextBox}" />
 		</ResourceDictionary>
 	</Application.Resources>
 </Application>

@@ -27,20 +27,20 @@ namespace Manager_proj_4
 			textBox_ip.KeyDown += TextBox_KeyDown;
 			textBox_id.KeyDown += TextBox_KeyDown;
 			textBox_password.KeyDown += TextBox_KeyDown;
-			textBox_password.PasswordChanged += TextBox_password_PasswordChanged;
+			//textBox_password.PasswordChanged += TextBox_password_PasswordChanged;
 		}
 
-		private void TextBox_password_PasswordChanged(object sender, RoutedEventArgs e)
-		{
-			if(textBox_password.Password.Length == 0)
-			{
-				textBlock_password_hint.Visibility = Visibility.Visible;
-			}
-			else
-			{
-				textBlock_password_hint.Visibility = Visibility.Hidden;
-			}
-		}
+		//private void TextBox_password_PasswordChanged(object sender, RoutedEventArgs e)
+		//{
+		//	if(textBox_password.Password.Length == 0)
+		//	{
+		//		textBlock_password_hint.Visibility = Visibility.Visible;
+		//	}
+		//	else
+		//	{
+		//		textBlock_password_hint.Visibility = Visibility.Hidden;
+		//	}
+		//}
 
 		private void TextBox_KeyDown(object sender, KeyEventArgs e)
 		{

@@ -22,18 +22,25 @@ using Renci.SshNet;
 using System.Reflection;
 using Renci.SshNet.Sftp;
 using MahApps.Metro.Controls;
+using MahApps.Metro;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace Manager_proj_4
 {
 	/// <summary>
 	/// test4.xaml에 대한 상호 작용 논리
 	/// </summary>
+	public static class style
+	{
+		public static Accent currentAccent = ThemeManager.GetAccent("Blue");
+		public static AppTheme currentAppTheme = ThemeManager.GetAppTheme("White");
+	}
 	public partial class WindowMain : MetroWindow
 	{
-		public static WindowMain m_wnd;
+		public static WindowMain current;
 		public WindowMain()
 		{
-			m_wnd = this;
+			current = this;
 			InitializeComponent();
 			this.Closed += test4_Closed;
 
@@ -167,6 +174,10 @@ namespace Manager_proj_4
 				//JsonInfo.current.Path = ofd.FileName;
 			}
 		}
+		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
+		{
+			LinuxTreeViewItem.selected_type = (CofileOption)comboBox_cofile_type.SelectedIndex;
+		}
 		#endregion
 
 		#region Server Command View
@@ -196,8 +207,15 @@ namespace Manager_proj_4
 			json_tree_view.Items.Clear();
 
 			// 추가
-			KeyTextBox tb = new KeyTextBox(JsonInfo.current.Filename, false);
-			root_jtree.Header.Children.Insert(0, tb);
+			//TextBlock tblock = new TextBlock();
+			//tblock.Text = JsonInfo.current.Filename;
+			//root_jtree.Header.Children.Insert(0, tblock);
+			//json_tree_view.Items.Add(root_jtree);
+
+			Label label = new Label();
+			label.VerticalAlignment = VerticalAlignment.Center;
+			label.Content = JsonInfo.current.Filename;
+			root_jtree.Header.Children.Insert(0, label);
 			json_tree_view.Items.Add(root_jtree);
 		}
 
@@ -205,6 +223,16 @@ namespace Manager_proj_4
 		{
 			if(JsonInfo.current == null)
 				return;
+
+			if(JsonInfo.current.Path != null)
+				;
+
+			JsonInfo.current.Clear();
+
+			this.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile);
+		}
+		private void NewJsonFile()
+		{
 
 			JsonInfo.current.Clear();
 			//if(JSonInfo.current.IsModify_tree)
@@ -226,7 +254,7 @@ namespace Manager_proj_4
 		{
 			if(JsonInfo.current == null)
 				return;
-
+			
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			ofd.InitialDirectory = root_path;
@@ -261,17 +289,21 @@ namespace Manager_proj_4
 
 			if(JsonInfo.current.Path == null)
 			{
-				OnClickButtonOtherSaveJsonFile(sender, e);
+				OtherSaveJsonFile();
 				return;
 			}
 
 			FileInfo f = new FileInfo(JsonInfo.current.Path);
 			if(!f.Exists)
 			{
-				OnClickButtonOtherSaveJsonFile(sender, e);
+				OtherSaveJsonFile();
 				return;
 			}
 
+			this.ShowMessageDialog("Save", "저장하시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, SaveJsonFile);
+		}
+		private void SaveJsonFile()
+		{
 			SaveFile(JsonInfo.current.Path);
 		}
 		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
@@ -282,6 +314,10 @@ namespace Manager_proj_4
 			if(!CheckJson())
 				return;
 
+			OtherSaveJsonFile();
+		}
+		private void OtherSaveJsonFile()
+		{
 			SaveFileDialog sfd = new SaveFileDialog();
 
 			sfd.InitialDirectory = root_path;
@@ -318,13 +354,13 @@ namespace Manager_proj_4
 				return;
 
 			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
-			if(FileContoller.write(path, Jtok_root.ToString()))
-				MessageBox.Show(path + " 파일이 저장되었습니다.", "save");
+			if(Jtok_root != null && FileContoller.write(path, Jtok_root.ToString()))
+				this.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
 			else
 			{
-				string caption = "save error";
+				string caption = "Save Error";
 				string message = path + " 파일을 저장하는데 문제가 생겼습니다.";
-				MessageBox.Show(message, caption);
+				this.ShowMessageDialog(caption, message);
 				Console.WriteLine("[" + caption + "] " + message);
 			}
 		}
@@ -355,9 +391,68 @@ namespace Manager_proj_4
 			if(!d.Exists)
 				return;
 
+			this.ShowMessageDialog("Cancel", "변경사항을 되돌리시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, CalcelJsonFile);
+		}
+		private void CalcelJsonFile()
+		{
 			string json = FileContoller.read(JsonInfo.current.path);
 			refreshJsonTree(JsonController.parseJson(json));
+			this.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion
+
+		public delegate void CallBack();
+		public async void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)
+		{
+			//MetroDialogOptions.ColorScheme = MetroDialogColorScheme.Theme;
+			//var mySettings = new MetroDialogSettings()
+			//{
+			//	AffirmativeButtonText = "Ok",
+			//	//NegativeButtonText = "Go away!",
+			//	FirstAuxiliaryButtonText = "Cancel",
+			//	//ColorScheme = UseAccentForDialogsMenuItem.IsChecked ? MetroDialogColorScheme.Accented : MetroDialogColorScheme.Theme
+			//};
+
+			MessageDialogResult result = this.ShowModalMessageExternal(title, message, style);
+			//MessageDialogResult result = await this.ShowMessageAsync(title, message, style);
+
+			if(affirmative_callback != null && result == MessageDialogResult.Affirmative)
+				affirmative_callback();
+
+			if(alwayse_callback != null)
+				alwayse_callback();
+		}
+
+		//public class VIEWMODEL : ViewModelBase
+		//{
+		//	// Variable
+		//	private IDialogCoordinator dialogCoordinator;
+
+		//	// Constructor
+		//	public VIEWMODEL(IDialogCoordinator instance)
+		//	{
+		//		dialogCoordinator = instance;
+		//	}
+
+		//	// Methods
+		//	private void FooMessage()
+		//	{
+		//		await dialogCoordinator.ShowMessageAsync(this, "HEADER", "MESSAGE");
+		//	}
+
+		//	private void FooProgress()
+		//	{
+		//		// Show...
+		//		ProgressDialogController controller = await dialogCoordinator.ShowProgressAsync(this, "HEADER", "MESSAGE");
+		//		controller.SetIndeterminate();
+
+		//		// Do your work... 
+
+		//		// Close...
+		//		await controller.CloseAsync();
+		//	}
+
+		//	// Actions... (ICommands for your view)
+		//}
 	}
 }

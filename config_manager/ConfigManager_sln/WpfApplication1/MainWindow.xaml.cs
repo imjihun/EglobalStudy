@@ -42,6 +42,20 @@ namespace WpfApplication1
 			mbtn.Margin = new Thickness(0, 300, 0, 0);
 			mbtn.Content = "test3";
 			grid.Children.Add(mbtn);
+			
+			ToggleSwitch ts = new ToggleSwitch();
+			ts.Margin = new Thickness(100, 0, 0, 100);
+			ts.Header = "ToggleSwitch";
+			ts.IsChecked = true;
+			ts.OffLabel = "uncheck";
+			ts.OnLabel = "check";
+			ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+			grid.Children.Add(ts);
+		}
+
+		public void click(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine(sender.GetType());
 		}
 	}
 	class MyButton : ToggleButton

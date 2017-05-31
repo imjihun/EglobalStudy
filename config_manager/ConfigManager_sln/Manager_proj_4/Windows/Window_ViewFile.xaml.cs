@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace Manager_proj_4
 	/// <summary>
 	/// Window_ViewFile.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class Window_ViewFile : Window
+	public partial class Window_ViewFile : MetroWindow
 	{
 		public Window_ViewFile(string str_file, string filename)
 		{

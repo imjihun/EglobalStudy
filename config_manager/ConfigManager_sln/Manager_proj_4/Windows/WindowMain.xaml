@@ -5,9 +5,20 @@
 						xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 						xmlns:local="clr-namespace:Manager_proj_4"
 						xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+						xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
+						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+						xmlns:System="clr-namespace:System;assembly=mscorlib"
 						mc:Ignorable="d"
-						Title="Cofile" Height="756" Width="1024"
+						Title="CubeOne™ For Cofile" Height="756" Width="1024"
 						ToolBarTray.IsLocked="True">
+	<Window.Resources>
+		<ObjectDataProvider x:Key="enumValues_cofileOptions"
+							MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+			<ObjectDataProvider.MethodParameters>
+				<x:Type TypeName="local:CofileOption"/>
+			</ObjectDataProvider.MethodParameters>
+		</ObjectDataProvider>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
@@ -67,12 +78,19 @@
 									</TreeView>
 								</Grid>
 								<Grid Grid.Row="0" Grid.RowSpan="2" Margin="5" Height="30" VerticalAlignment="Top">
-									<TextBlock Text="Possible Input Pattern"
+									<!--<TextBlock Text="Possible Input Pattern"
 											   Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"
-											   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_linux_directory_filter, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+											   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_linux_directory_filter, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
 									<TextBox x:Name="textBox_linux_directory_filter" Text="" Background="{x:Null}"
-											 Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-									<Button Content="Select Config" Background="White"
+											 Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" Custom:TextBoxHelper.Watermark="Search Regular Expression"/>
+									<ComboBox x:Name="comboBox_cofile_type"
+											  Margin="230, 0, 340, 0" Width="100" HorizontalAlignment="Right" SelectionChanged="OnChangeComboBoxCofileType"
+											  ItemsSource="{Binding Source={StaticResource enumValues_cofileOptions}}"
+											  SelectedIndex="0"/>
+									<!--<ComboBox x:Name="comboBox_cofile_type"
+											  Margin="230, 0, 340, 0" Width="100" HorizontalAlignment="Right" SelectionChanged="OnChangeComboBoxCofileType"
+											  ItemsSource="{Binding Source={local:ConvertorCofileOptionToComboBoxItem {x:Type local:CofileOption}}}"/>-->
+									<Button Content="Select Config"
 											Margin="0,0,230,0" Width="100" Height="25" VerticalAlignment="Center" HorizontalAlignment="Right"
 											Click="OnClickButtonSelectConfigFile"/>
 									<TextBlock x:Name="textBlock_selected_config_file_name" Text="Not Selected" Background="{x:Null}"
@@ -99,10 +117,10 @@
 								<DockPanel>
 									<Menu DockPanel.Dock="Top">
 										<MenuItem Header="_File">
-											<MenuItem Header="_New" Click="OnClickButtonNewJsonFile"/>
-											<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile"/>
-											<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile"/>
-											<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile"/>
+											<MenuItem Header="_New" Click="OnClickButtonNewJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=Folder}"/>
+											<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=FolderOpen}"/>
+											<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSave}"/>
+											<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>
 										</MenuItem>
 										<MenuItem Header="_ViewFile" Click="OnClickButtonViewJsonFile"/>
 									</Menu>
@@ -112,10 +130,10 @@
 									</Grid>
 								</DockPanel>
 
-								<Button Content="cancel" Background="White"
+								<Button Content="cancel"
 										Margin="20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
 										Click="OnClickButtonCancelJsonFile"></Button>
-								<Button Content="save" Background="White"
+								<Button Content="save"
 										Margin="20,20,80,20" Width="50" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right"
 										Click="OnClickButtonSaveJsonFile"></Button>
 							</Grid>

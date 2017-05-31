@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
         xmlns:local="clr-namespace:Manager_proj_4"
         mc:Ignorable="d"
-        Title="popup_AddJsonItem" Height="110" Width="300"
+        Title="popup_AddJsonItem" Height="115" Width="300"
         WindowStyle="None"
         AllowsTransparency="True" Background="Transparent"  ResizeMode="NoResize">
 	<Window.Resources>
@@ -24,15 +25,15 @@
 							Margin="0" VerticalAlignment="Top" HorizontalAlignment="Center"/>
 				</Grid>
 				<Grid Height="30" VerticalAlignment="Center">
-					<TextBlock Text="key" FontSize="15"
+					<!--<TextBlock Text="key" FontSize="15"
 						   VerticalAlignment="Center" HorizontalAlignment="Center" 
 						   Margin="0, 0, 120, 0" Height="Auto" Width="100"
-						   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_key, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>
+						   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_key, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
 					<TextBox x:Name="textBox_key" Background="{x:Null}" FontSize="15"
 						 VerticalAlignment="Center" HorizontalAlignment="Center"
-						 Margin="0, 0, 120, 0" Width="100" Height="Auto" />
-					<ComboBox x:Name="comboBox_type" Background="White" BorderBrush="White" Foreground="Black"
-						  Margin="120, 0, 0, 0" Width="100" Height="25"  HorizontalAlignment="Center" VerticalAlignment="Center">
+						 Margin="0, 0, 120, 0" Width="150" Height="Auto" Custom:TextBoxHelper.Watermark="Input Key Name"/>
+					<ComboBox x:Name="comboBox_type"
+						  Margin="160, 0, 0, 0" Width="100" Height="25"  HorizontalAlignment="Center" VerticalAlignment="Center">
 						<ComboBoxItem Content="String" IsSelected="true" ></ComboBoxItem>
 						<ComboBoxItem Content="Boolean"></ComboBoxItem>
 						<ComboBoxItem Content="Integer"></ComboBoxItem>
@@ -41,7 +42,7 @@
 					</ComboBox>
 
 				</Grid>
-				<Grid Height="30" VerticalAlignment="Bottom">
+				<Grid Height="35" VerticalAlignment="Bottom">
 					<Button x:Name="btn_ok" Content="ok" Background="White"
 							Margin="5,5,70,5" Width="50" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center"></Button>
 					<Button x:Name="btn_cancel" Content="cancel" Background="White"

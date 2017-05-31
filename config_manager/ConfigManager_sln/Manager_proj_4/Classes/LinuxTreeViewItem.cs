@@ -1,4 +1,5 @@
-﻿using Renci.SshNet;
+﻿using MahApps.Metro.IconPacks;
+using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,34 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace Manager_proj_4
 {
+	public class ConvertorCofileOptionToComboBoxItem : MarkupExtension
+	{
+
+		private readonly Type _type;
+
+		public ConvertorCofileOptionToComboBoxItem(Type type)
+		{
+			_type = type;
+		}
+		public override object ProvideValue(IServiceProvider serviceProvider)
+		{
+			return Enum.GetValues(_type)
+				.Cast<object>()
+				.Select(e => new { Value = (int)e, DisplayName = e.ToString() });
+		}
+	}
+	public enum CofileOption
+	{
+		file = 0,
+		sam,
+		tail
+	}
 	class LinuxTreeViewItem : TreeViewItem
 	{
 		static string[] IGNORE_FILENAME = new string[] {".", ".."};
@@ -83,6 +107,30 @@ namespace Manager_proj_4
 		bool isDirectory = false;
 		#endregion
 
+		private void InitContextMenu()
+		{
+			this.ContextMenu = new ContextMenu();
+			MenuItem item = new MenuItem();
+			item.Header = "암호화";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.KeyPlus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			item.Click += OnClickEncrypt;
+			this.ContextMenu.Items.Add(item);
+			item = new MenuItem();
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.KeyMinus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			item.Header = "복호화";
+			item.Click += OnClickDecrypt;
+			this.ContextMenu.Items.Add(item);
+		}
 		public LinuxTreeViewItem(string _path, string header = null, bool _isDirectory = false)
 		{
 			if(header == null)
@@ -95,15 +143,7 @@ namespace Manager_proj_4
 			this.Cursor = Cursors.Hand;
 			this.Path = _path;
 
-			this.ContextMenu = new ContextMenu();
-			MenuItem item = new MenuItem();
-			item.Header = "암호화";
-			item.Click += OnClickEncrypt;
-			this.ContextMenu.Items.Add(item);
-			item = new MenuItem();
-			item.Header = "복호화";
-			item.Click += OnClickDecrypt;
-			this.ContextMenu.Items.Add(item);
+			InitContextMenu();
 
 			this.isDirectory = _isDirectory;
 
@@ -120,36 +160,53 @@ namespace Manager_proj_4
 		}
 		private void OnClickEncrypt(object sender, RoutedEventArgs e)
 		{
-			if(MessageBox.Show("Encrypt?", "Encrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
-			{
-				//Log.ViewMessage("Encrypting..", "Encrypt", test4.m_wnd.richTextBox_status);
-				TextRange txt = new TextRange(WindowMain.m_wnd.richTextBox_status.Document.ContentStart, WindowMain.m_wnd.richTextBox_status.Document.ContentEnd);
-				txt.Text = "";
-				view_message_caption = "Encrypt";
-				sendCofileCommand(true);
-			}
+			WindowMain.current.ShowMessageDialog("Encrypt", "[Type = " + CofileOption.file + "] 선택된 파일들을 암호화 하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, Encrypt);
+			//if(MessageBox.Show("Encrypt?", "Encrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+			//{
+			//	//Log.ViewMessage("Encrypting..", "Encrypt", test4.m_wnd.richTextBox_status);
+			//	TextRange txt = new TextRange(WindowMain.current.richTextBox_status.Document.ContentStart, WindowMain.current.richTextBox_status.Document.ContentEnd);
+			//	txt.Text = "";
+			//	view_message_caption = "Encrypt";
+			//	sendCofileCommand(true);
+			//}
+		}
+		private void Encrypt()
+		{
+			TextRange txt = new TextRange(WindowMain.current.richTextBox_status.Document.ContentStart, WindowMain.current.richTextBox_status.Document.ContentEnd);
+			txt.Text = "";
+			view_message_caption = "Encrypt";
+			sendCofileCommand(true);
 		}
 		private void OnClickDecrypt(object sender, RoutedEventArgs e)
 		{
-			if(MessageBox.Show("Decrypt?", "Decrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
-			{
-				//Log.ViewMessage("Decrypting..", "Decrypt", test4.m_wnd.richTextBox_status);
-				TextRange txt = new TextRange(WindowMain.m_wnd.richTextBox_status.Document.ContentStart, WindowMain.m_wnd.richTextBox_status.Document.ContentEnd);
-				txt.Text = "";
-				view_message_caption = "Decrypt";
-				sendCofileCommand(false);
-			}
+			WindowMain.current.ShowMessageDialog("Decrypt", "[Type = " + CofileOption.file + "] 선택된 파일들을 복호화 하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, Decrypt);
+			//if(MessageBox.Show("Decrypt?", "Decrypt", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+			//{
+			//	//Log.ViewMessage("Decrypting..", "Decrypt", test4.m_wnd.richTextBox_status);
+			//	TextRange txt = new TextRange(WindowMain.current.richTextBox_status.Document.ContentStart, WindowMain.current.richTextBox_status.Document.ContentEnd);
+			//	txt.Text = "";
+			//	view_message_caption = "Decrypt";
+			//	sendCofileCommand(false);
+			//}
+		}
+		public void Decrypt()
+		{
+			TextRange txt = new TextRange(WindowMain.current.richTextBox_status.Document.ContentStart, WindowMain.current.richTextBox_status.Document.ContentEnd);
+			txt.Text = "";
+			view_message_caption = "Decrypt";
+			sendCofileCommand(false);
 		}
 		private void sendCofileCommand(bool isEncrypt)
 		{
 			string remote_directory = GetConfigUploadDirectory();
 
-			if(UploadFile(WindowMain.m_wnd.Selected_config_file_path, remote_directory))
+			if(UploadFile(WindowMain.current.Selected_config_file_path, remote_directory))
 			{
 				for(int i = 0; i < LinuxTreeViewItem.selected_list.Count; i++)
 				{
 					//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
-					sendCommand(MakeCommandRunCofile(env_co_home + added_path_run_cofile, "file", isEncrypt, LinuxTreeViewItem.selected_list[i].Path, remote_directory + LinuxTreeViewItem.current_cofile_name));
+					if(!LinuxTreeViewItem.selected_list[i].isDirectory)
+						sendCommand(MakeCommandRunCofile(env_co_home + added_path_run_cofile, selected_type, isEncrypt, LinuxTreeViewItem.selected_list[i].Path, remote_directory + LinuxTreeViewItem.current_cofile_name));
 				}
 			}
 		}
@@ -157,6 +214,10 @@ namespace Manager_proj_4
 		#region mouse handle for multi select
 		static List<LinuxTreeViewItem> selected_list = new List<LinuxTreeViewItem>();
 		bool mySelected = false;
+
+		static SolidColorBrush Background_selected { get { return (SolidColorBrush)App.Current.Resources["AccentColorBrush"]; } }
+		static SolidColorBrush Foreground_selected = Brushes.White;
+		static SolidColorBrush Foreground_unselected = Brushes.Black;
 		bool MySelected
 		{
 			get { return mySelected; }
@@ -166,12 +227,16 @@ namespace Manager_proj_4
 				if(value)
 				{
 					selected_list.Add(this);
-					this.Background = Brushes.LightBlue;
+					this.Background = LinuxTreeViewItem.Background_selected;
+					if(!this.isDirectory)
+						this.Foreground = Foreground_selected;
 				}
 				else
 				{
 					selected_list.Remove(this);
 					this.Background = Brushes.White;
+					if(!this.isDirectory)
+						this.Foreground = Foreground_unselected;
 				}
 			}
 		}
@@ -217,6 +282,7 @@ namespace Manager_proj_4
 			if(files == null)
 				return;
 
+			int count_have_directory = 0;
 			foreach(var file in files)
 			{
 				int i;
@@ -234,7 +300,7 @@ namespace Manager_proj_4
 					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, true));
 					//this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
 					ltvi = new LinuxTreeViewItem(file.FullName, file.Name, true);
-					this.Items.Insert(0, ltvi);
+					this.Items.Insert(count_have_directory++, ltvi);
 				}
 				else
 				{
@@ -254,19 +320,32 @@ namespace Manager_proj_4
 		public static string env_co_home = "";
 		public static string added_path_config_upload = "/var/conf";
 		public static string added_path_run_cofile = "/bin/cofile";
-		public static string MakeCommandRunCofile(string path_run, string mode, bool isEncrypt, string filename, string configname)
+		public static CofileOption selected_type = CofileOption.file;
+		private static string[] cofile_option = new string[] {"file", "sam", "tail" };
+		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
 		{
 			string str = path_run;
-			if(mode != null)
-				str += " " + mode;
+			str += " " + cofile_option[(int)type];
 
 			if(isEncrypt)
 				str += " -e";
 			else
 				str += " -d";
 
-			if(filename != null)
-				str += " -f " + filename;
+			switch(type)
+			{
+				case CofileOption.sam:
+					str += " -i " + path;
+					if(isEncrypt)
+						str += " -o " + path + ".coenc";
+					else
+						str += " -o " + path + ".codec";
+					break;
+				case CofileOption.file:
+				case CofileOption.tail:
+					str += " -f " + path;
+					break;
+			}
 
 			if(configname != null)
 				str += " -c " + configname;
@@ -280,7 +359,7 @@ namespace Manager_proj_4
 
 			if(env_co_home == "")
 			{
-				Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", WindowMain.current.richTextBox_status);
 				return null;
 			}
 
@@ -389,7 +468,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "ReConnect", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "ReConnect", WindowMain.current.richTextBox_status);
 				return false;
 			}
 			return false;
@@ -404,11 +483,11 @@ namespace Manager_proj_4
 			IEnumerable<SftpFile> files = null;
 			try
 			{
-				files = sftp.ListDirectory(this.Path);
+				files = sftp.ListDirectory(this.Path).OrderBy(x=>x.FullName);
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "load directory", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "load directory", WindowMain.current.richTextBox_status);
 			}
 
 			Log.Print(this.path, "load directory"/*, test4.m_wnd.richTextBox_status*/);
@@ -436,13 +515,13 @@ namespace Manager_proj_4
 				}
 				else
 				{
-					Log.PrintError("check the config file path", "upload file", WindowMain.m_wnd.richTextBox_status);
+					Log.PrintError("check the config file path", "upload file", WindowMain.current.richTextBox_status);
 					return false;
 				}
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "upload file", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "upload file", WindowMain.current.richTextBox_status);
 				return false;
 			}
 			return true;
@@ -466,7 +545,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "send command", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(ex.Message, "send command", WindowMain.current.richTextBox_status);
 			}
 		}
 
@@ -490,19 +569,25 @@ namespace Manager_proj_4
 					if((idx_newline = read_line_ssh.IndexOf('\n')) >= 0)
 					{
 						string line = read_line_ssh.Substring(0, idx_newline);
-						for(int i = 0; i < view_log_start.Length; i++)
+						int i;
+						for(i = 0; i < view_log_start.Length; i++)
 						{
 							if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
 							{
-								Log.ViewMessage(line, view_message_caption, WindowMain.m_wnd.richTextBox_status);
-
+								Log.ViewMessage(line, view_message_caption, WindowMain.current.richTextBox_status);
 							}
 						}
-						for(int i = 0; i < view_error_start.Length; i++)
+						if(i == view_log_start.Length)
 						{
-							if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
-								Log.PrintError(line, view_message_caption, WindowMain.m_wnd.richTextBox_status);
+							for(i = 0; i < view_error_start.Length; i++)
+							{
+								if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
+									Log.PrintError(line, view_message_caption, WindowMain.current.richTextBox_status);
+							}
+							if(i == view_error_start.Length)
+								Log.ViewUndefine(line, "__undefined][" + view_message_caption, WindowMain.current.richTextBox_status);
 						}
+
 						Log.Print(line, "Read");
 						read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
 					}
@@ -511,7 +596,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "read", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "read", WindowMain.current.richTextBox_status);
 			}
 			return read_line_ssh;
 		}
@@ -552,7 +637,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "readCoHomeBlocking", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "readCoHomeBlocking", WindowMain.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -580,7 +665,7 @@ namespace Manager_proj_4
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "read3", WindowMain.m_wnd.richTextBox_status);
+				Log.PrintError(e.Message, "read3", WindowMain.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -678,7 +763,7 @@ namespace Manager_proj_4
 
 		public static void Refresh()
 		{
-			if(WindowMain.m_wnd == null)
+			if(WindowMain.current == null)
 				return;
 
 			if(ssh != null && ssh.IsConnected)
@@ -687,13 +772,13 @@ namespace Manager_proj_4
 				sftp.Disconnect();
 
 			// 삭제
-			WindowMain.m_wnd.treeView_linux_directory.Items.Clear();
+			WindowMain.current.treeView_linux_directory.Items.Clear();
 
 			// 추가
 			string home_dir = "/";
 			//string home_dir = sftp.WorkingDirectory;
 			LinuxTreeViewItem.root = new LinuxTreeViewItem(home_dir, home_dir, true);
-			WindowMain.m_wnd.treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
+			WindowMain.current.treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			Log.Print("[refresh]");
 
 			//LinuxTreeViewItem.ReconnectServer();
