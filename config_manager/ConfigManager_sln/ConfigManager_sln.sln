@@ -35,6 +35,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfApplication1", "WpfAppli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manager_proj_4", "Manager_proj_4\Manager_proj_4.csproj", "{A21850D2-1CC4-4438-9C90-F2907A98AB11}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9DABD69E-010C-419B-B91D-39287D6656CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_Sqlite", "Tests\Test_Sqlite\Test_Sqlite.csproj", "{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -170,8 +174,19 @@ Global
 		{A21850D2-1CC4-4438-9C90-F2907A98AB11}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A21850D2-1CC4-4438-9C90-F2907A98AB11}.Release|x86.ActiveCfg = Release|Any CPU
 		{A21850D2-1CC4-4438-9C90-F2907A98AB11}.Release|x86.Build.0 = Release|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Debug|x86.Build.0 = Debug|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Release|x86.ActiveCfg = Release|Any CPU
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5CF1B06D-0C81-4F99-8747-06A5BFD59EA0} = {9DABD69E-010C-419B-B91D-39287D6656CC}
 	EndGlobalSection
 EndGlobal

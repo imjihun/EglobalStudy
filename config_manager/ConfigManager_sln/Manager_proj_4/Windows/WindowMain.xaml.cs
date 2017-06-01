@@ -45,12 +45,7 @@ namespace Manager_proj_4
 			this.Closed += test4_Closed;
 
 			InitServerTab();
-
-			InitJsonFileView();
-			//InitServerCommandView();
-			InitLinuxDirectory();
 		}
-
 		private void TextBox_TextChanged_ScrollToEnd(object sender, TextChangedEventArgs e)
 		{
 			//textBox_status.ScrollToEnd();
@@ -118,288 +113,63 @@ namespace Manager_proj_4
 
 			if(ServerMenuButton.group.Count > 0)
 				ServerMenuButton.group[0].IsChecked = true;
+
+			tabControl.SelectionChanged += TabControl_SelectionChanged;
+		}
+
+		int idx_tab_before_change = 0;
+		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			//Console.WriteLine("\t\t bServerChanged = " + bServerChanged);
+			//if(!bServerChanged)
+			//	return;
+
+			////switch(tabControl.SelectedIndex)
+			////{
+			////	case 0:
+			////		UserControls.Cofile.current.refresh();
+			////		break;
+			////	case 1:
+			////		break;
+			////	case 2:
+			////	case 3:
+			////		UserControls.DataBaseInfo.RefreshUi(changed_server_name);
+			////		break;
+			////}
+			//UserControls.Cofile.current.refresh();
+			//UserControls.DataBaseInfo.RefreshUi(changed_server_name);
+			//idx_tab_before_change = tabControl.SelectedIndex;
+			//bServerChanged = false;
 		}
 		#endregion
-
-		#region Linux Directory
-		void InitLinuxDirectory()
+		bool bServerChanged = false;
+		string changed_server_name = "";
+		public void refresh(string _changed_server_name)
 		{
-			textBox_linux_directory_filter.TextChanged += delegate { LinuxTreeViewItem.Filter_string = textBox_linux_directory_filter.Text; };
-
-			//// BackgroundWorker의 이벤트 처리기
-			//LinuxTreeViewItem.BackgroundReConnector.DoWork += LinuxTreeViewItem.BackgroundReConnect;
-			//LinuxTreeViewItem.BackgroundReConnector.RunWorkerCompleted += LinuxTreeViewItem.BackgroundReConnectCallBack;
-			//LinuxTreeViewItem.BackgroundReConnector.WorkerReportsProgress = true;
-			//LinuxTreeViewItem.BackgroundReConnector.WorkerSupportsCancellation = true;
-			//LinuxTreeViewItem.BackgroundReConnector.ProgressChanged += new ProgressChangedEventHandler(_backgroundWorker_ProgressChanged);
-		}
-
-		private string selected_config_file_path = "Not Selected";
-		public string Selected_config_file_path
-		{
-			get { return selected_config_file_path; }
-			set
-			{
-				selected_config_file_path = value;
-				string[] splited = selected_config_file_path.Split('\\');
-				textBlock_selected_config_file_name.Text = splited[splited.Length - 1];
-			}
-		}
-		private void OnClickButtonSelectConfigFile(object sender, EventArgs e)
-		{
-			OpenFileDialog ofd = new OpenFileDialog();
-
-			// 초기경로 지정
-			ofd.InitialDirectory = root_path;
-
-			if(JsonInfo.current != null && JsonInfo.current.Path != null)
-			{
-				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					ofd.InitialDirectory = dir_path;
-			}
-
-			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json";
-			if(ofd.ShowDialog(this) == true)
-			{
-				Selected_config_file_path = ofd.FileName;
-				Console.WriteLine(Selected_config_file_path);
-				//Console.WriteLine(ofd.FileName);
-
-				//string json = FileContoller.read(ofd.FileName);
-				//refreshJsonTree(JsonController.parseJson(json));
-
-				//JsonInfo.current.Path = ofd.FileName;
-			}
-		}
-		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
-		{
-			LinuxTreeViewItem.selected_type = (CofileOption)comboBox_cofile_type.SelectedIndex;
-		}
-		#endregion
-
-		#region Server Command View
-		void InitServerCommandView()
-		{
-			CommandView commandView;
-			commandView = new CommandView();
-			//grid_second.Children.Add(commandView);
-		}
-		#endregion
-
-		#region Json Tree Area
-		string root_path = AppDomain.CurrentDomain.BaseDirectory;
-
-		void InitJsonFileView()
-		{
-			new JsonInfo(json_tree_view);
-		}
-		public void refreshJsonTree(JToken jtok_root)
-		{
-			// 변환
-			JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
-			if(root_jtree == null)
-				return;
-
-			// 삭제
-			json_tree_view.Items.Clear();
-
-			// 추가
-			//TextBlock tblock = new TextBlock();
-			//tblock.Text = JsonInfo.current.Filename;
-			//root_jtree.Header.Children.Insert(0, tblock);
-			//json_tree_view.Items.Add(root_jtree);
-
-			Label label = new Label();
-			label.VerticalAlignment = VerticalAlignment.Center;
-			label.Content = JsonInfo.current.Filename;
-			root_jtree.Header.Children.Insert(0, label);
-			json_tree_view.Items.Add(root_jtree);
-		}
-
-		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null)
-				return;
-
-			if(JsonInfo.current.Path != null)
-				;
-
-			JsonInfo.current.Clear();
-
-			this.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile);
-		}
-		private void NewJsonFile()
-		{
-
-			JsonInfo.current.Clear();
-			//if(JSonInfo.current.IsModify_tree)
+			UserControls.Cofile.current.refresh();
+			UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+			//switch(tabControl.SelectedIndex)
 			//{
-			//	MessageBoxResult mbr = MessageBox.Show("변경사항을 저장하겠습니까?", "저장", MessageBoxButton.YesNoCancel);
-			//	switch(mbr)
-			//	{
-			//		case MessageBoxResult.Yes:
-			//			Btn_save_jtree_Click(sender, e);
-			//			break;
-			//		case MessageBoxResult.Cancel:
-			//			return;
-			//	}
+			//	case 0:
+			//		if(UserControls.Cofile.current != null)
+			//			UserControls.Cofile.current.refresh();
+			//		break;
+			//	case 1:
+			//		break;
+			//	case 2:
+			//	case 3:
+			//		UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+			//		break;
 			//}
-			//JsonInfo.current.Jtok_root = new JObject();
-			refreshJsonTree(new JObject());
+			//bServerChanged = true;
+			//Console.WriteLine("\t\t [changed] " + changed_server_name + " => " + _changed_server_name);
+			//changed_server_name = _changed_server_name;
+			//if(UserControls.Sqlite_LogTable.current != null)
+			//	UserControls.Sqlite_LogTable.current.refresh();
+			//if(UserControls.Sqlite_StatusTable.current != null)
+			//	UserControls.Sqlite_StatusTable.current.refresh();
 		}
-		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null)
-				return;
-			
-			OpenFileDialog ofd = new OpenFileDialog();
 
-			ofd.InitialDirectory = root_path;
-
-			if(JsonInfo.current.Path != null)
-			{
-				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					ofd.InitialDirectory = dir_path;
-			}
-
-			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json";
-			if(ofd.ShowDialog(this) == true)
-			{
-				Console.WriteLine(ofd.FileName);
-
-				string json = FileContoller.read(ofd.FileName);
-				refreshJsonTree(JsonController.parseJson(json));
-
-				JsonInfo.current.Path = ofd.FileName;
-			}
-		}
-		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null)
-				return;
-
-			if(!CheckJson())
-				return;
-
-			if(JsonInfo.current.Path == null)
-			{
-				OtherSaveJsonFile();
-				return;
-			}
-
-			FileInfo f = new FileInfo(JsonInfo.current.Path);
-			if(!f.Exists)
-			{
-				OtherSaveJsonFile();
-				return;
-			}
-
-			this.ShowMessageDialog("Save", "저장하시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, SaveJsonFile);
-		}
-		private void SaveJsonFile()
-		{
-			SaveFile(JsonInfo.current.Path);
-		}
-		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null)
-				return;
-
-			if(!CheckJson())
-				return;
-
-			OtherSaveJsonFile();
-		}
-		private void OtherSaveJsonFile()
-		{
-			SaveFileDialog sfd = new SaveFileDialog();
-
-			sfd.InitialDirectory = root_path;
-
-			if(JsonInfo.current.Path != null)
-			{
-				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					sfd.InitialDirectory = dir_path;
-			}
-
-			sfd.Filter = "JSon Files (.json)|*.json";
-			if(sfd.ShowDialog(this) == true)
-			{
-				SaveFile(sfd.FileName);
-				JsonInfo.current.Path = sfd.FileName;
-			}
-		}
-		private bool CheckJson()
-		{
-			// 로드된 오브젝트가 없으면 실행 x
-			if(json_tree_view.Items.Count < 1)
-				return false;
-			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			if(root == null)
-				return false;
-
-			return true;
-		}
-		private void SaveFile(string path)
-		{
-			if(!CheckJson())
-				return;
-
-			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
-			if(Jtok_root != null && FileContoller.write(path, Jtok_root.ToString()))
-				this.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
-			else
-			{
-				string caption = "Save Error";
-				string message = path + " 파일을 저장하는데 문제가 생겼습니다.";
-				this.ShowMessageDialog(caption, message);
-				Console.WriteLine("[" + caption + "] " + message);
-			}
-		}
-		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null || JsonInfo.current.Path == null)
-				return;
-
-			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			if(root == null)
-				return;
-
-			Window_ViewFile w = new Window_ViewFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonInfo.current.Path);
-			//Window_ViewFile w = new Window_ViewFile(FileContoller.read(JsonInfo.current.Path), JsonInfo.current.Path);
-
-			if(w.ShowDialog() == true)
-			{
-				refreshJsonTree(JsonController.parseJson(w.tb_file.Text));
-			}
-		}
-		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
-		{
-			if(JsonInfo.current == null || JsonInfo.current.Path == null)
-				return;
-
-			string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
-			DirectoryInfo d = new DirectoryInfo(dir_path);
-			if(!d.Exists)
-				return;
-
-			this.ShowMessageDialog("Cancel", "변경사항을 되돌리시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, CalcelJsonFile);
-		}
-		private void CalcelJsonFile()
-		{
-			string json = FileContoller.read(JsonInfo.current.path);
-			refreshJsonTree(JsonController.parseJson(json));
-			this.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
-		}
-		#endregion
 
 		public delegate void CallBack();
 		public async void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)
@@ -422,37 +192,5 @@ namespace Manager_proj_4
 			if(alwayse_callback != null)
 				alwayse_callback();
 		}
-
-		//public class VIEWMODEL : ViewModelBase
-		//{
-		//	// Variable
-		//	private IDialogCoordinator dialogCoordinator;
-
-		//	// Constructor
-		//	public VIEWMODEL(IDialogCoordinator instance)
-		//	{
-		//		dialogCoordinator = instance;
-		//	}
-
-		//	// Methods
-		//	private void FooMessage()
-		//	{
-		//		await dialogCoordinator.ShowMessageAsync(this, "HEADER", "MESSAGE");
-		//	}
-
-		//	private void FooProgress()
-		//	{
-		//		// Show...
-		//		ProgressDialogController controller = await dialogCoordinator.ShowProgressAsync(this, "HEADER", "MESSAGE");
-		//		controller.SetIndeterminate();
-
-		//		// Do your work... 
-
-		//		// Close...
-		//		await controller.CloseAsync();
-		//	}
-
-		//	// Actions... (ICommands for your view)
-		//}
 	}
 }

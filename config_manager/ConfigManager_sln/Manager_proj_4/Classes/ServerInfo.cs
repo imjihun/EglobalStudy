@@ -357,7 +357,8 @@ namespace Manager_proj_4
 				CommandView.current.Visibility = Visibility.Visible;
 			CommandView.refresh(selected_serverinfo_textblock);
 
-			LinuxTreeViewItem.Refresh();
+			if(WindowMain.current != null)
+				WindowMain.current.refresh(selected_serverinfo_textblock.serverinfo.name);
 		}
 	}
 

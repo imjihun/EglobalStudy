@@ -111,6 +111,21 @@
     <Compile Include="Classes\LinuxTreeViewItem.cs" />
     <Compile Include="Classes\Log.cs" />
     <Compile Include="Classes\ServerInfo.cs" />
+    <Compile Include="UserControls\Cofile.xaml.cs">
+      <DependentUpon>Cofile.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigJsonTree.xaml.cs">
+      <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ServerCommand.xaml.cs">
+      <DependentUpon>ServerCommand.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Sqlite_LogTable.xaml.cs">
+      <DependentUpon>Sqlite_LogTable.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Sqlite_StatusTable.xaml.cs">
+      <DependentUpon>Sqlite_StatusTable.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\WindowMain.xaml.cs">
       <DependentUpon>WindowMain.xaml</DependentUpon>
     </Compile>
@@ -156,6 +171,26 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="UserControls\Cofile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigJsonTree.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ServerCommand.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\Sqlite_LogTable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\Sqlite_StatusTable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\WindowMain.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

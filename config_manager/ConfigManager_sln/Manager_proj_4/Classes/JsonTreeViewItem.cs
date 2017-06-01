@@ -46,8 +46,6 @@ namespace Manager_proj_4
 			return obj;
 		}
 	}
-
-	#region Json Tree Class
 	class JsonInfo
 	{
 		public static JsonInfo current = null;
@@ -134,6 +132,24 @@ namespace Manager_proj_4
 			}
 		}
 	}
+
+	#region Json Tree Class
+	class Size
+	{
+		public const int HEIGHT_HEADER = 40;
+		//public const int WIDTH = 30;
+
+		public const int MARGIN_TEXTBOX = 5;
+		public const int WIDTH_TEXTBOX = 150;
+		//public const int HEIGHT_TEXTBOX = 25;
+
+		public const double MARGIN_BUTTON = 2.5;
+		public const int HEIGHT_BUTTON = 30;
+		public const int WIDTH_BUTTON = 30;
+
+		public const int HEIGHT_MOREBUTTON = 30;
+		public const int WIDTH_MOREBUTTON = 35;
+	}
 	class JsonTreeViewItem : TreeViewItem
 	{
 		//public enum JTokenType
@@ -188,7 +204,7 @@ namespace Manager_proj_4
 			if(this.value_token_type == JTokenType.Array)
 				parent_tvi.refreshIndex();
 		}
-		
+
 		public int getCountChildProperty()
 		{
 			// 자식중에 more... 버튼이 있을수도 없을수도 있기 때문에 실제 자식을 리턴 받고 싶을때
@@ -679,22 +695,6 @@ namespace Manager_proj_4
 		#endregion
 	}
 
-	class Size
-	{
-		public const int HEIGHT_HEADER = 40;
-		//public const int WIDTH = 30;
-		
-		public const int MARGIN_TEXTBOX = 5;
-		public const int WIDTH_TEXTBOX = 150;
-		//public const int HEIGHT_TEXTBOX = 25;
-
-		public const double MARGIN_BUTTON = 2.5;
-		public const int HEIGHT_BUTTON = 30;
-		public const int WIDTH_BUTTON = 30;
-
-		public const int HEIGHT_MOREBUTTON = 30;
-		public const int WIDTH_MOREBUTTON = 35;
-	}
 	class JsonTreeViewItemHeader : Grid
 	{
 		public JsonAddButton addButtn;
@@ -1045,7 +1045,7 @@ namespace Manager_proj_4
 					//cb.Unchecked += delegate { tb_boolean.Text = cb.IsChecked.ToString(); this.value = cb.IsChecked; };
 
 					//this.Children.Add(tb_boolean);
-					
+
 					ToggleSwitch ts = new ToggleSwitch();
 					ts.IsChecked = (bool)value;
 					ts.Width = Size.WIDTH_TEXTBOX;
