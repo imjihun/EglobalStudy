@@ -21,7 +21,7 @@ using System.Windows.Data;
 using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
 
-namespace Manager_proj_4
+namespace Manager_proj_5
 {
 	class JsonController
 	{
@@ -1048,10 +1048,10 @@ namespace Manager_proj_4
 					
 					ToggleSwitch ts = new ToggleSwitch();
 					ts.IsChecked = (bool)value;
-					ts.Width = Size.WIDTH_TEXTBOX;
 					ts.FontSize = 13;
 					ts.OffLabel = "False";
 					ts.OnLabel = "True";
+					ts.Width = Size.WIDTH_TEXTBOX;
 					ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
 					ts.Checked += delegate { this.value = ts.IsChecked; };
 					ts.Unchecked += delegate { this.value = ts.IsChecked; };
@@ -1109,7 +1109,6 @@ namespace Manager_proj_4
 				case JTokenType.Uri:
 					break;
 			}
-
 			Label label = new Label();
 			label.VerticalAlignment = VerticalAlignment.Center;
 			label.Foreground = Brushes.Gray;

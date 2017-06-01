@@ -18,7 +18,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Manager_proj_4
+namespace Manager_proj_5
 {
 	public class ConvertorCofileOptionToComboBoxItem : MarkupExtension
 	{
