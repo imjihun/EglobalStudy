@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Manager_proj_4.Classes;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,10 +35,11 @@ namespace Manager_proj_4.UserControls
 			current = this;
 			InitializeComponent();
 			InitLinuxDirectory();
+			//textBox_linux_directory_filter.Text = @"^[^\.]";
 		}
 
 		#region Linux Directory
-		string root_path_ = AppDomain.CurrentDomain.BaseDirectory;
+
 		void InitLinuxDirectory()
 		{
 			textBox_linux_directory_filter.TextChanged += delegate { LinuxTreeViewItem.Filter_string = textBox_linux_directory_filter.Text; };
@@ -50,7 +52,7 @@ namespace Manager_proj_4.UserControls
 			//LinuxTreeViewItem.BackgroundReConnector.ProgressChanged += new ProgressChangedEventHandler(_backgroundWorker_ProgressChanged);
 		}
 
-		public void refresh()
+		public void Refresh()
 		{
 			LinuxTreeViewItem.Refresh();
 		}
@@ -71,7 +73,7 @@ namespace Manager_proj_4.UserControls
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			// 초기경로 지정
-			ofd.InitialDirectory = root_path_;
+			ofd.InitialDirectory = ConfigJsonTree.root_path;
 
 			if(JsonInfo.current != null && JsonInfo.current.Path != null)
 			{
@@ -98,6 +100,7 @@ namespace Manager_proj_4.UserControls
 		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
 		{
 			SSHController.selected_type = (Manager_proj_4.CofileOption)comboBox_cofile_type.SelectedIndex;
+			e.Handled = true;
 		}
 		#endregion
 	}

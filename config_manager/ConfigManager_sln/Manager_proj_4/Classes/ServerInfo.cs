@@ -1,5 +1,6 @@
 ﻿using MahApps.Metro;
 using MahApps.Metro.IconPacks;
+using Manager_proj_4.Classes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,9 @@ namespace Manager_proj_4
 	#region Server Panel
 	public class ServerInfo
 	{
-		public static string PATH = AppDomain.CurrentDomain.BaseDirectory + "serverinfo.json";
+		private static string FILENAME = "serverinfo.json";
+		private static string DIR = @"system\";
+		public static string PATH = AppDomain.CurrentDomain.BaseDirectory + DIR + FILENAME;
 		public static JObject jobj_root = new JObject();
 
 		#region Instance Area
@@ -36,15 +39,17 @@ namespace Manager_proj_4
 		private ServerInfo() { }
 		#endregion
 
-		public static void save()
+		public static bool save()
 		{
 			if(!FileContoller.write(ServerInfo.PATH, ServerInfo.jobj_root.ToString()))
 			{
 				string caption = "save error";
 				string message = "serverinfo.json 파일을 저장하는데 문제가 생겼습니다.";
-				MessageBox.Show(message, caption);
-				Console.WriteLine("[" + caption + "] " + message);
+				Log.Print(message, caption);
+				WindowMain.current.ShowMessageDialog(caption, message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				return false;
 			}
+			return true;
 		}
 
 		#region Class Area
@@ -278,8 +283,11 @@ namespace Manager_proj_4
 
 					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
 					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
+
+					if(!ServerInfo.save())
+						return;
+
 					this.Items.Add(si);
-					ServerInfo.save();
 				}
 				catch(Exception ex)
 				{
@@ -301,7 +309,10 @@ namespace Manager_proj_4
 					return;
 
 				jobj.Remove(ServerList.selected_serverinfo_textblock.serverinfo.name);
-				ServerInfo.save();
+
+				if(!ServerInfo.save())
+					return;
+
 				this.Items.Remove(ServerList.selected_serverinfo_textblock);
 				//ServerButtonChildren.selected_server_info.Remove();
 			}
@@ -332,12 +343,21 @@ namespace Manager_proj_4
 				wms.Top = pt.Y;
 				if(wms.ShowDialog() == true)
 				{
+					JObject jobj = ServerInfo.jobj_root[parent.Content] as JObject;
+					if(jobj == null)
+						return;
+
+					// JProperty 바꾸기
+					JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(wms.textBox_name.Text, wms.textBox_ip.Text, wms.textBox_id.Text, wms.textBox_password.Password));
+					jobj[ServerList.selected_serverinfo_textblock.serverinfo.name].Parent.Replace(newprop);
+
+					if(!ServerInfo.save())
+						return;
+
 					sitb.Text = sitb.serverinfo.name = wms.textBox_name.Text;
 					sitb.serverinfo.ip = wms.textBox_ip.Text;
 					sitb.serverinfo.id = wms.textBox_id.Text;
 					sitb.serverinfo.password = wms.textBox_password.Password;
-
-					ServerInfo.save();
 				}
 			}
 		}
@@ -358,7 +378,7 @@ namespace Manager_proj_4
 			CommandView.refresh(selected_serverinfo_textblock);
 
 			if(WindowMain.current != null)
-				WindowMain.current.refresh(selected_serverinfo_textblock.serverinfo.name);
+				WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
 		}
 	}
 
@@ -468,8 +488,11 @@ namespace Manager_proj_4
 
 					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
 					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
+
+					if(!ServerInfo.save())
+						return;
+
 					this.child.Items.Add(si);
-					ServerInfo.save();
 				}
 				catch(Exception ex)
 				{
@@ -494,7 +517,9 @@ namespace Manager_proj_4
 				try
 				{
 					ServerInfo.jobj_root.Add(new JProperty(server_menu_name, new JObject()));
-					ServerInfo.save();
+
+					if(!ServerInfo.save())
+						return;
 
 					ServerMenuButton smbtn = new ServerMenuButton(server_menu_name);
 					ServerPanel.current.Children.Add(smbtn);
@@ -515,7 +540,9 @@ namespace Manager_proj_4
 			try
 			{
 				ServerInfo.jobj_root.Remove(this.Content.ToString());
-				ServerInfo.save();
+
+				if(!ServerInfo.save())
+					return;
 
 				ServerPanel.SubPanel.Children.Remove(this.child);
 				ServerPanel.current.Children.Remove(this);

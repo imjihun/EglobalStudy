@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Manager_proj_4.Classes;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -23,20 +24,25 @@ namespace Manager_proj_4.UserControls
 
 	public class DataBaseInfo
 	{
-		private const string tmp_filename = "cofile.db";
+		//private const string tmp_filename = "cofile.db";
 		public static string Path = @"D:\git\config_manager\ConfigManager_sln\Manager_proj_4\bin\Debug\cofile.db";
-		public static string LoadDataBase(string local_file_name)
-		{
-			Path = SSHController.GetDataBase(AppDomain.CurrentDomain.BaseDirectory, local_file_name);
-			return Path;
-		}
+		//public static string LoadDataBase(string local_file_name)
+		//{
+		//	Path = SSHController.GetDataBase(AppDomain.CurrentDomain.BaseDirectory, local_file_name);
+		//	return Path;
+		//}
+
+		static string DIR = @"system\tmp\";
+		static string path_root = AppDomain.CurrentDomain.BaseDirectory + DIR;
 		public static void RefreshUi(string changed_server_name)
 		{
-			Path = SSHController.GetDataBase(AppDomain.CurrentDomain.BaseDirectory, changed_server_name);
+			string db_name = changed_server_name + ".db";
+			Path = SSHController.GetDataBase(path_root, db_name);
+
 			if(Sqlite_LogTable.current != null)
-				Sqlite_LogTable.current.refresh();
+				Sqlite_LogTable.current.Refresh();
 			if(Sqlite_StatusTable.current != null)
-				Sqlite_StatusTable.current.refresh();
+				Sqlite_StatusTable.current.Refresh();
 		}
 	}
 
@@ -49,7 +55,7 @@ namespace Manager_proj_4.UserControls
 			InitializeComponent();
 			//refresh();
 		}
-		public void refresh()
+		public void Refresh()
 		{
 			//string strConn = @"Data Source=D:\git\config_manager\ConfigManager_sln\Tests\Test_Sqlite\bin\Debug\cofile.db";
 			//using(SQLiteConnection conn = new SQLiteConnection(strConn))
@@ -80,25 +86,29 @@ namespace Manager_proj_4.UserControls
 
 			try
 			{
-				dataGrid.Columns.Clear();
-				//dataGrid.Items.Clear();
-				dataGrid.Items.Refresh();
+				dataGrid.ItemsSource = new DataTable().DefaultView;
+				//dataGrid.Columns.Clear();
+				////dataGrid.Items.Clear();
+				//dataGrid.Items.Refresh();
 
 				//string path = DataBaseInfo.LoadDataBase("log.db");
 				//if(path == null)
 				//	return;
 
+				if(DataBaseInfo.Path == null)
+					return;
 				string strConn = "Data Source=" + DataBaseInfo.Path;
 				using(SQLiteConnection conn = new SQLiteConnection(strConn))
 				{
 					UpdateDataGrid(conn, "SELECT * From log");
 					conn.Close();
 				}
-				Console.WriteLine("########################################loaded Sqlite_LogTable");
+				Log.Print("loaded", "Sqlite_LogTable", WindowMain.current.richTextBox_status);
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine("[Sqlite_LogTable] " + e.Message);
+				Log.PrintError(e.Message, "Sqlite_LogTable][Refresh", WindowMain.current.richTextBox_status);
+				//Console.WriteLine("[Sqlite_LogTable] " + e.Message);
 				//MessageBox.Show(e.Message, "Sqlite_LogTable");
 			}
 
@@ -122,11 +132,12 @@ namespace Manager_proj_4.UserControls
 				ChangeColumnIntToString(log_action, table, "action");
 				ChangeColumnIntToString(log_result, table, "result");
 
-				dataGrid.ItemsSource = dataSet.Tables[0].DefaultView;
+				dataGrid.ItemsSource = table.DefaultView;
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine("[Sqlite_LogTable] " + e.Message);
+				Log.PrintError(e.Message, "UpdateDataGrid", WindowMain.current.richTextBox_status);
+				//Console.WriteLine("[Sqlite_LogTable] " + e.Message);
 				//MessageBox.Show(e.Message, "Sqlite_LogTable");
 			}
 		}

@@ -17,10 +17,13 @@ namespace test2
 		{
 			//func();
 			//Console.WriteLine("main finish");
-			double? a;
-			System.Int64 b = 10;
-			object c = b;
-			a = (System.Int64)c;
+
+			//double? a;
+			//System.Int64 b = 10;
+			//object c = b;
+			//a = (System.Int64)c;
+
+			Console.WriteLine("/home/cofile/bin/cofile file -e -f /home/cofile/file_co".Length);
 		}
 		async static Task<int> sum(int a, int b)
 		{

@@ -24,6 +24,7 @@ using Renci.SshNet.Sftp;
 using MahApps.Metro.Controls;
 using MahApps.Metro;
 using MahApps.Metro.Controls.Dialogs;
+using Manager_proj_4.Classes;
 
 namespace Manager_proj_4
 {
@@ -53,7 +54,7 @@ namespace Manager_proj_4
 		}
 
 		public static bool bCtrl = false;
-		static bool bShift = false;
+		public static bool bShift = false;
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			base.OnKeyDown(e);
@@ -113,63 +114,61 @@ namespace Manager_proj_4
 
 			if(ServerMenuButton.group.Count > 0)
 				ServerMenuButton.group[0].IsChecked = true;
-
-			tabControl.SelectionChanged += TabControl_SelectionChanged;
 		}
 
+		#endregion
+
+		#region View Update
+		bool bServerChanged = false;
+		bool bUpdateDataBase = false;
+		bool bUpdateLinuxTree = false;
+		string changed_server_name = "";
+
+		// 상단 탭이 바뀌었을때 작동
 		int idx_tab_before_change = 0;
 		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			//Console.WriteLine("\t\t bServerChanged = " + bServerChanged);
-			//if(!bServerChanged)
-			//	return;
+			if(bServerChanged && !bUpdateLinuxTree && UserControls.Cofile.current != null)
+			{
+				UserControls.Cofile.current.Refresh();
+				bUpdateLinuxTree = true;
+			}
+			if(bServerChanged && !bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
+				&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
+			{
+				UserControls.DataBaseInfo.RefreshUi(changed_server_name);
+				bUpdateDataBase = true;
+			}
+			bServerChanged = false;
+			idx_tab_before_change = tabControl.SelectedIndex;
+		}
 
-			////switch(tabControl.SelectedIndex)
-			////{
-			////	case 0:
-			////		UserControls.Cofile.current.refresh();
-			////		break;
-			////	case 1:
-			////		break;
-			////	case 2:
-			////	case 3:
-			////		UserControls.DataBaseInfo.RefreshUi(changed_server_name);
-			////		break;
-			////}
-			//UserControls.Cofile.current.refresh();
-			//UserControls.DataBaseInfo.RefreshUi(changed_server_name);
-			//idx_tab_before_change = tabControl.SelectedIndex;
-			//bServerChanged = false;
+		// 서버메뉴리스트 선택이 바뀌었을때 작동
+		public void Refresh(string _changed_server_name)
+		{
+			bUpdateDataBase = false;
+			bUpdateLinuxTree = false;
+			switch(tabControl.SelectedIndex)
+			{
+				case 0:
+					if(UserControls.Cofile.current != null)
+					{
+						UserControls.Cofile.current.Refresh();
+						bUpdateLinuxTree = true;
+					}
+					break;
+				case 1:
+					break;
+				case 2:
+				case 3:
+					UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+					bUpdateDataBase = true;
+					break;
+			}
+			bServerChanged = true;
+			changed_server_name = _changed_server_name;
 		}
 		#endregion
-		bool bServerChanged = false;
-		string changed_server_name = "";
-		public void refresh(string _changed_server_name)
-		{
-			UserControls.Cofile.current.refresh();
-			UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
-			//switch(tabControl.SelectedIndex)
-			//{
-			//	case 0:
-			//		if(UserControls.Cofile.current != null)
-			//			UserControls.Cofile.current.refresh();
-			//		break;
-			//	case 1:
-			//		break;
-			//	case 2:
-			//	case 3:
-			//		UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
-			//		break;
-			//}
-			//bServerChanged = true;
-			//Console.WriteLine("\t\t [changed] " + changed_server_name + " => " + _changed_server_name);
-			//changed_server_name = _changed_server_name;
-			//if(UserControls.Sqlite_LogTable.current != null)
-			//	UserControls.Sqlite_LogTable.current.refresh();
-			//if(UserControls.Sqlite_StatusTable.current != null)
-			//	UserControls.Sqlite_StatusTable.current.refresh();
-		}
-
 
 		public delegate void CallBack();
 		public async void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)

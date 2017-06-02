@@ -1,4 +1,5 @@
-﻿using Renci.SshNet;
+﻿using Manager_proj_4.Classes;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.IO;

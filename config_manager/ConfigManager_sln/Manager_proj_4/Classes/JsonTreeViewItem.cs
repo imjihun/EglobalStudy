@@ -20,6 +20,7 @@ using System.Windows.Input;
 using System.Windows.Data;
 using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
+using Manager_proj_4.Classes;
 
 namespace Manager_proj_4
 {

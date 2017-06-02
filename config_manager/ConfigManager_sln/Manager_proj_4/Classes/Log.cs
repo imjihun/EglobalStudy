@@ -9,7 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace Manager_proj_4
+namespace Manager_proj_4.Classes
 {
 	class Log
 	{
@@ -76,7 +76,7 @@ namespace Manager_proj_4
 			//		rtb.AppendText(str);
 			//}
 		}
-		public static void ViewMessage(string message, string caption, TextBoxBase output_ui)
+		public static void _ViewMessage(string message, string caption, TextBoxBase output_ui)
 		{
 			//string str = System.Environment.NewLine;
 			string str = "";
@@ -90,6 +90,36 @@ namespace Manager_proj_4
 			CheckNewLine(ref str);
 			//str += System.Environment.NewLine;
 
+			if(output_ui != null)
+			{
+				TextBox tb = output_ui as TextBox;
+				if(tb != null)
+					tb.Text += str;
+
+
+				RichTextBox rtb = output_ui as RichTextBox;
+				if(rtb != null)
+				{
+					TextRange rangeOfWord = new TextRange(rtb.Document.ContentEnd, rtb.Document.ContentEnd);
+					rangeOfWord.Text = str;
+					rangeOfWord.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+					//rtb.AppendText(str);
+					//rtb.Document.Blocks.Add(new Paragraph(new Inline()))
+				}
+			}
+		}
+		public static void ViewMessage(string message, string caption, TextBoxBase output_ui)
+		{
+			// 한줄씩 실행
+			string[] split = message.Split('\n');
+			for(int i = 0; i < split.Length; i++)
+			{
+				if(split[i].Length > 0)
+					_ViewMessage(split[i], caption, output_ui);
+			}
+
+			// 마지막에 문단 나누기 추가
+			string str = "\r\n";
 			if(output_ui != null)
 			{
 				TextBox tb = output_ui as TextBox;

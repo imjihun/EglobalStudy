@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Manager_proj_4
+namespace Manager_proj_4.Classes
 {
 	class FileContoller
 	{
@@ -42,6 +42,13 @@ namespace Manager_proj_4
 				return false;
 			try
 			{
+				// 경로에 디렉토리가 없으면 생성
+				string dir = path;
+				if(path[path.Length - 1] != '\\')
+					dir = path.Substring(0, path.LastIndexOf('\\') + 1);
+				Directory.CreateDirectory(dir);
+
+				// 경로에 파일 쓰기.
 				FileStream fs = new FileStream(path, FileMode.Create);
 
 				byte[] buffer/* = new byte[MAX_BUFFER]*/;

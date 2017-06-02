@@ -111,6 +111,7 @@
     <Compile Include="Classes\LinuxTreeViewItem.cs" />
     <Compile Include="Classes\Log.cs" />
     <Compile Include="Classes\ServerInfo.cs" />
+    <Compile Include="Classes\SSHController.cs" />
     <Compile Include="UserControls\Cofile.xaml.cs">
       <DependentUpon>Cofile.xaml</DependentUpon>
     </Compile>

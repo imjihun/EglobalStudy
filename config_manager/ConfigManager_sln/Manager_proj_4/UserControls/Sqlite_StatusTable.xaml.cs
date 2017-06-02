@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Manager_proj_4.Classes;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -28,29 +29,31 @@ namespace Manager_proj_4.UserControls
 			current = this;
 			InitializeComponent();
 		}
-		public void refresh()
+		public void Refresh()
 		{
 			try
 			{
-				dataGrid.Columns.Clear();
-				//dataGrid.Items.Clear();
-				dataGrid.Items.Refresh();
+				dataGrid.ItemsSource = new DataTable().DefaultView;
+				//dataGrid.Columns.Clear();
+				////dataGrid.Items.Clear();
+				//dataGrid.Items.Refresh();
 
 				//string path = DataBaseInfo.LoadDataBase("status.db");
 				//if(path == null)
 				//	return;
 
+				if(DataBaseInfo.Path == null)
+					return;
 				string strConn = "Data Source=" + DataBaseInfo.Path;
 				using(SQLiteConnection conn = new SQLiteConnection(strConn))
 				{
 					UpdateDataGrid(conn, "SELECT * From status");
 				}
-				Console.WriteLine("########################################loaded Sqlite_StatusTable");
+				Log.Print("loaded", "Sqlite_StatusTable", WindowMain.current.richTextBox_status);
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine("[Sqlite_StatusTable] " + e.Message);
-				//MessageBox.Show(e.Message, "Sqlite_StatusTable");
+				Log.PrintError(e.Message, "Sqlite_StatusTable][Refresh", WindowMain.current.richTextBox_status);
 			}
 
 			//Console.WriteLine(this.);
@@ -69,12 +72,11 @@ namespace Manager_proj_4.UserControls
 
 				ChangeColumnIntToString(status_type, table, "type");
 
-				dataGrid.ItemsSource = dataSet.Tables[0].DefaultView;
+				dataGrid.ItemsSource = table.DefaultView;
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine("[Sqlite_StatusTable] " + e.Message);
-				//MessageBox.Show(e.Message, "Sqlite_StatusTable");
+				Log.PrintError(e.Message, "UpdateDataGrid", WindowMain.current.richTextBox_status);
 			}
 		}
 		void ChangeColumnIntToString(string[] source, DataTable table, string column_name)

@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
+using Manager_proj_4.Classes;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using System;
@@ -35,10 +36,12 @@ namespace Manager_proj_4.UserControls
 		}
 
 		#region Json Tree Area
-		string root_path = AppDomain.CurrentDomain.BaseDirectory;
+		static string DIR = @"config\";
+		public static string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
 
 		void InitJsonFileView()
 		{
+			Directory.CreateDirectory(root_path);
 			new JsonInfo(json_tree_view);
 		}
 		public void refreshJsonTree(JToken jtok_root)

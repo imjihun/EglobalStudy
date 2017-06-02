@@ -7,6 +7,12 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
 	<Grid>
-		<DataGrid x:Name="dataGrid"/>
+		<DataGrid x:Name="dataGrid" IsReadOnly="True">
+			<DataGrid.Style>
+				<Style BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
+					<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
+				</Style>
+			</DataGrid.Style>
+		</DataGrid>
 	</Grid>
 </UserControl>
