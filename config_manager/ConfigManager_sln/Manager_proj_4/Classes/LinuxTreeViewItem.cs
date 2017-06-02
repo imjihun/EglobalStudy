@@ -166,6 +166,11 @@ namespace Manager_proj_4
 				this.Items.Add(dummy);
 			}
 
+			if(this.Header.Text.Length > 0 && this.Header.Text[0] == '.')
+			{
+				this.Header.Opacity = .5;
+			}
+
 		}
 		private void OnClickEncrypt(object sender, RoutedEventArgs e)
 		{
@@ -185,6 +190,7 @@ namespace Manager_proj_4
 			txt.Text = "";
 			SSHController.view_message_caption = "Encrypt";
 			SSHController.sendCofileCommand(selected_list.ToArray(), true);
+			//LinuxTreeViewItem.Refresh();
 		}
 		private void OnClickDecrypt(object sender, RoutedEventArgs e)
 		{
@@ -204,6 +210,7 @@ namespace Manager_proj_4
 			txt.Text = "";
 			SSHController.view_message_caption = "Decrypt";
 			SSHController.sendCofileCommand(selected_list.ToArray(), false);
+			//LinuxTreeViewItem.Refresh();
 		}
 
 		#region mouse handle for multi select
@@ -224,14 +231,18 @@ namespace Manager_proj_4
 					selected_list.Add(this);
 					this.Background = LinuxTreeViewItem.Background_selected;
 					if(!this.isDirectory)
+					{
 						this.Foreground = Foreground_selected;
+					}
 				}
 				else
 				{
 					selected_list.Remove(this);
 					this.Background = Brushes.White;
 					if(!this.isDirectory)
+					{
 						this.Foreground = Foreground_unselected;
+					}
 				}
 			}
 		}
@@ -293,7 +304,7 @@ namespace Manager_proj_4
 			if(isDirectory)
 			{
 				loadDirectory();
-				LinuxTreeViewItem.filter(this, filter_string);
+				Filter_string = filter_string;
 			}
 		}
 		void loadDirectory()
@@ -343,451 +354,6 @@ namespace Manager_proj_4
 		}
 		#endregion
 
-		//#region linux ssh, sftp connection
-		//public static string env_co_home = "";
-		//public static string added_path_config_upload = "/var/conf";
-		//public static string added_path_run_cofile = "/bin/cofile";
-		//public static CofileOption selected_type = CofileOption.file;
-		//private static string[] cofile_option = new string[] {"file", "sam", "tail" };
-		//public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
-		//{
-		//	string str = path_run;
-		//	str += " " + cofile_option[(int)type];
-
-		//	if(isEncrypt)
-		//		str += " -e";
-		//	else
-		//		str += " -d";
-
-		//	switch(type)
-		//	{
-		//		case CofileOption.sam:
-		//			str += " -i " + path;
-		//			if(isEncrypt)
-		//				str += " -o " + path + ".coenc";
-		//			else
-		//				str += " -o " + path + ".codec";
-		//			break;
-		//		case CofileOption.file:
-		//		case CofileOption.tail:
-		//			str += " -f " + path;
-		//			break;
-		//	}
-
-		//	if(configname != null)
-		//		str += " -c " + configname;
-
-		//	return str;
-		//}
-		//public static string GetConfigUploadDirectory()
-		//{
-		//	LinuxTreeViewItem.sendCommand(cmd_get_co_home);
-		//	readCoHomeBlocking(cmd_get_co_home);
-
-		//	if(env_co_home == "")
-		//	{
-		//		Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", WindowMain.current.richTextBox_status);
-		//		return null;
-		//	}
-
-		//	string remote_directory = env_co_home + added_path_config_upload;
-
-		//	if(remote_directory[remote_directory.Length - 1] != '/')
-		//		remote_directory += '/';
-
-		//	Log.Print("remote_directory = " + remote_directory, "load $CO_HOME");
-		//	return remote_directory;
-		//}
-		////public static string remote_directory_upload = "/home/cofile/bin";
-
-		//static bool CheckConnection(BaseClient client, string ip, int port, string id)
-		//{
-		//	if((client == null || !client.IsConnected)
-		//			|| (client.ConnectionInfo.Host != ip
-		//				|| client.ConnectionInfo.Port != port
-		//				|| client.ConnectionInfo.Username != id))
-		//		return false;
-
-		//	return true;
-		//}
-		////static bool ReConnect()
-		////{
-		////	if(ServerList.selected_serverinfo_textblock == null)
-		////		return false;
-
-		////	string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-		////	string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-		////	string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
-		////	int port = 22;
-
-		////	try
-		////	{
-		////		if(!CheckConnection(LinuxTreeViewItem.sftp, ip, port, id) || !CheckConnection(LinuxTreeViewItem.ssh, ip, port, id))
-		////		{
-		////			LinuxTreeViewItem.sftp = new SftpClient(ip, port, id, password);
-		////			LinuxTreeViewItem.sftp.Connect();
-		////			LinuxTreeViewItem.ssh = new SshClient(ip, port, id, password);
-		////			LinuxTreeViewItem.ssh.Connect();
-
-		////			if(LinuxTreeViewItem.ssh.IsConnected)
-		////				LinuxTreeViewItem.shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 1024);
-
-		////			if(shell_stream_read_timer == null)
-		////			{
-		////				LinuxTreeViewItem.shell_stream_read_timer = new DispatcherTimer();
-		////				LinuxTreeViewItem.shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-		////				LinuxTreeViewItem.shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
-		////			}
-		////			LinuxTreeViewItem.shell_stream_read_timer.Stop();
-		////			LinuxTreeViewItem.shell_stream_read_timer.Start();
-		////			Log.Print(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
-
-		////			LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-		////			return true;
-		////		}
-		////	}
-		////	catch(Exception e)
-		////	{
-		////		Log.PrintError(e.Message, "ReConnect", WindowMain.m_wnd.richTextBox_status);
-		////		return false;
-		////	}
-		////	return false;
-		////}
-		//static bool ReConnect(int timeout_ms = -1)
-		//{
-		//	if(ServerList.selected_serverinfo_textblock == null)
-		//		return false;
-
-		//	string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-		//	string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-		//	string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
-		//	int port = 22;
-
-		//	try
-		//	{
-		//		if(!CheckConnection(LinuxTreeViewItem.sftp, ip, port, id) || !CheckConnection(LinuxTreeViewItem.ssh, ip, port, id))
-		//		{
-		//			LinuxTreeViewItem.sftp = new SftpClient(ip, port, id, password);
-		//			if(timeout_ms != -1)
-		//				LinuxTreeViewItem.sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
-		//			LinuxTreeViewItem.sftp.Connect();
-		//			LinuxTreeViewItem.ssh = new SshClient(ip, port, id, password);
-		//			if(timeout_ms != -1)
-		//				LinuxTreeViewItem.ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
-		//			LinuxTreeViewItem.ssh.Connect();
-
-		//			if(LinuxTreeViewItem.ssh.IsConnected)
-		//				LinuxTreeViewItem.shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 1024);
-
-		//			if(shell_stream_read_timer == null)
-		//			{
-		//				LinuxTreeViewItem.shell_stream_read_timer = new DispatcherTimer();
-		//				LinuxTreeViewItem.shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-		//				LinuxTreeViewItem.shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
-		//			}
-		//			LinuxTreeViewItem.shell_stream_read_timer.Stop();
-		//			LinuxTreeViewItem.shell_stream_read_timer.Start();
-		//			Log.Print(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
-
-		//			LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-		//			return true;
-		//		}
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "ReConnect", WindowMain.current.richTextBox_status);
-		//		return false;
-		//	}
-		//	return true;
-		//}
-		//SftpFile[] PollListInDirectory()
-		//{
-		//	//LinuxTreeViewItem.ReconnectServer();
-		//	//LinuxTreeViewItem.ReConnect();
-		//	if(!LinuxTreeViewItem.ReConnect(1000))
-		//		return null;
-		
-		//	IEnumerable<SftpFile> files = null;
-		//	try
-		//	{
-		//		files = sftp.ListDirectory(this.Path).OrderBy(x=>x.FullName);
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "load directory", WindowMain.current.richTextBox_status);
-		//	}
-
-		//	Log.Print(this.path, "load directory"/*, test4.m_wnd.richTextBox_status*/);
-		//	return files.ToArray();
-		//}
-
-		//static string cmd_get_co_home = "echo $CO_HOME";
-		//static string current_cofile_name = "";
-		//bool UploadFile(string local_path, string remote_directory)
-		//{
-		//	//LinuxTreeViewItem.ReconnectServer();
-		//	//LinuxTreeViewItem.ReConnect();
-		//	LinuxTreeViewItem.ReConnect(1000);
-
-		//	try
-		//	{
-		//		FileInfo fi = new FileInfo(local_path);
-		//		if(fi.Exists)
-		//		{
-		//			FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
-		//			sftp.UploadFile(fs, remote_directory + fi.Name);
-		//			Log.Print(fi.Name + " => " + remote_directory + fi.Name, "upload file"/*, test4.m_wnd.richTextBox_status*/);
-		//			LinuxTreeViewItem.current_cofile_name = fi.Name;
-		//			fs.Close();
-		//		}
-		//		else
-		//		{
-		//			Log.PrintError("check the config file path", "upload file", WindowMain.current.richTextBox_status);
-		//			return false;
-		//		}
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "upload file", WindowMain.current.richTextBox_status);
-		//		return false;
-		//	}
-		//	return true;
-		//}
-		//private static void sendCommand(string command)
-		//{
-		//	//LinuxTreeViewItem.ReconnectServer();
-		//	//LinuxTreeViewItem.ReConnect();
-		//	LinuxTreeViewItem.ReConnect(1000);
-
-		//	try
-		//	{
-		//		// send
-		//		if(shell_stream != null)
-		//		{
-		//			shell_stream.Write(command);
-		//			shell_stream.Write("\n");
-		//			shell_stream.Flush();
-		//			Log.Print(command, "send command"/*, test4.m_wnd.richTextBox_status*/);
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		Log.PrintError(ex.Message, "send command", WindowMain.current.richTextBox_status);
-		//	}
-		//}
-
-		//static string read_line_ssh = "";
-		//static string[] view_log_start = new string[] {"inform"};
-		//static string[] view_error_start = new string[] {"error" };
-		//static string view_message_caption = "";
-		//private static string read()
-		//{
-		//	int size_buffer = 4096;
-		//	byte[] buffer = new byte[size_buffer];
-		//	try
-		//	{
-		//		int cnt = shell_stream.Read(buffer, 0, size_buffer);
-
-		//		read_line_ssh += Encoding.UTF8.GetString(buffer, 0, cnt);
-		//		if(read_line_ssh.Length > 0)
-		//		{
-		//			//Log.Print(read_line_ssh, "read"/*, test4.m_wnd.richTextBox_status*/);
-		//			int idx_newline = 0;
-		//			if((idx_newline = read_line_ssh.IndexOf('\n')) >= 0)
-		//			{
-		//				string line = read_line_ssh.Substring(0, idx_newline);
-		//				int i;
-		//				for(i = 0; i < view_log_start.Length; i++)
-		//				{
-		//					if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
-		//					{
-		//						Log.ViewMessage(line, view_message_caption, WindowMain.current.richTextBox_status);
-		//					}
-		//				}
-		//				if(i == view_log_start.Length)
-		//				{
-		//					for(i = 0; i < view_error_start.Length; i++)
-		//					{
-		//						if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
-		//							Log.PrintError(line, view_message_caption, WindowMain.current.richTextBox_status);
-		//					}
-		//					if(i == view_error_start.Length)
-		//						Log.ViewUndefine(line, "__undefined][" + view_message_caption, WindowMain.current.richTextBox_status);
-		//				}
-
-		//				Log.Print(line, "Read");
-		//				read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
-		//			}
-		//		}
-
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "read", WindowMain.current.richTextBox_status);
-		//	}
-		//	return read_line_ssh;
-		//}
-		//private static string readCoHomeBlocking(string cmd_send)
-		//{
-		//	cmd_send += "\r\n";
-		//	int cmd_length = cmd_send.Length;
-		//	shell_stream_read_timer.Stop();
-		//	int size_buffer = 4096;
-		//	byte[] buffer = new byte[size_buffer];
-		//	string line = "";
-		//	try
-		//	{
-		//		while(line.Length < cmd_length || line.IndexOf(cmd_send) < 0 || line.Length <= line.IndexOf(cmd_send) + cmd_length)
-		//		{
-		//			int cnt = shell_stream.Read(buffer, 0, size_buffer);
-		//			line += Encoding.UTF8.GetString(buffer, 0, cnt);
-		//		}
-		//		line = line.Substring(line.IndexOf(cmd_send) + cmd_length);
-		//		//bool bGet_end = false;
-		//		while(line.Length < cmd_length || line.IndexOf('\n') < 0)
-		//		{
-		//			int cnt = shell_stream.Read(buffer, 0, size_buffer);
-		//			line += Encoding.UTF8.GetString(buffer, 0, cnt);
-		//		}
-		//		string str = line.ToString();
-		//		int idx_end = str.IndexOf('\r');
-
-		//		if(idx_end > 0)
-		//		{
-		//			env_co_home = str.Substring(0, idx_end);
-		//		}
-		//		else
-		//			env_co_home = "";
-
-		//		Log.Print(str, "readCoHomeBlocking");
-
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "readCoHomeBlocking", WindowMain.current.richTextBox_status);
-		//	}
-
-		//	shell_stream_read_timer.Start();
-		//	return line.ToString();
-		//}
-		//private static string read3(string cmd_send)
-		//{
-		//	int cmd_length = cmd_send.Length + 2;
-		//	shell_stream_read_timer.Stop();
-		//	int size_buffer = 4096;
-		//	byte[] buffer = new byte[size_buffer];
-		//	StringBuilder read = new StringBuilder();
-		//	try
-		//	{
-		//		//bool bGet_end = false;
-		//		while(read.Length < cmd_length || read.ToString().IndexOf('\n', cmd_length) < 0)
-		//		{
-		//			int cnt = shell_stream.Read(buffer, 0, size_buffer);
-		//			read.Append(Encoding.UTF8.GetString(buffer, 0, cnt));
-		//		}
-		//		string str = read.ToString().Substring(cmd_length + 2);
-
-		//		Log.Print(str, "read3");
-
-		//	}
-		//	catch(Exception e)
-		//	{
-		//		Log.PrintError(e.Message, "read3", WindowMain.current.richTextBox_status);
-		//	}
-
-		//	shell_stream_read_timer.Start();
-		//	return read.ToString();
-		//}
-		//private static void Shell_stream_read_timer_Tick(object sender, EventArgs e)
-		//{
-		//	if(LinuxTreeViewItem.shell_stream != null)
-		//	{
-		//		string str = read();
-		//		if(str.Length > 0)
-		//			;//LinuxTreeViewItem.ViewLog("[read] " + str);
-		//	}
-		//}
-		//#endregion
-
-		//public static List<BackgroundWorker> BackgroundReConnector = new List<BackgroundWorker>();
-		//public static void ReconnectServer()
-		//{
-		//	if(LinuxTreeViewItem.root == null)
-		//		return;
-
-		//	LinuxTreeViewItem.root.IsEnabled = false;
-		//	//ServerPanel.SubPanel.IsEnabled = false;
-			
-		//	for(int i = 0; i < BackgroundReConnector.Count; i++)
-		//	{
-		//		BackgroundReConnector[i].CancelAsync();
-		//	}
-
-		//	BackgroundWorker _BackgroundReConnector = new BackgroundWorker();
-		//	_BackgroundReConnector.DoWork += LinuxTreeViewItem.BackgroundReConnect;
-		//	_BackgroundReConnector.RunWorkerCompleted += LinuxTreeViewItem.BackgroundReConnectCallBack;
-		//	_BackgroundReConnector.WorkerReportsProgress = true;
-		//	_BackgroundReConnector.WorkerSupportsCancellation = true;
-		//	_BackgroundReConnector.RunWorkerAsync();
-		//	BackgroundReConnector.Add(_BackgroundReConnector);
-		//}
-		//public static void BackgroundReConnectCallBack(object sender, RunWorkerCompletedEventArgs e)
-		//{
-		//	if(LinuxTreeViewItem.root != null && sftp != null && sftp.IsConnected)
-		//	{
-		//		LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-		//		LinuxTreeViewItem.root.IsEnabled = true;
-		//	}
-		//	if(ServerPanel.SubPanel != null)
-		//		ServerPanel.SubPanel.IsEnabled = true;
-
-		//	if(sender is BackgroundWorker)
-		//		BackgroundReConnector.Remove(sender as BackgroundWorker);
-
-		//	if(shell_stream_read_timer == null)
-		//	{
-		//		LinuxTreeViewItem.shell_stream_read_timer = new DispatcherTimer();
-		//		LinuxTreeViewItem.shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-		//		LinuxTreeViewItem.shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
-		//	}
-		//}
-		//public static void BackgroundReConnect(object sender, DoWorkEventArgs e)
-		//{
-		//	if(ServerList.selected_serverinfo_textblock == null)
-		//		return;
-
-		//	TimeSpan timeout = new TimeSpan(0,0,0,2,0);
-
-		//	string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-		//	string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-		//	string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
-		//	int port = 22;
-
-		//	try
-		//	{
-		//		if(!CheckConnection(LinuxTreeViewItem.sftp, ip, port, id) || !CheckConnection(LinuxTreeViewItem.ssh, ip, port, id))
-		//		{
-		//			LinuxTreeViewItem.sftp = new SftpClient(ip, port, id, password);
-		//			LinuxTreeViewItem.sftp.ConnectionInfo.Timeout = timeout;
-		//			LinuxTreeViewItem.sftp.Connect();
-		//			LinuxTreeViewItem.ssh = new SshClient(ip, port, id, password);
-		//			LinuxTreeViewItem.ssh.ConnectionInfo.Timeout = timeout;
-		//			LinuxTreeViewItem.ssh.Connect();
-
-		//			if(LinuxTreeViewItem.ssh.IsConnected)
-		//				LinuxTreeViewItem.shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 1024);
-
-		//			LinuxTreeViewItem.shell_stream_read_timer.Stop();
-		//			LinuxTreeViewItem.shell_stream_read_timer.Start();
-		//			//LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		Console.WriteLine("[Thread][Connection Error] = " + ex.Message);
-		//	}
-		//}
-
 		public static void Refresh()
 		{
 			if(WindowMain.current == null)
@@ -809,9 +375,31 @@ namespace Manager_proj_4
 
 			//LinuxTreeViewItem.ReconnectServer();
 		}
+		static string filter_hidden = @"(^[^\.])";
+		static bool bool_hidden = true;
+		public static bool Bool_hidden { get { return bool_hidden; } set
+			{
+				bool_hidden = value;
+				
+				Filter_string = filter_string;
+			}
+		}
 
 		static string filter_string = "";
-		public static string Filter_string { get { return filter_string; } set { filter_string = value; LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_string); } }
+		public static string Filter_string { get { return filter_string; } set
+			{
+				filter_string = value;
+				if(bool_hidden)
+				{
+					if(filter_string == "")
+						LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_hidden);
+					else
+						LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_hidden + "*(" + filter_string + ")");
+				}
+				else
+					LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_string);
+			}
+		}
 		static void filter(LinuxTreeViewItem parent, string filter_string)
 		{
 			if(parent == null)
@@ -835,15 +423,13 @@ namespace Manager_proj_4
 					continue;
 
 				string name = child.Header.Text;
-				if(!child.isDirectory &&
-					!filter_string.IsMatch(name))
-				{
+				if(/*(!child.isDirectory || (child.isDirectory && !child.IsExpanded)) && */!filter_string.IsMatch(name))
 					child.Visibility = Visibility.Collapsed;
-				}
-				else if(child.isDirectory)
-					filter_recursive(child, filter_string);
 				else
 					child.Visibility = Visibility.Visible;
+
+				if(child.isDirectory)
+					filter_recursive(child, filter_string);
 			}
 		}
 	}

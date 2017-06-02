@@ -46,6 +46,7 @@ namespace Manager_proj_4
 			this.Closed += test4_Closed;
 
 			InitServerTab();
+			DispatcherTimer tm = new DispatcherTimer();
 		}
 		private void TextBox_TextChanged_ScrollToEnd(object sender, TextChangedEventArgs e)
 		{
@@ -119,7 +120,6 @@ namespace Manager_proj_4
 		#endregion
 
 		#region View Update
-		bool bServerChanged = false;
 		bool bUpdateDataBase = false;
 		bool bUpdateLinuxTree = false;
 		string changed_server_name = "";
@@ -128,18 +128,17 @@ namespace Manager_proj_4
 		int idx_tab_before_change = 0;
 		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			if(bServerChanged && !bUpdateLinuxTree && UserControls.Cofile.current != null)
+			if(!bUpdateLinuxTree && UserControls.Cofile.current != null)
 			{
 				UserControls.Cofile.current.Refresh();
 				bUpdateLinuxTree = true;
 			}
-			if(bServerChanged && !bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
+			if(!bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
 				&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
 			{
 				UserControls.DataBaseInfo.RefreshUi(changed_server_name);
 				bUpdateDataBase = true;
 			}
-			bServerChanged = false;
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
 
@@ -165,7 +164,6 @@ namespace Manager_proj_4
 					bUpdateDataBase = true;
 					break;
 			}
-			bServerChanged = true;
 			changed_server_name = _changed_server_name;
 		}
 		#endregion

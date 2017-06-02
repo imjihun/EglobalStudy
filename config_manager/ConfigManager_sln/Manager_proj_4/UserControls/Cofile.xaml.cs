@@ -43,6 +43,9 @@ namespace Manager_proj_4.UserControls
 		void InitLinuxDirectory()
 		{
 			textBox_linux_directory_filter.TextChanged += delegate { LinuxTreeViewItem.Filter_string = textBox_linux_directory_filter.Text; };
+			checkBox_hidden.Checked += delegate { LinuxTreeViewItem.Bool_hidden = false; };
+			checkBox_hidden.Unchecked += delegate { LinuxTreeViewItem.Bool_hidden = true; };
+			checkBox_hidden.IsChecked = false;
 
 			//// BackgroundWorker의 이벤트 처리기
 			//LinuxTreeViewItem.BackgroundReConnector.DoWork += LinuxTreeViewItem.BackgroundReConnect;

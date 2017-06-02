@@ -4,15 +4,49 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Manager_proj_4.UserControls"
+			 
+			 xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
+			 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="1000">
 	<Grid>
-		<DataGrid x:Name="dataGrid" IsReadOnly="True">
-			<DataGrid.Style>
-				<Style BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
-					<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
-				</Style>
-			</DataGrid.Style>
-		</DataGrid>
+		<Grid Height="40" VerticalAlignment="Top">
+			<Grid Width="430" HorizontalAlignment="Left">
+				<CheckBox Content="Start Data"
+							HorizontalAlignment="Left" VerticalAlignment="Center"/>
+				<DatePicker Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+				<Label Content="~"
+						HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<CheckBox Content="End Data"
+							Margin="0,0,125,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+				<DatePicker Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center"/>
+			</Grid>
+			<Grid Margin="440,0,0,0" Width="260" HorizontalAlignment="Left">
+				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+			</Grid>
+			<Grid Margin="0,0,5,0" Width="120" HorizontalAlignment="Right">
+				<TextBox Custom:TextBoxHelper.Watermark="Search"
+						 VerticalAlignment="Center"/>
+			</Grid>
+		</Grid>
+		<Grid Margin="0,45,0,50">
+			<DataGrid x:Name="dataGrid" IsReadOnly="True">
+				<DataGrid.Style>
+					<Style BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
+						<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
+					</Style>
+				</DataGrid.Style>
+			</DataGrid>
+		</Grid>
+		<Grid Height="45" VerticalAlignment="Bottom">
+			<Grid x:Name="grid_page" Height="15" VerticalAlignment="Top">
+			</Grid>
+			<Grid Height="30" VerticalAlignment="Bottom">
+				<Button Content="Export"
+						Width="100" HorizontalAlignment="Right"/>
+			</Grid>
+		</Grid>
 	</Grid>
 </UserControl>

@@ -57,33 +57,6 @@ namespace Manager_proj_4.UserControls
 		}
 		public void Refresh()
 		{
-			//string strConn = @"Data Source=D:\git\config_manager\ConfigManager_sln\Tests\Test_Sqlite\bin\Debug\cofile.db";
-			//using(SQLiteConnection conn = new SQLiteConnection(strConn))
-			//{
-			//	conn.Open();
-			//	string sql = "SELECT * FROM log";
-
-			//	//SQLiteDataReader를 이용하여 연결 모드로 데이타 읽기
-			//	SQLiteCommand cmd = new SQLiteCommand(sql, conn);
-			//	SQLiteDataReader rdr = cmd.ExecuteReader();
-			//	while(rdr.Read())
-			//	{
-			//		Console.WriteLine(rdr["source"]);
-			//	}
-			//	rdr.Close();
-			//	//DataClasses1DataContext d = new DataClasses1DataContext(conn);
-			//}
-
-			//// construct the dataset
-			//NorthwindDataSet dataset = new NorthwindDataSet();
-
-			//// use a table adapter to populate the Customers table
-			//CustomersTableAdapter adapter = new CustomersTableAdapter();
-			//adapter.Fill(dataset.Customers);
-
-			//// use the Customer table as the DataContext for this Window
-			//this.DataContext = dataset.Customers.DefaultView;
-
 			try
 			{
 				dataGrid.ItemsSource = new DataTable().DefaultView;
@@ -114,7 +87,22 @@ namespace Manager_proj_4.UserControls
 
 		}
 
-
+		enum Type
+		{
+			sam = 0,
+			tail,
+			file
+		}
+		enum Action
+		{
+			Encrypt = 0,
+			Decrypt
+		}
+		enum Result
+		{
+			Success = 0,
+			Fail
+		}
 		string[] log_type = new string[] {"sam", "tail", "file" };
 		string[] log_action = new string[] {"Encrypt", "Decrypt" };
 		string[] log_result = new string[] {"Success", "Fail" };
@@ -163,19 +151,6 @@ namespace Manager_proj_4.UserControls
 					System.Int64 idx = (System.Int64)v[column_name];
 					v[add_column_name] = source[idx];
 				}
-
-				//switch((System.Int64)v[column_name])
-				//{
-				//	case 0:
-				//		v[add_column_name] = "sam";
-				//		break;
-				//	case 1:
-				//		v[add_column_name] = "tail";
-				//		break;
-				//	case 2:
-				//		v[add_column_name] = "file";
-				//		break;
-				//}
 			}
 
 			table.Columns.RemoveAt(new_idx + 1);

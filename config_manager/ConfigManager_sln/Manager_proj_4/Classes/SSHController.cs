@@ -248,7 +248,7 @@ namespace Manager_proj_4.Classes
 						//string ret = readMessageBlocking(send_cmd);
 						string ret = readCofileMessageBlocking();
 						string caption = isEncrypt ? "Encrypt" : "Decrypt";
-						Log.ViewMessage(ret + "\n", caption, WindowMain.current.richTextBox_status);
+						Log.ViewMessage(ret, caption, WindowMain.current.richTextBox_status);
 					}
 				}
 			}
@@ -325,19 +325,28 @@ namespace Manager_proj_4.Classes
 				}
 				int l = str_recv.Length;
 				Log.Print(str_recv, "readMessageBlocking][" + l);
+				//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, WindowMain.current.richTextBox_status);
 
 				if(cmd_send == null || cmd_send == "")
 					return cmd_send;
 
 				// 명령어 전까지 자르기.(dummy 제거)
-				if(str_recv.LastIndexOf(cmd_send) >= 0)
-					message = str_recv.Substring(str_recv.LastIndexOf(cmd_send));
+				//if(str_recv.LastIndexOf(cmd_send) >= 0)
+				//	message = str_recv.Substring(str_recv.LastIndexOf(cmd_send));
+				// 명령어가 이상한 값이 들어가므로.. 명령어 라인까지 자르기 (전제조건 : 명령어 부터 리시브를 받는다)
+				if(str_recv.IndexOf('\n') >= 0 && str_recv.Length > str_recv.IndexOf('\n') + 1)
+				{
+					message = str_recv.Substring(str_recv.IndexOf('\n') + 1);
+				}
 
 				// 명령어 라인과 
 				// 마지막라인 '[~] $' 제거
 				if(message.IndexOf('\n') >= 0 && message.IndexOf('\n') + 1 < message.Length)
 				{
-					int idx = message.IndexOf('\n');
+					// 명령어는 이미 잘려있기 때문에
+					//int idx = message.IndexOf('\n');
+					int idx = 0;
+
 					int len = message.LastIndexOf('\n') - idx;
 					if(len > 0)
 						ret_message = message.Substring(idx + 1, len);

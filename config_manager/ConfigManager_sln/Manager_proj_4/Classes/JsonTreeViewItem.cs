@@ -150,6 +150,8 @@ namespace Manager_proj_4
 
 		public const int HEIGHT_MOREBUTTON = 30;
 		public const int WIDTH_MOREBUTTON = 35;
+
+		public const int WIDTH_VALUEPANEL = Size.WIDTH_TEXTBOX + Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX;
 	}
 	class JsonTreeViewItem : TreeViewItem
 	{
@@ -433,6 +435,7 @@ namespace Manager_proj_4
 			}
 			// object 로 시작.
 			JsonTreeViewItem jtree_root = new JsonTreeViewItem();
+			jtree_root.HorizontalAlignment = HorizontalAlignment.Left;
 
 			//JsonInfo.current.Jtok_root = jtok_root;
 			//JsonInfo.current.Jtree_root = jtree_root;
@@ -1023,7 +1026,7 @@ namespace Manager_proj_4
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 			this.VerticalAlignment = VerticalAlignment.Stretch;
 			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
-			this.Width = Size.WIDTH_TEXTBOX + Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX;
+			this.Width = Size.WIDTH_VALUEPANEL;
 			this.Orientation = Orientation.Horizontal;
 
 			type = _type;

@@ -64,6 +64,8 @@ namespace Manager_proj_4.UserControls
 			label.VerticalAlignment = VerticalAlignment.Center;
 			label.Content = JsonInfo.current.Filename;
 			root_jtree.Header.Children.Insert(0, label);
+			int MAX_WIDTH_TREE = Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX + Size.WIDTH_VALUEPANEL + 50;
+			root_jtree.Header.Width = MAX_WIDTH_TREE;
 			json_tree_view.Items.Add(root_jtree);
 		}
 

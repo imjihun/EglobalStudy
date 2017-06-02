@@ -11,7 +11,7 @@
 						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 					  
 						mc:Ignorable="d"
-						Title="CubeOne™ For Cofile" Height="756" Width="1024"
+						Title="CubeOne™ API For File" Height="756" Width="1024"
 						ToolBarTray.IsLocked="True">
 	<Grid>
 		<Grid.RowDefinitions>

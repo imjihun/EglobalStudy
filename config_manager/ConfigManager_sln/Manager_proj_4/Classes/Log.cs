@@ -110,6 +110,9 @@ namespace Manager_proj_4.Classes
 		}
 		public static void ViewMessage(string message, string caption, TextBoxBase output_ui)
 		{
+			if(message == null || message == "")
+				return;
+
 			// 한줄씩 실행
 			string[] split = message.Split('\n');
 			for(int i = 0; i < split.Length; i++)
