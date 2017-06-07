@@ -49,11 +49,12 @@ namespace Manager_proj_4.UserControls
 				{
 					UpdateDataGrid(conn, "SELECT * From status");
 				}
-				Log.Print("loaded", "Sqlite_StatusTable", WindowMain.current.richTextBox_status);
+				//Log.ViewMessage("Loaded", "Status File", Status.current.richTextBox_status);
+				Log.PrintConsole("Loaded", "Sqlite_StatusTable");
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Sqlite_StatusTable][Refresh", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "Sqlite_StatusTable][Refresh", Status.current.richTextBox_status);
 			}
 
 			//Console.WriteLine(this.);
@@ -76,7 +77,7 @@ namespace Manager_proj_4.UserControls
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UpdateDataGrid", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "UpdateDataGrid", Status.current.richTextBox_status);
 			}
 		}
 		void ChangeColumnIntToString(string[] source, DataTable table, string column_name)

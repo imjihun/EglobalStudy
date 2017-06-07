@@ -43,8 +43,8 @@ namespace Manager_proj_4.UserControls
 		void InitLinuxDirectory()
 		{
 			textBox_linux_directory_filter.TextChanged += delegate { LinuxTreeViewItem.Filter_string = textBox_linux_directory_filter.Text; };
-			checkBox_hidden.Checked += delegate { LinuxTreeViewItem.Bool_hidden = false; };
-			checkBox_hidden.Unchecked += delegate { LinuxTreeViewItem.Bool_hidden = true; };
+			checkBox_hidden.Checked += delegate { LinuxTreeViewItem.Bool_except_hidden = false; };
+			checkBox_hidden.Unchecked += delegate { LinuxTreeViewItem.Bool_except_hidden = true; };
 			checkBox_hidden.IsChecked = false;
 
 			//// BackgroundWorker의 이벤트 처리기
@@ -78,9 +78,9 @@ namespace Manager_proj_4.UserControls
 			// 초기경로 지정
 			ofd.InitialDirectory = ConfigJsonTree.root_path;
 
-			if(JsonInfo.current != null && JsonInfo.current.Path != null)
+			if(JsonTreeViewItem.Path != null)
 			{
-				string dir_path = JsonInfo.current.Path.Substring(0, JsonInfo.current.Path.LastIndexOf('\\') + 1);
+				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					ofd.InitialDirectory = dir_path;
@@ -102,7 +102,7 @@ namespace Manager_proj_4.UserControls
 		}
 		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
 		{
-			SSHController.selected_type = (Manager_proj_4.CofileOption)comboBox_cofile_type.SelectedIndex;
+			SSHController.selected_type = (CofileOption)comboBox_cofile_type.SelectedIndex;
 			e.Handled = true;
 		}
 		#endregion

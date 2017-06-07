@@ -44,14 +44,6 @@ namespace Manager_proj_4
 			current = this;
 			InitializeComponent();
 			this.Closed += test4_Closed;
-
-			InitServerTab();
-			DispatcherTimer tm = new DispatcherTimer();
-		}
-		private void TextBox_TextChanged_ScrollToEnd(object sender, TextChangedEventArgs e)
-		{
-			//textBox_status.ScrollToEnd();
-			richTextBox_status.ScrollToEnd();
 		}
 
 		public static bool bCtrl = false;
@@ -78,46 +70,6 @@ namespace Manager_proj_4
 			Application.Current.Shutdown();
 		}
 
-		#region Server Menu Class
-		void InitServerTab()
-		{
-			// serverinfo.json 파일 로드
-			FileInfo fi = new FileInfo(ServerInfo.PATH);
-			if(fi.Exists)
-			{
-				string json = FileContoller.read(ServerInfo.PATH);
-				try
-				{
-					ServerInfo.jobj_root = JObject.Parse(json);
-					ServerPanel panel_server = ServerInfo.ConvertFromJson(ServerInfo.jobj_root);
-
-					grid_server.Children.Add(panel_server);
-				}
-				catch(Exception e)
-				{
-					Console.WriteLine(e.Message);
-				}
-			}
-			else
-			{
-				try
-				{
-					ServerInfo.jobj_root = new JObject(new JProperty("Server", new JObject()));
-					ServerPanel panel_server = ServerInfo.ConvertFromJson(ServerInfo.jobj_root);
-
-					grid_server.Children.Add(panel_server);
-				}
-				catch(Exception e)
-				{
-					Console.WriteLine(e.Message);
-				}
-			}
-
-			if(ServerMenuButton.group.Count > 0)
-				ServerMenuButton.group[0].IsChecked = true;
-		}
-
-		#endregion
 
 		#region View Update
 		bool bUpdateDataBase = false;

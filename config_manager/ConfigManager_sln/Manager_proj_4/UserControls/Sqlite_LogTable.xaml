@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:Manager_proj_4.UserControls"
 			 
 			 xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
+			 xmlns:System="clr-namespace:System;assembly=mscorlib"
 			 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="1000">
@@ -22,9 +23,9 @@
 				<DatePicker Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center"/>
 			</Grid>
 			<Grid Margin="440,0,0,0" Width="260" HorizontalAlignment="Left">
-				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-				<ComboBox Width="80" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+				<ComboBox x:Name="comboBox_type" Width="80" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+				<ComboBox x:Name="comboBox_action" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+				<ComboBox x:Name="comboBox_result" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right"/>
 			</Grid>
 			<Grid Margin="0,0,5,0" Width="120" HorizontalAlignment="Right">
 				<TextBox Custom:TextBoxHelper.Watermark="Search"
@@ -32,7 +33,7 @@
 			</Grid>
 		</Grid>
 		<Grid Margin="0,45,0,50">
-			<DataGrid x:Name="dataGrid" IsReadOnly="True">
+			<DataGrid x:Name="dataGrid" IsReadOnly="True" IsTextSearchEnabled="True" HeadersVisibility="All">
 				<DataGrid.Style>
 					<Style BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
 						<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
@@ -41,11 +42,38 @@
 			</DataGrid>
 		</Grid>
 		<Grid Height="45" VerticalAlignment="Bottom">
-			<Grid x:Name="grid_page" Height="15" VerticalAlignment="Top">
+			<Grid x:Name="grid_page" Height="45" VerticalAlignment="Top" Width="380">
+				<Button Height="23" HorizontalAlignment="Left"  
+						Name="btnFirst" VerticalAlignment="Top" Width="40" 
+						Content="&lt;&lt;" Click="btnFirst_Click" Opacity="0.75"/>
+				<Button Height="23"  VerticalAlignment="Top" HorizontalAlignment="Left"  
+						Margin="40,0,0,0"
+						Name="btnPrev" Width="40" Click="btnPrev_Click" 
+						Opacity="0.75" Content="&lt;"/>
+				<Label x:Name="label_inform_page" HorizontalContentAlignment="Center" 
+					   Margin="80,0,0,0"
+					   HorizontalAlignment="Left" Height="23" Width="100" 
+					   VerticalContentAlignment="Center" VerticalAlignment="Top"/>
+				<Label x:Name="label_total_count" HorizontalContentAlignment="Center" 
+					   Margin="80,0,0,0"
+					   HorizontalAlignment="Left" Height="23" Width="100" 
+					   VerticalContentAlignment="Center" VerticalAlignment="Bottom"/>
+				<Button Height="23" HorizontalAlignment="Left" 
+						Name="btnNext" VerticalAlignment="Top" Width="40" 
+						Margin="180,0,0,0"
+						Content="&gt;" Click="btnNext_Click" Opacity="0.75"/>
+				<Button Height="23" HorizontalAlignment="Left"  
+						Margin="220,0,0,0"
+						VerticalAlignment="Top" Width="40" Name="btnLast" 
+						Click="btnLast_Click" Opacity="0.75" Content="&gt;&gt;"/>
+				<ComboBox x:Name="comboBox_change_count_page" HorizontalAlignment="Left"  
+						  Margin="260,0,0,0"
+						  VerticalAlignment="Top" Width="120"  SelectedIndex="0" 
+						  Opacity="0.75"/>
 			</Grid>
 			<Grid Height="30" VerticalAlignment="Bottom">
 				<Button Content="Export"
-						Width="100" HorizontalAlignment="Right"/>
+						Margin="0,0,10,0" Width="100" HorizontalAlignment="Right"/>
 			</Grid>
 		</Grid>
 	</Grid>

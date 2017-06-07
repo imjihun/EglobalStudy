@@ -23,57 +23,7 @@ namespace Manager_proj_4.Classes
 		public static StreamWriter shell_stream_writer;
 		public static DispatcherTimer shell_stream_read_timer;
 
-		#region linux ssh, sftp connection
-		public static string add_path_config_upload = "/var/conf/";
-		public static string add_path_run_cofile = "/bin/cofile";
-		public static CofileOption selected_type = CofileOption.file;
-		private static string[] cofile_option = new string[] {"file", "sam", "tail" };
-		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
-		{
-			string str = path_run;
-			str += " " + cofile_option[(int)type];
-
-			if(isEncrypt)
-				str += " -e";
-			else
-				str += " -d";
-
-			switch(type)
-			{
-				case CofileOption.sam:
-					str += " -i " + path;
-					if(isEncrypt)
-						str += " -o " + path + ".coenc";
-					else
-						str += " -o " + path + ".codec";
-					break;
-				case CofileOption.file:
-				case CofileOption.tail:
-					str += " -f " + path;
-					break;
-			}
-
-			if(configname != null)
-				str += " -c " + configname;
-
-			return str;
-		}
-		private static string LoadEnvCoHome()
-		{
-			if(!SSHController.sendCommand(cmd_get_co_home))
-				return null;
-			string env_co_home = readCoHomeBlocking(cmd_get_co_home);
-
-			if(env_co_home == null || env_co_home == "")
-			{
-				Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", WindowMain.current.richTextBox_status);
-				return null;
-			}
-			Log.Print("$CO_HOME = " + env_co_home, "load $CO_HOME");
-			return env_co_home;
-		}
-		//public static string remote_directory_upload = "/home/cofile/bin";
-
+		
 		static bool CheckConnection(BaseClient client, string ip, int port, string id)
 		{
 			if((client == null || !client.IsConnected)
@@ -98,7 +48,7 @@ namespace Manager_proj_4.Classes
 			{
 				if(!CheckConnection(sftp, ip, port, id) || !CheckConnection(ssh, ip, port, id))
 				{
-					TextRange txt = new TextRange(WindowMain.current.richTextBox_status.Document.ContentStart, WindowMain.current.richTextBox_status.Document.ContentEnd);
+					TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 					txt.Text = "";
 
 					sftp = new SftpClient(ip, port, id, password);
@@ -125,7 +75,7 @@ namespace Manager_proj_4.Classes
 					}
 					//shell_stream_read_timer.Stop();
 					//shell_stream_read_timer.Start();
-					Log.Print(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
+					Log.PrintConsole(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
 
 					readMessageBlocking(null);
 					return true;
@@ -133,38 +83,13 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "ReConnect", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "ReConnect", Status.current.richTextBox_status);
 				return false;
 			}
 			return true;
 		}
-		private static SftpFile[] _PollListInDirectory(string Path)
-		{
-			IEnumerable<SftpFile> files = null;
-			try
-			{
-				files = sftp.ListDirectory(Path).OrderBy(x => x.FullName);
-			}
-			catch(Exception e)
-			{
-				Log.PrintError(e.Message, "_PollListInDirectory", WindowMain.current.richTextBox_status);
-			}
 
-			Log.Print(Path, "_PollListInDirectory"/*, test4.m_wnd.richTextBox_status*/);
-			return files.ToArray();
-		}
-		public static SftpFile[] PollListInDirectory(string Path)
-		{
-			if(!SSHController.ReConnect(1000))
-				return null;
-			if(Path == null)
-				Path = LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-
-			return _PollListInDirectory(Path);
-		}
-
-		static string cmd_get_co_home = "echo $CO_HOME";
-		static string current_cofile_name = "";
+		static string filename_uploaded = "";
 		static bool UploadFile(string local_path, string remote_directory)
 		{
 			//LinuxTreeViewItem.ReconnectServer();
@@ -179,19 +104,54 @@ namespace Manager_proj_4.Classes
 				{
 					FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
 					sftp.UploadFile(fs, remote_directory + fi.Name);
-					Log.Print(fi.Name + " => " + remote_directory + fi.Name, "upload file"/*, test4.m_wnd.richTextBox_status*/);
-					SSHController.current_cofile_name = fi.Name;
+					Log.PrintConsole(fi.Name + " => " + remote_directory + fi.Name, "upload file"/*, test4.m_wnd.richTextBox_status*/);
+					SSHController.filename_uploaded = fi.Name;
 					fs.Close();
 				}
 				else
 				{
-					Log.PrintError("check the config file path", "upload file", WindowMain.current.richTextBox_status);
+					Log.PrintError("check the config file path", "upload file", Status.current.richTextBox_status);
 					return false;
 				}
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UploadFile", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "UploadFile", Status.current.richTextBox_status);
+				return false;
+			}
+			return true;
+		}
+		private static bool downloadFile(string local_path_folder, string local_file_name, string remote_path_file, string filename = null)
+		{
+			//LinuxTreeViewItem.ReconnectServer();
+			//LinuxTreeViewItem.ReConnect();
+			if(!SSHController.ReConnect(1000))
+				return false;
+
+			try
+			{
+				if(filename == null)
+				{
+					string[] split = remote_path_file.Split('/');
+					filename = split[split.Length - 1];
+				}
+
+				string local;
+				if(local_file_name != null)
+					local = local_path_folder + local_file_name;
+				else
+					local = local_path_folder + filename;
+
+				FileContoller.CreateDirectory(local_path_folder);
+
+				FileStream fs = new FileStream(local, FileMode.Create);
+				sftp.DownloadFile(remote_path_file, fs);
+				Log.PrintConsole(filename + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
+				fs.Close();
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message, "downloadFile", Status.current.richTextBox_status);
 				return false;
 			}
 			return true;
@@ -211,49 +171,18 @@ namespace Manager_proj_4.Classes
 					shell_stream_writer.Write(command);
 					shell_stream_writer.Write("\n");
 					shell_stream_writer.Flush();
-					Log.Print(command, "send command"/*, test4.m_wnd.richTextBox_status*/);
+					Log.PrintConsole(command, "send command"/*, test4.m_wnd.richTextBox_status*/);
 					return true;
 				}
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "send command", WindowMain.current.richTextBox_status);
+				Log.PrintError(ex.Message, "send command", Status.current.richTextBox_status);
 			}
 			return false;
 		}
-		//private static void SendCommandOnce(string command)
-		//{
-		//	SshCommand com = ssh.CreateCommand(command);
-		//	string str = com.Execute();
-		//	Console.WriteLine("\n\n\n" + str + "\n\n\n");
-		//	Console.WriteLine(com.Error);
-		//	Console.WriteLine(com.ExitStatus);
-		//	Log.ViewMessage(com.Result, "test", WindowMain.current.richTextBox_status);
-		//}
-		public static void sendCofileCommand(LinuxTreeViewItem[] selected_list, bool isEncrypt)
-		{
-			string env_co_home = LoadEnvCoHome();
-			string remote_directory = env_co_home + add_path_config_upload;
-
-			if(UploadFile(Cofile.current.Selected_config_file_path, remote_directory))
-			{
-				for(int i = 0; i < selected_list.Length; i++)
-				{
-					//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
-					if(!selected_list[i].isDirectory)
-					{
-						string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, selected_list[i].Path, remote_directory + current_cofile_name);
-						//SendCommandOnce(send_cmd);
-						sendCommand(send_cmd);
-						//string ret = readMessageBlocking(send_cmd);
-						string ret = readCofileMessageBlocking();
-						string caption = isEncrypt ? "Encrypt" : "Decrypt";
-						Log.ViewMessage(ret, caption, WindowMain.current.richTextBox_status);
-					}
-				}
-			}
-		}
-
+		
+		#region Read
 		static string read_line_ssh = "";
 		static string[] view_log_start = new string[] {"inform"};
 		static string[] view_error_start = new string[] {"error" };
@@ -279,7 +208,7 @@ namespace Manager_proj_4.Classes
 						{
 							if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
 							{
-								Log.ViewMessage(line, view_message_caption, WindowMain.current.richTextBox_status);
+								Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
 							}
 						}
 						if(i == view_log_start.Length)
@@ -287,13 +216,13 @@ namespace Manager_proj_4.Classes
 							for(i = 0; i < view_error_start.Length; i++)
 							{
 								if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
-									Log.PrintError(line, view_message_caption, WindowMain.current.richTextBox_status);
+									Log.PrintError(line, view_message_caption, Status.current.richTextBox_status);
 							}
 							if(i == view_error_start.Length)
-								Log.ViewUndefine(line, "__undefined][" + view_message_caption, WindowMain.current.richTextBox_status);
+								Log.ViewUndefine(line, "__undefined][" + view_message_caption, Status.current.richTextBox_status);
 						}
 
-						Log.Print(line, "Read");
+						Log.PrintConsole(line, "Read");
 						read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
 					}
 				}
@@ -301,7 +230,7 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "read", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "read", Status.current.richTextBox_status);
 			}
 			return read_line_ssh;
 		}
@@ -324,8 +253,8 @@ namespace Manager_proj_4.Classes
 					str_recv += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
 				}
 				int l = str_recv.Length;
-				Log.Print(str_recv, "readMessageBlocking][" + l);
-				//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, WindowMain.current.richTextBox_status);
+				Log.PrintConsole(str_recv, "readMessageBlocking][" + l);
+				//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, Status.current.richTextBox_status);
 
 				if(cmd_send == null || cmd_send == "")
 					return cmd_send;
@@ -356,7 +285,7 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "readMessageBlocking", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "readMessageBlocking", Status.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -380,7 +309,7 @@ namespace Manager_proj_4.Classes
 					str_recv += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
 				}
 				int l = str_recv.Length;
-				Log.Print(str_recv, "readMessageBlocking][" + l);
+				Log.PrintConsole(str_recv, "readMessageBlocking][" + l);
 
 				// Copyright 부분 다음 라인까지 자르기
 				string Copyright = "Copyright";
@@ -392,7 +321,7 @@ namespace Manager_proj_4.Classes
 					if(str_recv.IndexOf('\n') >= 0 && str_recv.Length > str_recv.IndexOf('\n') + 1)
 						message = str_recv.Substring(str_recv.IndexOf('\n') + 1);
 				}
-				
+
 				// 마지막라인 '[~] $' 제거
 				if(message.IndexOf('\n') >= 0 && message.IndexOf('\n') + 1 < message.Length)
 				{
@@ -403,7 +332,7 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "readMessageBlocking", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "readMessageBlocking", Status.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -458,12 +387,12 @@ namespace Manager_proj_4.Classes
 				else
 					env_co_home = "";
 
-				Log.Print(str, "readCoHomeBlocking");
+				Log.PrintConsole(str, "readCoHomeBlocking");
 
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "readCoHomeBlocking", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "readCoHomeBlocking", Status.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -486,12 +415,12 @@ namespace Manager_proj_4.Classes
 				}
 				string str = read.ToString().Substring(cmd_length + 2);
 
-				Log.Print(str, "readInit");
+				Log.PrintConsole(str, "readInit");
 
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "readInit", WindowMain.current.richTextBox_status);
+				Log.PrintError(e.Message, "readInit", Status.current.richTextBox_status);
 			}
 
 			shell_stream_read_timer.Start();
@@ -508,43 +437,113 @@ namespace Manager_proj_4.Classes
 		}
 		#endregion
 
-		#region DownLoad
-		private static bool downloadFile(string local_path_folder, string local_file_name, string remote_path_file, string filename = null)
-		{
-			//LinuxTreeViewItem.ReconnectServer();
-			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
-				return false;
 
+		#region Poll Linux Directory
+		private static SftpFile[] _PollListInDirectory(string Path)
+		{
+			IEnumerable<SftpFile> files = null;
 			try
 			{
-				if(filename == null)
-				{
-					string[] split = remote_path_file.Split('/');
-					filename = split[split.Length - 1];
-				}
-
-				string local;
-				if(local_file_name != null)
-					local = local_path_folder + local_file_name;
-				else
-					local = local_path_folder + filename;
-
-				Directory.CreateDirectory(local_path_folder);
-
-				FileStream fs = new FileStream(local, FileMode.Create);
-				sftp.DownloadFile(remote_path_file, fs);
-				Log.Print(filename + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
-				fs.Close();
+				files = sftp.ListDirectory(Path).OrderBy(x => x.FullName);
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "downloadFile", WindowMain.current.richTextBox_status);
-				return false;
+				Log.PrintError(e.Message, "_PollListInDirectory", Status.current.richTextBox_status);
 			}
-			return true;
+
+			Log.PrintConsole(Path, "_PollListInDirectory"/*, test4.m_wnd.richTextBox_status*/);
+			return files.ToArray();
+		}
+		public static SftpFile[] PollListInDirectory(string Path)
+		{
+			if(!SSHController.ReConnect(1000))
+				return null;
+
+			// path 가 null 이라면 root
+			if(Path == null)
+				Path = LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
+
+			return _PollListInDirectory(Path);
+		}
+		#endregion
+
+		#region Excute Cofile Command
+		static string cmd_get_co_home = "echo $CO_HOME";
+		private static string LoadEnvCoHome()
+		{
+			if(!SSHController.sendCommand(cmd_get_co_home))
+				return null;
+			string env_co_home = readCoHomeBlocking(cmd_get_co_home);
+
+			if(env_co_home == null || env_co_home == "")
+			{
+				Log.PrintError("not defined $CO_HOME\r", "load $CO_HOME", Status.current.richTextBox_status);
+				return null;
+			}
+			Log.PrintConsole("$CO_HOME = " + env_co_home, "load $CO_HOME");
+			return env_co_home;
 		}
 
+		public static string add_path_config_upload = "/var/conf/";
+		public static string add_path_run_cofile = "/bin/cofile";
+		public static CofileOption selected_type = CofileOption.file;
+		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
+		{
+			string str = path_run;
+			str += " " + type.ToString().ToLower();
+
+			if(isEncrypt)
+				str += " -e";
+			else
+				str += " -d";
+
+			switch(type)
+			{
+				case CofileOption.sam:
+					str += " -i " + path;
+					if(isEncrypt)
+						str += " -o " + path + ".coenc";
+					else
+						str += " -o " + path + ".codec";
+					break;
+				case CofileOption.file:
+				case CofileOption.tail:
+					str += " -f " + path;
+					break;
+			}
+
+			if(configname != null)
+				str += " -c " + configname;
+
+			return str;
+		}
+		public static void SendNRecvCofileCommand(LinuxTreeViewItem[] selected_list, bool isEncrypt)
+		{
+			string env_co_home = LoadEnvCoHome();
+			string remote_directory = env_co_home + add_path_config_upload;
+
+			if(UploadFile(Cofile.current.Selected_config_file_path, remote_directory))
+			{
+				for(int i = 0; i < selected_list.Length; i++)
+				{
+					//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
+					if(!selected_list[i].IsDirectory)
+					{
+						string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, selected_list[i].Path, remote_directory + filename_uploaded);
+						//SendCommandOnce(send_cmd);
+						sendCommand(send_cmd);
+						//string ret = readMessageBlocking(send_cmd);
+						string ret = readCofileMessageBlocking();
+						string caption = isEncrypt ? "Encrypt" : "Decrypt";
+						Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+					}
+				}
+			}
+		}
+		#endregion
+
+
+		#region Get DataBase (Cofile.db)
 		static string db_name = "cofile.db";
 		static string add_path_database = "/var/data/" + db_name;
 		public static string GetDataBase(string local_folder, string local_file)

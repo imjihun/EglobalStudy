@@ -11,6 +11,7 @@
 						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 					  
 						mc:Ignorable="d"
+					    TitleCharacterCasing="Normal"
 						Title="CubeOne™ API For File" Height="756" Width="1024"
 						ToolBarTray.IsLocked="True">
 	<Grid>
@@ -28,25 +29,18 @@
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="200"/>
 			</Grid.RowDefinitions>
-			<Grid x:Name="grid_server" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Background="White"
-				  Margin="2,2,5,2" VerticalAlignment="Stretch">
+			<Grid Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Stretch">
+				<UserControls:ServerMenu DataContext="{Binding}"/>
 				<!--<Border BorderBrush="Black" BorderThickness="1"/>-->
 			</Grid>
 
 			<Grid x:Name="grid_root_view" Grid.Column="1" Grid.Row="0" Background="White"
 				  Margin="3,2,2,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-
 				<!--<Border BorderBrush="Black" BorderThickness="1"/>-->
 			</Grid>
 			<Grid Grid.Column="1" Grid.Row="1" Margin="3,2,2,2">
 				<Grid>
-					<RichTextBox x:Name="richTextBox_status" VerticalScrollBarVisibility="Auto" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" TextChanged="TextBox_TextChanged_ScrollToEnd">
-						<FlowDocument>
-							<Paragraph>
-								<Run />
-							</Paragraph>
-						</FlowDocument>
-					</RichTextBox>
+					<UserControls:Status DataContext="{Binding}"/>
 				</Grid>
 				<!--<Border BorderBrush="Black" BorderThickness="1"/>-->
 			</Grid>

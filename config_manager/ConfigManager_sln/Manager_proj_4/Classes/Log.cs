@@ -21,6 +21,7 @@ namespace Manager_proj_4.Classes
 			if(str[str.Length - 1] != '\r')
 				str += '\r';
 		}
+
 		public static void PrintError(string message, string caption = null, TextBoxBase output_ui = null)
 		{
 			string str = "[Error] ";
@@ -30,9 +31,9 @@ namespace Manager_proj_4.Classes
 
 			str += message;
 
-			Console.WriteLine(str);
 			//str += "\n";
 			CheckNewLine(ref str);
+			Console.WriteLine(str);
 
 			if(output_ui != null)
 			{
@@ -51,7 +52,7 @@ namespace Manager_proj_4.Classes
 				}
 			}
 		}
-		public static void Print(string message, string caption = null, TextBoxBase output_ui = null)
+		public static void PrintConsole(string message, string caption = null)
 		{
 			string str = System.Environment.NewLine;
 
@@ -61,21 +62,8 @@ namespace Manager_proj_4.Classes
 			str += message;
 
 			Console.WriteLine(str);
-			////str += "\n";
-			//CheckNewLine(ref str);
-
-			//if(output_ui != null)
-			//{
-			//	TextBox tb = output_ui as TextBox;
-			//	if(tb != null)
-			//		tb.Text += str;
-
-
-			//	RichTextBox rtb = output_ui as RichTextBox;
-			//	if(rtb != null)
-			//		rtb.AppendText(str);
-			//}
 		}
+
 		public static void _ViewMessage(string message, string caption, TextBoxBase output_ui)
 		{
 			//string str = System.Environment.NewLine;
@@ -86,8 +74,8 @@ namespace Manager_proj_4.Classes
 
 			str += message;
 
-			//Console.WriteLine(str);
 			CheckNewLine(ref str);
+			Console.WriteLine(str);
 			//str += System.Environment.NewLine;
 
 			if(output_ui != null)
@@ -141,6 +129,7 @@ namespace Manager_proj_4.Classes
 				}
 			}
 		}
+
 		public static void ViewUndefine(string message, string caption, TextBoxBase output_ui)
 		{
 			//string str = System.Environment.NewLine;

@@ -10,7 +10,19 @@ namespace Manager_proj_4.Classes
 	class FileContoller
 	{
 		const int MAX_BUFFER = 4096;
-		public static string read(string path)
+		public static bool CreateDirectory(string path)
+		{
+			try
+			{
+				Directory.CreateDirectory(path);
+			}
+			catch(Exception e)
+			{
+				Log.PrintConsole(e.Message, "FileContoller.CreateDirectory");
+			}
+			return true;
+		}
+		public static string Read(string path)
 		{
 			if(path == null)
 				return null;
@@ -31,12 +43,12 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintConsole(e.Message, "FileContoller.Read");
 			}
 
 			return ret_str.ToString();
 		}
-		public static bool write(string path, string str)
+		public static bool Write(string path, string str)
 		{
 			if(path == null || str == null)
 				return false;
@@ -46,7 +58,7 @@ namespace Manager_proj_4.Classes
 				string dir = path;
 				if(path[path.Length - 1] != '\\')
 					dir = path.Substring(0, path.LastIndexOf('\\') + 1);
-				Directory.CreateDirectory(dir);
+				FileContoller.CreateDirectory(dir);
 
 				// 경로에 파일 쓰기.
 				FileStream fs = new FileStream(path, FileMode.Create);
@@ -64,11 +76,11 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintConsole(e.Message, "FileContoller.Write");
 			}
 			return false;
 		}
-		public static string[] loadFile(string path, string searchPattern)
+		public static string[] LoadFile(string path, string searchPattern)
 		{
 			DirectoryInfo d = new DirectoryInfo(path);
 			if(!d.Exists)
@@ -79,7 +91,7 @@ namespace Manager_proj_4.Classes
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintConsole(e.Message, "FileContoller.LoadFile");
 				return null;
 			}
 		}
