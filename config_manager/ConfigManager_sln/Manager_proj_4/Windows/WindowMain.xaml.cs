@@ -94,7 +94,7 @@ namespace Manager_proj_4
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
 
-		// 서버메뉴리스트 선택이 바뀌었을때 작동
+		// 서버메뉴리스트 선택이 바뀌었을때 작동 View Update
 		public void Refresh(string _changed_server_name)
 		{
 			bUpdateDataBase = false;

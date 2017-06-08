@@ -15,6 +15,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MS.Internal.AppModel;
+using MS.Win32;
+using MahApps.Metro.IconPacks;
+using Renci.SshNet.Sftp;
+using System.Text.RegularExpressions;
 
 namespace Manager_proj_4.UserControls
 {
@@ -35,11 +40,11 @@ namespace Manager_proj_4.UserControls
 			current = this;
 			InitializeComponent();
 			InitLinuxDirectory();
-			//textBox_linux_directory_filter.Text = @"^[^\.]";
+
+
 		}
 
 		#region Linux Directory
-
 		void InitLinuxDirectory()
 		{
 			textBox_linux_directory_filter.TextChanged += delegate { LinuxTreeViewItem.Filter_string = textBox_linux_directory_filter.Text; };
@@ -54,10 +59,28 @@ namespace Manager_proj_4.UserControls
 			//LinuxTreeViewItem.BackgroundReConnector.WorkerSupportsCancellation = true;
 			//LinuxTreeViewItem.BackgroundReConnector.ProgressChanged += new ProgressChangedEventHandler(_backgroundWorker_ProgressChanged);
 		}
-
 		public void Refresh()
 		{
-			LinuxTreeViewItem.Refresh();
+			if(WindowMain.current == null)
+				return;
+
+			//if(ssh != null && ssh.IsConnected)
+			//	ssh.Disconnect();
+			//if(sftp != null && sftp.IsConnected)
+			//	sftp.Disconnect();
+
+			// 삭제
+			treeView_linux_directory.Items.Clear();
+			listView_linux_directory.Items.Clear();
+
+			// 추가
+			//string home_dir = sftp.WorkingDirectory;
+			// root 의 path 는 null 로 초기화
+			LinuxTreeViewItem.root = new LinuxTreeViewItem(null, null, true);
+			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
+			Log.PrintConsole("[refresh]");
+
+			//LinuxTreeViewItem.ReconnectServer();
 		}
 
 		private string selected_config_file_path = "Not Selected";
@@ -106,5 +129,58 @@ namespace Manager_proj_4.UserControls
 			e.Handled = true;
 		}
 		#endregion
+
+
+		public void RefreshListView(string path)
+		{
+			SftpFile[] files = SSHController.PollListInDirectory(path);
+			if(files == null)
+				return;
+
+			label_listView.Content = path;
+			RefreshListView(files);
+		}
+		public void RefreshListView(SftpFile[] files)
+		{
+			listView_linux_directory.Items.Clear();
+
+			int count_dir = 0;
+			foreach(var file in files)
+			{
+				Regex r = new Regex(@"(^\.)([^\.])");
+				if(r.IsMatch(file.Name) || file.Name == ".")
+					continue;
+
+				if(file.IsDirectory)
+					listView_linux_directory.Items.Insert(count_dir++, file);
+				else
+					listView_linux_directory.Items.Add(file);
+			}
+			//listView_linux_directory.ItemsSource = files;
+		}
+		private void OnMouseLeftButtonDownListViewItems(object sender, MouseButtonEventArgs e)
+		{
+			if(e.ClickCount > 1)
+			{
+				Console.WriteLine(((Grid)sender).DataContext.GetType());
+				SftpFile file = ((Grid)sender).DataContext as SftpFile;
+				if(file == null)
+					return;
+
+				if(file.IsDirectory)
+				{
+					RefreshListView(file.FullName);
+				}
+			}
+		}
+
+		private void OnMouseEnterSplitView(object sender, MouseEventArgs e)
+		{
+			splitView.IsPaneOpen = true;
+		}
+		private void OnMouseDownBackground(object sender, MouseButtonEventArgs e)
+		{
+			splitView.IsPaneOpen = false;
+		}
 	}
 }

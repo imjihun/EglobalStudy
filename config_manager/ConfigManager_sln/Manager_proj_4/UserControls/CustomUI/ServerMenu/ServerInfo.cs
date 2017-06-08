@@ -378,9 +378,11 @@ namespace Manager_proj_4.UserControls
 				return;
 			}
 
-			if(CommandView.current != null)
-				CommandView.current.Visibility = Visibility.Visible;
-			CommandView.refresh(selected_serverinfo_textblock);
+			if(ServerCommand.current != null)
+			{
+				ServerCommand.current.Visibility = Visibility.Visible;
+				ServerCommand.current.Refresh(selected_serverinfo_textblock.serverinfo);
+			}
 
 			if(WindowMain.current != null)
 				WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);

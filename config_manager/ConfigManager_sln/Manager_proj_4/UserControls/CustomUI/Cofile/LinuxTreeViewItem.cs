@@ -26,6 +26,51 @@ namespace Manager_proj_4.UserControls
 	/// LinuxTreeViewItem	-> Header -> (file or directory)Name TextBox
 	///						-> Items -> LinuxTreeViewItem
 	/// </summary>
+
+	//public class LinuxDirectoryTree
+	//{
+	//	public static LinuxDirectoryTree Root;
+
+	//	public SftpFile fileinfo;
+	//	List<LinuxDirectoryTree> Childs = new List<LinuxDirectoryTree>();
+
+	//	private bool IsLoaded = false;
+
+	//	public LinuxDirectoryTree(SftpFile _fileinfo)
+	//	{
+	//		fileinfo = _fileinfo;
+	//	}
+		
+	//	private bool LoadChild()
+	//	{
+	//		if(!IsLoaded)
+	//			return true;
+
+	//		SftpFile[] files;
+	//		// path 가 null 이라면 부모
+	//		files = SSHController.PollListInDirectory(fileinfo.FullName);
+	//		if(files == null)
+	//			return false;
+
+	//		this.Childs.Clear();
+	//		foreach(var file in files)
+	//			this.Childs.Add(new LinuxDirectoryTree(file));
+
+	//		IsLoaded = true;
+	//		return true;
+	//	}
+	//	public LinuxDirectoryTree[] GetChild()
+	//	{
+	//		LoadChild();
+	//		return Childs.ToArray();
+	//	}
+	//	public bool ViewUpdate()
+	//	{
+	//		LoadChild();
+
+	//		return true;
+	//	}
+	//}
 	public class LinuxTreeViewItem : TreeViewItem
 	{
 		static class _Color
@@ -80,7 +125,7 @@ namespace Manager_proj_4.UserControls
 				}
 			}
 		}
-		
+
 		#region header
 		public class Grid_Header : Grid
 		{
@@ -117,7 +162,7 @@ namespace Manager_proj_4.UserControls
 		// Casting ( Object To Grid_Header )
 		public new Grid_Header Header { get { return base.Header as Grid_Header; } set { base.Header = value; } }
 		#endregion
-		
+
 		public LinuxTreeViewItem(string _path, string header = null, bool _isDirectory = false)
 		{
 			if(header == null && _path != null)
@@ -145,7 +190,6 @@ namespace Manager_proj_4.UserControls
 			{
 				this.Header.Opacity = .5;
 			}
-
 		}
 
 		#region Context Menu
@@ -298,7 +342,6 @@ namespace Manager_proj_4.UserControls
 			SftpFile[] files;
 			// path 가 null 이라면 부모
 			files = SSHController.PollListInDirectory(this.path);
-
 			if(files == null)
 			{
 				this.IsExpanded = false;
@@ -306,6 +349,8 @@ namespace Manager_proj_4.UserControls
 			}
 
 			this.Items.Clear();
+
+			Cofile.current.RefreshListView(files);
 
 			int count_have_directory = 0;
 			foreach(var file in files)
@@ -416,29 +461,5 @@ namespace Manager_proj_4.UserControls
 			}
 		}
 		#endregion
-
-
-		public static void Refresh()
-		{
-			if(WindowMain.current == null)
-				return;
-
-			//if(ssh != null && ssh.IsConnected)
-			//	ssh.Disconnect();
-			//if(sftp != null && sftp.IsConnected)
-			//	sftp.Disconnect();
-
-			// 삭제
-			Cofile.current.treeView_linux_directory.Items.Clear();
-
-			// 추가
-			//string home_dir = sftp.WorkingDirectory;
-			// root 의 path 는 null 로 초기화
-			LinuxTreeViewItem.root = new LinuxTreeViewItem(null, null, true);
-			Cofile.current.treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
-			Log.PrintConsole("[refresh]");
-
-			//LinuxTreeViewItem.ReconnectServer();
-		}
 	}
 }

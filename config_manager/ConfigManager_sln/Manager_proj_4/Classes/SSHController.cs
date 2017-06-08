@@ -452,6 +452,9 @@ namespace Manager_proj_4.Classes
 			}
 
 			Log.PrintConsole(Path, "_PollListInDirectory"/*, test4.m_wnd.richTextBox_status*/);
+			if(files == null)
+				return null;
+
 			return files.ToArray();
 		}
 		public static SftpFile[] PollListInDirectory(string Path)

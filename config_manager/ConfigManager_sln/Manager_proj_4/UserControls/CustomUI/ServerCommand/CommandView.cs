@@ -274,7 +274,7 @@ namespace Manager_proj_4.UserControls
 		}
 		#endregion
 
-		static void clear()
+		public static void clear()
 		{
 			if(current == null)
 				return;
@@ -282,18 +282,6 @@ namespace Manager_proj_4.UserControls
 			current.textBlock_server_name.Text = "";
 			current.textBox_command.Text = "";
 			current.textBox_result.Text = "";
-		}
-		public static void refresh(ServerInfoTextBlock sitb)
-		{
-			if(current == null)
-				return;
-
-			CommandView.clear();
-			current.textBlock_server_name.Text = sitb.serverinfo.name + " / " + sitb.serverinfo.ip + " / " + sitb.serverinfo.id /*+ " / " + sitb.serverinfo.password*/;
-
-			if(CommandView.current == null)
-				return;
-			CommandView.current.textBox_command.Focus();
 		}
 	}
 

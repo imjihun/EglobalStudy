@@ -20,6 +20,7 @@
 			</ResourceDictionary.MergedDictionaries>
 			<!-- MyCustom -->
 			<BooleanToVisibilityConverter x:Key="MyBoolToVisibilityConverter"/>
+			<local:ReverseBooleanToVisibilityConverter x:Key="MyReverseBoolToVisibilityConverter"/>
 
 			<Style TargetType="UserControls:LinuxTreeViewItem" BasedOn="{StaticResource MetroTreeViewItem}" />
 

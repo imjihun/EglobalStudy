@@ -15,7 +15,7 @@
 			<Grid Width="430" HorizontalAlignment="Left">
 				<CheckBox Content="Start Data"
 							HorizontalAlignment="Left" VerticalAlignment="Center"/>
-				<DatePicker Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+				<DatePicker Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
 				<Label Content="~"
 						HorizontalAlignment="Center" VerticalAlignment="Center"/>
 				<CheckBox Content="End Data"
@@ -23,13 +23,13 @@
 				<DatePicker Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center"/>
 			</Grid>
 			<Grid Margin="440,0,0,0" Width="260" HorizontalAlignment="Left">
-				<ComboBox x:Name="comboBox_type" Width="80" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-				<ComboBox x:Name="comboBox_action" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-				<ComboBox x:Name="comboBox_result" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+				<ComboBox x:Name="comboBox_type" Width="80" VerticalAlignment="Center" HorizontalAlignment="Left" SelectionChanged="OnComboBoxChangedType"/>
+				<ComboBox x:Name="comboBox_action" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center" SelectionChanged="OnComboBoxChangedAction"/>
+				<ComboBox x:Name="comboBox_result" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right" SelectionChanged="OnComboBoxChangedResult"/>
 			</Grid>
 			<Grid Margin="0,0,5,0" Width="120" HorizontalAlignment="Right">
-				<TextBox Custom:TextBoxHelper.Watermark="Search"
-						 VerticalAlignment="Center"/>
+				<TextBox x:Name="textBox_filter" Custom:TextBoxHelper.Watermark="Search"
+						 VerticalAlignment="Center" KeyDown="OnKeyDownFilter"/>
 			</Grid>
 		</Grid>
 		<Grid Margin="0,45,0,50">

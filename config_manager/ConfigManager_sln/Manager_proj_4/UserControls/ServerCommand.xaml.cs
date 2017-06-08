@@ -20,8 +20,10 @@ namespace Manager_proj_4.UserControls
 	/// </summary>
 	public partial class ServerCommand : UserControl
 	{
+		public static ServerCommand current;
 		public ServerCommand()
 		{
+			current = this;
 			InitializeComponent();
 			InitServerCommandView();
 		}
@@ -32,6 +34,18 @@ namespace Manager_proj_4.UserControls
 			CommandView commandView;
 			commandView = new CommandView();
 			//grid_second.Children.Add(commandView);
+		}
+		public void Refresh(ServerInfo si)
+		{
+			if(CommandView.current == null)
+				return;
+
+			CommandView.clear();
+			CommandView.current.textBlock_server_name.Text = si.name + " / " + si.ip + " / " + si.id /*+ " / " + si.password*/;
+
+			if(CommandView.current == null)
+				return;
+			CommandView.current.textBox_command.Focus();
 		}
 		#endregion
 	}
