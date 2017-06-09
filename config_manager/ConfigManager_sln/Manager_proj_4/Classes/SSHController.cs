@@ -539,6 +539,8 @@ namespace Manager_proj_4.Classes
 						string ret = readCofileMessageBlocking();
 						string caption = isEncrypt ? "Encrypt" : "Decrypt";
 						Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+
+						selected_list[i].RefreshChildFromParent();
 					}
 				}
 			}

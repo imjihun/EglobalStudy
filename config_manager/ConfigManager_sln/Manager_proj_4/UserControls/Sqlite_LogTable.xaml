@@ -13,14 +13,14 @@
 	<Grid>
 		<Grid Height="40" VerticalAlignment="Top">
 			<Grid Width="430" HorizontalAlignment="Left">
-				<CheckBox Content="Start Data"
+				<CheckBox x:Name="checkBox" Content="Start Data"
 							HorizontalAlignment="Left" VerticalAlignment="Center"/>
-				<DatePicker Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" />
+				<DatePicker x:Name="dataPicker_start" Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=checkBox}" SelectedDateChanged="OnSelectedDateChangedStartDate" IsEnabledChanged="OnIsEnabledChangedStartDate"/>
 				<Label Content="~"
 						HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				<CheckBox Content="End Data"
+				<CheckBox x:Name="checkBox1" Content="End Data"
 							Margin="0,0,125,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-				<DatePicker Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center"/>
+				<DatePicker x:Name="dataPicker_end" Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=checkBox1}" SelectedDateChanged="OnSelectedDateChangedEndDate" IsEnabledChanged="OnIsEnabledChangedEndDate"/>
 			</Grid>
 			<Grid Margin="440,0,0,0" Width="260" HorizontalAlignment="Left">
 				<ComboBox x:Name="comboBox_type" Width="80" VerticalAlignment="Center" HorizontalAlignment="Left" SelectionChanged="OnComboBoxChangedType"/>

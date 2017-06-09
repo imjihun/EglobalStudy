@@ -9,7 +9,7 @@
 						xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 						xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
 						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-					  
+					   xmlns:Util="clr-namespace:Utils"
 						mc:Ignorable="d"
 					    TitleCharacterCasing="Normal"
 						Title="CubeOne™ API For File" Height="756" Width="1024"
@@ -73,7 +73,7 @@
 						<UserControls:Sqlite_LogTable DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="Monitor">
+				<TabItem Header="Monitor" >
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:Sqlite_StatusTable DataContext="{Binding}"/>
 					</Grid>

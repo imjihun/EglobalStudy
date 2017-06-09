@@ -55,7 +55,7 @@ namespace Manager_proj_4.UserControls
 		{
 			current = this;
 			InitializeComponent();
-			
+
 			foreach(var v in log_type)
 				comboBox_type.Items.Add(v);
 			foreach(var v in log_action)
@@ -63,11 +63,11 @@ namespace Manager_proj_4.UserControls
 			foreach(var v in log_result)
 				comboBox_result.Items.Add(v);
 
-			comboBox_type.Items.Add("All");
+			comboBox_type.Items.Add("type");
+			comboBox_action.Items.Add("action");
+			comboBox_result.Items.Add("result");
 			comboBox_type.SelectedIndex = comboBox_type.Items.Count - 1;
-			comboBox_action.Items.Add("All");
 			comboBox_action.SelectedIndex = comboBox_action.Items.Count - 1;
-			comboBox_result.Items.Add("All");
 			comboBox_result.SelectedIndex = comboBox_result.Items.Count - 1;
 
 			comboBox_type.DataContext = log_type;
@@ -127,9 +127,9 @@ namespace Manager_proj_4.UserControls
 			}
 
 		}
-		string[] log_type = new string[] {"sam", "tail", "file" };
-		string[] log_action = new string[] {"Encrypt", "Decrypt" };
-		string[] log_result = new string[] {"Success", "Fail" };
+		string[] log_type = new string[] {"sam", "tail", "file"};
+		string[] log_action = new string[] {"Encrypt", "Decrypt"};
+		string[] log_result = new string[] {"Success", "Fail"};
 		private void UpdateDataGrid(SQLiteConnection con, string sql)
 		{
 			try
@@ -147,7 +147,7 @@ namespace Manager_proj_4.UserControls
 				ChangeColumnIntToString(log_type, Current_table, "type");
 				ChangeColumnIntToString(log_action, Current_table, "action");
 				ChangeColumnIntToString(log_result, Current_table, "result");
-				
+
 				RefreshDataView(idx_page, cnt_page);
 			}
 			catch(Exception e)
@@ -190,6 +190,8 @@ namespace Manager_proj_4.UserControls
 		enum Filter_Idx
 		{
 			source_target = 0,
+			startDate,
+			endDate,
 			type,
 			action,
 			result,
@@ -376,5 +378,48 @@ namespace Manager_proj_4.UserControls
 			RefreshDataView(idx_page, cnt_page);
 		}
 		#endregion
+
+		private void StartDateChanged()
+		{
+			if(dataPicker_start.IsEnabled && dataPicker_start.SelectedDate != null)
+			{
+				DateTime start = (DateTime)dataPicker_start.SelectedDate;
+				filter_string[(int)Filter_Idx.startDate] = string.Format(System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat, "(time >= #{0}#)", start);
+			}
+			else
+				filter_string[(int)Filter_Idx.startDate] = "";
+
+			RefreshDataView(idx_page, cnt_page);
+		}
+		private void OnSelectedDateChangedStartDate(object sender, SelectionChangedEventArgs e)
+		{
+			StartDateChanged();
+		}
+		private void OnIsEnabledChangedStartDate(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			StartDateChanged();
+		}
+
+		private void EndDateChanged()
+		{
+			if(dataPicker_end.IsEnabled && dataPicker_end.SelectedDate != null)
+			{
+				DateTime end = (DateTime)dataPicker_end.SelectedDate;
+				end = end.AddSeconds(24 * 60 * 60 - 1);
+				filter_string[(int)Filter_Idx.endDate] = string.Format(System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat, "(time <= #{0}#)", end);
+			}
+			else
+				filter_string[(int)Filter_Idx.endDate] = "";
+
+			RefreshDataView(idx_page, cnt_page);
+		}
+		private void OnSelectedDateChangedEndDate(object sender, SelectionChangedEventArgs e)
+		{
+			EndDateChanged();
+		}
+		private void OnIsEnabledChangedEndDate(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			EndDateChanged();
+		}
 	}
 }

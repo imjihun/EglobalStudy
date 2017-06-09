@@ -27,50 +27,50 @@ namespace Manager_proj_4.UserControls
 	///						-> Items -> LinuxTreeViewItem
 	/// </summary>
 
-	//public class LinuxDirectoryTree
-	//{
-	//	public static LinuxDirectoryTree Root;
+	public class LinuxDirectoryTree
+	{
+		public static LinuxDirectoryTree Root;
 
-	//	public SftpFile fileinfo;
-	//	List<LinuxDirectoryTree> Childs = new List<LinuxDirectoryTree>();
+		public SftpFile fileinfo;
+		List<LinuxDirectoryTree> Childs = new List<LinuxDirectoryTree>();
 
-	//	private bool IsLoaded = false;
+		private bool IsLoaded = false;
 
-	//	public LinuxDirectoryTree(SftpFile _fileinfo)
-	//	{
-	//		fileinfo = _fileinfo;
-	//	}
-		
-	//	private bool LoadChild()
-	//	{
-	//		if(!IsLoaded)
-	//			return true;
+		public LinuxDirectoryTree(SftpFile _fileinfo)
+		{
+			fileinfo = _fileinfo;
+		}
 
-	//		SftpFile[] files;
-	//		// path 가 null 이라면 부모
-	//		files = SSHController.PollListInDirectory(fileinfo.FullName);
-	//		if(files == null)
-	//			return false;
+		private bool LoadChild()
+		{
+			if(!IsLoaded)
+				return true;
 
-	//		this.Childs.Clear();
-	//		foreach(var file in files)
-	//			this.Childs.Add(new LinuxDirectoryTree(file));
+			SftpFile[] files;
+			// path 가 null 이라면 부모
+			files = SSHController.PollListInDirectory(fileinfo.FullName);
+			if(files == null)
+				return false;
 
-	//		IsLoaded = true;
-	//		return true;
-	//	}
-	//	public LinuxDirectoryTree[] GetChild()
-	//	{
-	//		LoadChild();
-	//		return Childs.ToArray();
-	//	}
-	//	public bool ViewUpdate()
-	//	{
-	//		LoadChild();
+			this.Childs.Clear();
+			foreach(var file in files)
+				this.Childs.Add(new LinuxDirectoryTree(file));
 
-	//		return true;
-	//	}
-	//}
+			IsLoaded = true;
+			return true;
+		}
+		public LinuxDirectoryTree[] GetChild()
+		{
+			LoadChild();
+			return Childs.ToArray();
+		}
+		public bool ViewUpdate()
+		{
+			LoadChild();
+
+			return true;
+		}
+	}
 	public class LinuxTreeViewItem : TreeViewItem
 	{
 		static class _Color
@@ -331,11 +331,23 @@ namespace Manager_proj_4.UserControls
 		#region Load Directory On Expanded
 		protected override void OnExpanded(RoutedEventArgs e)
 		{
+			RefreshChild();
+		}
+		public void RefreshChild()
+		{
 			if(IsDirectory)
 			{
 				loadDirectory();
 				Filter_string = filter_string;
 			}
+		}
+		public void RefreshChildFromParent()
+		{
+			LinuxTreeViewItem par = this.Parent as LinuxTreeViewItem;
+			if(par == null)
+				return;
+
+			par.RefreshChild();
 		}
 		void loadDirectory()
 		{
@@ -384,6 +396,53 @@ namespace Manager_proj_4.UserControls
 
 			}
 		}
+		//void loadDirectory()
+		//{
+		//	SftpFile[] files;
+		//	// path 가 null 이라면 부모
+		//	files = SSHController.PollListInDirectory(this.path);
+		//	if(files == null)
+		//	{
+		//		this.IsExpanded = false;
+		//		return;
+		//	}
+
+		//	this.Items.Clear();
+
+		//	Cofile.current.RefreshListView(files);
+
+		//	int count_have_directory = 0;
+		//	foreach(var file in files)
+		//	{
+		//		int i;
+		//		for(i = 0; i < IGNORE_FILENAME.Length; i++)
+		//		{
+		//			if(file.Name == IGNORE_FILENAME[i])
+		//				break;
+		//		}
+		//		if(i != IGNORE_FILENAME.Length)
+		//			continue;
+
+		//		LinuxTreeViewItem ltvi;
+		//		if(file.IsDirectory)
+		//		{
+		//			//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, true));
+		//			//this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
+		//			ltvi = new LinuxTreeViewItem(file.FullName, file.Name, true);
+		//			this.Items.Insert(count_have_directory++, ltvi);
+		//		}
+		//		else
+		//		{
+		//			//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, false));
+		//			ltvi = new LinuxTreeViewItem(file.FullName, file.Name, false);
+		//			this.Items.Add(ltvi);
+		//			//if(file.Name.Substring(file.Name.Length - test_filter.Length, test_filter.Length) != test_filter)
+		//			//	ltvi.Visibility = Visibility.Collapsed;
+		//		}
+
+
+		//	}
+		//}
 		#endregion
 
 		#region Visible Filter Via Regular Expresion
