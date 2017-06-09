@@ -1,0 +1,80 @@
+﻿<UserControl x:Class="Manager_proj_4.UserControls.Sqlite_LogTable"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Manager_proj_4.UserControls"
+			 
+			 xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
+			 xmlns:System="clr-namespace:System;assembly=mscorlib"
+			 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="1000">
+	<Grid>
+		<Grid Height="40" VerticalAlignment="Top">
+			<Grid Width="430" HorizontalAlignment="Left">
+				<CheckBox x:Name="checkBox" Content="Start Data"
+							HorizontalAlignment="Left" VerticalAlignment="Center"/>
+				<DatePicker x:Name="dataPicker_start" Width="120" Margin="80,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=checkBox}" SelectedDateChanged="OnSelectedDateChangedStartDate" IsEnabledChanged="OnIsEnabledChangedStartDate"/>
+				<Label Content="~"
+						HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<CheckBox x:Name="checkBox1" Content="End Data"
+							Margin="0,0,125,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+				<DatePicker x:Name="dataPicker_end" Width="120" HorizontalAlignment="Right"  VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=checkBox1}" SelectedDateChanged="OnSelectedDateChangedEndDate" IsEnabledChanged="OnIsEnabledChangedEndDate"/>
+			</Grid>
+			<Grid Margin="440,0,0,0" Width="260" HorizontalAlignment="Left">
+				<ComboBox x:Name="comboBox_type" Width="80" VerticalAlignment="Center" HorizontalAlignment="Left" SelectionChanged="OnComboBoxChangedType"/>
+				<ComboBox x:Name="comboBox_action" Width="80" VerticalAlignment="Center" HorizontalAlignment="Center" SelectionChanged="OnComboBoxChangedAction"/>
+				<ComboBox x:Name="comboBox_result" Width="80" VerticalAlignment="Center" HorizontalAlignment="Right" SelectionChanged="OnComboBoxChangedResult"/>
+			</Grid>
+			<Grid Margin="0,0,5,0" Width="120" HorizontalAlignment="Right">
+				<TextBox x:Name="textBox_filter" Custom:TextBoxHelper.Watermark="Search"
+						 VerticalAlignment="Center" KeyDown="OnKeyDownFilter"/>
+			</Grid>
+		</Grid>
+		<Grid Margin="0,45,0,50">
+			<DataGrid x:Name="dataGrid" IsReadOnly="True" IsTextSearchEnabled="True" HeadersVisibility="All">
+				<DataGrid.Style>
+					<Style BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
+						<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
+					</Style>
+				</DataGrid.Style>
+			</DataGrid>
+		</Grid>
+		<Grid Height="45" VerticalAlignment="Bottom">
+			<Grid x:Name="grid_page" Height="45" VerticalAlignment="Top" Width="380">
+				<Button Height="23" HorizontalAlignment="Left"  
+						Name="btnFirst" VerticalAlignment="Top" Width="40" 
+						Content="&lt;&lt;" Click="btnFirst_Click" Opacity="0.75"/>
+				<Button Height="23"  VerticalAlignment="Top" HorizontalAlignment="Left"  
+						Margin="40,0,0,0"
+						Name="btnPrev" Width="40" Click="btnPrev_Click" 
+						Opacity="0.75" Content="&lt;"/>
+				<Label x:Name="label_inform_page" HorizontalContentAlignment="Center" 
+					   Margin="80,0,0,0"
+					   HorizontalAlignment="Left" Height="23" Width="100" 
+					   VerticalContentAlignment="Center" VerticalAlignment="Top"/>
+				<Label x:Name="label_total_count" HorizontalContentAlignment="Center" 
+					   Margin="80,0,0,0"
+					   HorizontalAlignment="Left" Height="23" Width="100" 
+					   VerticalContentAlignment="Center" VerticalAlignment="Bottom"/>
+				<Button Height="23" HorizontalAlignment="Left" 
+						Name="btnNext" VerticalAlignment="Top" Width="40" 
+						Margin="180,0,0,0"
+						Content="&gt;" Click="btnNext_Click" Opacity="0.75"/>
+				<Button Height="23" HorizontalAlignment="Left"  
+						Margin="220,0,0,0"
+						VerticalAlignment="Top" Width="40" Name="btnLast" 
+						Click="btnLast_Click" Opacity="0.75" Content="&gt;&gt;"/>
+				<ComboBox x:Name="comboBox_change_count_page" HorizontalAlignment="Left"  
+						  Margin="260,0,0,0"
+						  VerticalAlignment="Top" Width="120"  SelectedIndex="0" 
+						  Opacity="0.75"/>
+			</Grid>
+			<Grid Height="30" VerticalAlignment="Bottom">
+				<Button Content="Export"
+						Margin="0,0,10,0" Width="100" HorizontalAlignment="Right"/>
+			</Grid>
+		</Grid>
+	</Grid>
+</UserControl>

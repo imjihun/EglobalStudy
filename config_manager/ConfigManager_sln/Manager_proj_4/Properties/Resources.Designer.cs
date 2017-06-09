@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Manager_proj_4.Properties {
+namespace Manager_proj_4_net4.Properties {
     using System;
     
     
