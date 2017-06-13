@@ -64,13 +64,13 @@
         "Entry"
         {
         "MsmKey" = "8:_465273FDD740A78C22B3CB7B0E558412"
-        "OwnerKey" = "8:_63FEE3984F4D4C101E644399A08D389B"
+        "OwnerKey" = "8:_629118F81EC0B9E8687B984FCEAEECF5"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_465273FDD740A78C22B3CB7B0E558412"
-        "OwnerKey" = "8:_629118F81EC0B9E8687B984FCEAEECF5"
+        "OwnerKey" = "8:_63FEE3984F4D4C101E644399A08D389B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -107,12 +107,6 @@
         {
         "MsmKey" = "8:_AD9D16F9D79A8E4E930E74F0DFA108F0"
         "OwnerKey" = "8:_A356F0C8060342A99CAA21BDEEA22BF3"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_465273FDD740A78C22B3CB7B0E558412"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -175,6 +169,12 @@
         "OwnerKey" = "8:_63FEE3984F4D4C101E644399A08D389B"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_465273FDD740A78C22B3CB7B0E558412"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -215,7 +215,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:Release\\Setup1.msi"
+        "OutputFilename" = "8:Release\\Manager_proj_4_net4.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -225,6 +225,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:2"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0,Profile=Client"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4 Client Profile(x86 및 x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -246,7 +262,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:.NETFramework,Version=v4.0"
+                "FrameworkVersion" = "8:ANY"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=395269"
                 }
@@ -632,7 +648,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Setup1"
         "ProductCode" = "8:{E026E0B2-3C4C-4C33-AB0B-9E02C9A4144C}"
-        "PackageCode" = "8:{DBB280B7-B2CF-469C-B866-F1EC280D2719}"
+        "PackageCode" = "8:{0E198F5C-3091-4B12-9330-1255D164FB4C}"
         "UpgradeCode" = "8:{CFA1C2D3-E0B8-454D-9688-D2D7D5FDE83A}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1181,7 +1197,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A356F0C8060342A99CAA21BDEEA22BF3"
             {
-            "SourcePath" = "8:..\\Manager_proj_4_net4\\obj\\Debug\\Manager_proj_4_net4.exe"
+            "SourcePath" = "8:..\\Manager_proj_4_net4\\obj\\Release\\Manager_proj_4_net4.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_957C57CA7B3143D2AC2BE73CD8F8AF75"
