@@ -1,17 +1,20 @@
-﻿using Manager_proj_4.UserControls;
+﻿using Manager_proj_4_net4.UserControls;
+using Manager_proj_4_net4.Windows;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Threading;
 
-namespace Manager_proj_4.Classes
+namespace Manager_proj_4_net4.Classes
 {
 	public static class SSHController
 	{
@@ -23,7 +26,7 @@ namespace Manager_proj_4.Classes
 		public static StreamWriter shell_stream_writer;
 		public static DispatcherTimer shell_stream_read_timer;
 
-		
+
 		static bool CheckConnection(BaseClient client, string ip, int port, string id)
 		{
 			if((client == null || !client.IsConnected)
@@ -34,29 +37,51 @@ namespace Manager_proj_4.Classes
 
 			return true;
 		}
-		static bool ReConnect(int timeout_ms = -1)
+		static bool CheckConnection(BaseClient client, string ip, int port)
+		{
+			if((client == null || !client.IsConnected)
+					|| (client.ConnectionInfo.Host != ip
+						|| client.ConnectionInfo.Port != port))
+				return false;
+
+			return true;
+		}
+
+		const int NO_TIMEOUT = -1;
+		static int timeout_connect_ms = NO_TIMEOUT;
+		static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
 			if(ServerList.selected_serverinfo_textblock == null)
 				return false;
 
 			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
-			int port = 22;
+			//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			int port = ServerList.selected_serverinfo_textblock.serverinfo.port;
 
 			try
 			{
-				if(!CheckConnection(sftp, ip, port, id) || !CheckConnection(ssh, ip, port, id))
+				//if(!CheckConnection(sftp, ip, port, id) || !CheckConnection(ssh, ip, port, id))
+				if(!CheckConnection(sftp, ip, port) || !CheckConnection(ssh, ip, port))
 				{
 					TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 					txt.Text = "";
 
+					//Window_LogIn wl = new Window_LogIn();
+					//if(wl.ShowDialog() != true)
+					//	return false;
+
+					//string id = wl.Id;
+					//string password = wl.Password;
+					string id = "cofile";
+					string password = "cofile";
+
 					sftp = new SftpClient(ip, port, id, password);
-					if(timeout_ms != -1)
+					if(timeout_ms != NO_TIMEOUT)
 						sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
 					sftp.Connect();
 					ssh = new SshClient(ip, port, id, password);
-					if(timeout_ms != -1)
+					if(timeout_ms != NO_TIMEOUT)
 						ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
 					ssh.Connect();
 
@@ -94,7 +119,7 @@ namespace Manager_proj_4.Classes
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
@@ -121,33 +146,79 @@ namespace Manager_proj_4.Classes
 			}
 			return true;
 		}
-		private static bool downloadFile(string local_path_folder, string local_file_name, string remote_path_file, string filename = null)
+		public static bool downloadFile(string local_path_folder, string remote_path_file, string local_file_name = null, string remote_filename = null)
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
 			{
-				if(filename == null)
+				if(remote_filename == null)
 				{
 					string[] split = remote_path_file.Split('/');
-					filename = split[split.Length - 1];
+					remote_filename = split[split.Length - 1];
 				}
 
 				string local;
 				if(local_file_name != null)
 					local = local_path_folder + local_file_name;
 				else
-					local = local_path_folder + filename;
+				{
+					local = local_path_folder + remote_filename;
+				}
 
 				FileContoller.CreateDirectory(local_path_folder);
 
 				FileStream fs = new FileStream(local, FileMode.Create);
 				sftp.DownloadFile(remote_path_file, fs);
-				Log.PrintConsole(filename + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
+				Log.PrintConsole(remote_path_file + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
 				fs.Close();
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message, "downloadFile", Status.current.richTextBox_status);
+				return false;
+			}
+			return true;
+		}
+		public static bool moveFileToLocal(string local_path_folder, string remote_path_file, string local_file_name = null)
+		{
+			if(!downloadFile(local_path_folder, remote_path_file, local_file_name))
+				return false;
+
+			sendCommand("rm -rf " + remote_path_file);
+			readMessageBlocking(null);
+
+			return true;
+		}
+		private static bool downloadDirectory(string local_folder_path, string remote_directory_path, Regex filter = null)
+		{
+			//LinuxTreeViewItem.ReconnectServer();
+			//LinuxTreeViewItem.ReConnect();
+			if(!SSHController.ReConnect(timeout_connect_ms))
+				return false;
+
+			try
+			{
+				FileContoller.CreateDirectory(local_folder_path);
+
+				SftpFile[] files = PullListInDirectory(remote_directory_path);
+				string local;
+				for(int i = 0; i < files.Length; i++)
+				{
+					if(files[i].Name == "." || files[i].Name == "..")
+						continue;
+					if(filter != null && !filter.IsMatch(files[i].Name))
+						continue;
+
+					local = local_folder_path + files[i].Name;
+					FileStream fs = new FileStream(local, FileMode.Create);
+					sftp.DownloadFile(files[i].FullName, fs);
+					Log.PrintConsole(files[i].FullName + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
+					fs.Close();
+				}
 			}
 			catch(Exception e)
 			{
@@ -160,7 +231,7 @@ namespace Manager_proj_4.Classes
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
@@ -432,14 +503,14 @@ namespace Manager_proj_4.Classes
 			{
 				string str = read();
 				if(str.Length > 0)
-					;//LinuxTreeViewItem.ViewLog("[read] " + str);
+					Log.PrintConsole("[read] " + str, "Shell_stream_read_timer_Tick");
 			}
 		}
 		#endregion
 
 
 		#region Poll Linux Directory
-		private static SftpFile[] _PollListInDirectory(string Path)
+		private static SftpFile[] _PullListInDirectory(string Path)
 		{
 			IEnumerable<SftpFile> files = null;
 			try
@@ -457,16 +528,22 @@ namespace Manager_proj_4.Classes
 
 			return files.ToArray();
 		}
-		public static SftpFile[] PollListInDirectory(string Path)
+		public static string WorkingDirectory {
+			get
+			{
+				if(!SSHController.ReConnect(timeout_connect_ms))
+					return null;
+				return sftp.WorkingDirectory;
+			}
+		}
+		public static SftpFile[] PullListInDirectory(string Path)
 		{
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
+				return null;
+			if(Path == null)
 				return null;
 
-			// path 가 null 이라면 root
-			if(Path == null)
-				Path = LinuxTreeViewItem.root.Path = sftp.WorkingDirectory;
-
-			return _PollListInDirectory(Path);
+			return _PullListInDirectory(Path);
 		}
 		#endregion
 
@@ -520,31 +597,43 @@ namespace Manager_proj_4.Classes
 
 			return str;
 		}
-		public static void SendNRecvCofileCommand(LinuxTreeViewItem[] selected_list, bool isEncrypt)
+		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt)
 		{
 			string env_co_home = LoadEnvCoHome();
 			string remote_directory = env_co_home + add_path_config_upload;
 
-			if(UploadFile(Cofile.current.Selected_config_file_path, remote_directory))
-			{
-				for(int i = 0; i < selected_list.Length; i++)
-				{
-					//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
-					if(!selected_list[i].IsDirectory)
-					{
-						string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, selected_list[i].Path, remote_directory + filename_uploaded);
-						//SendCommandOnce(send_cmd);
-						sendCommand(send_cmd);
-						//string ret = readMessageBlocking(send_cmd);
-						string ret = readCofileMessageBlocking();
-						string caption = isEncrypt ? "Encrypt" : "Decrypt";
-						Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+			if(!UploadFile(Cofile.current.Selected_config_file_path, remote_directory))
+				return false;
 
-						selected_list[i].RefreshChildFromParent();
-					}
+			var enumerator = selected_list.GetEnumerator();
+			for(; enumerator.MoveNext(); )
+			{
+				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
+
+				Manager_proj_4_net4.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as Manager_proj_4_net4.UserControls.Cofile.LinuxListViewItem;
+				if(llvi != null)
+					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
+
+				if(ltvi == null)
+					return false;
+
+				//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
+				if(!ltvi.IsDirectory)
+				{
+					string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_directory + filename_uploaded);
+					//SendCommandOnce(send_cmd);
+					sendCommand(send_cmd);
+					//string ret = readMessageBlocking(send_cmd);
+					string ret = readCofileMessageBlocking();
+					string caption = isEncrypt ? "Encrypt" : "Decrypt";
+					Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
 				}
+				ltvi.RefreshChildFromParent();
 			}
+			Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
+			return true;
 		}
+		
 		#endregion
 
 
@@ -558,9 +647,26 @@ namespace Manager_proj_4.Classes
 				return null;
 
 			string remote_path_file = remote_directory + add_path_database;
-			if(downloadFile(local_folder, local_file, remote_path_file, db_name))
+			if(downloadFile(local_folder, remote_path_file, local_file, db_name))
 			{
 				return local_folder + local_file;
+			}
+			return null;
+		}
+		#endregion
+
+		#region Get Config File
+		static string add_path_config_dir = @"/var/conf/";
+		public static string GetConfig(string local_folder)
+		{
+			string remote_directory = LoadEnvCoHome();
+			if(remote_directory == null)
+				return null;
+
+			string remote_path_file = remote_directory + add_path_config_dir;
+			if(downloadDirectory(local_folder, remote_path_file, new Regex(@"\.json")))
+			{
+				return local_folder;
 			}
 			return null;
 		}

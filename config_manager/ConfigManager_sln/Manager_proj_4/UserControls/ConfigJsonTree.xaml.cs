@@ -81,7 +81,10 @@ namespace Manager_proj_4.UserControls
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
 			if(JsonTreeViewItem.Path != null)
-				;
+			{
+				// 변경된 사항을 저장하시겠습니까? 코드가 들어가야함.
+				Console.Write("");
+			}
 
 			WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile);
 		}

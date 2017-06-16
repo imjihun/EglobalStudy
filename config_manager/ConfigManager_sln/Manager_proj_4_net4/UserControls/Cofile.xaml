@@ -1,15 +1,16 @@
-﻿<UserControl x:Class="Manager_proj_4.UserControls.Cofile"
+﻿<UserControl x:Class="Manager_proj_4_net4.UserControls.Cofile"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
 			 
-             xmlns:local="clr-namespace:Manager_proj_4.UserControls"
+             xmlns:local="clr-namespace:Manager_proj_4_net4.UserControls"
 			 xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
 			 xmlns:System="clr-namespace:System;assembly=mscorlib"
 			 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 			 xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              mc:Ignorable="d" 
+			 
              d:DesignHeight="300" d:DesignWidth="800">
 	<UserControl.Resources>
 		<ObjectDataProvider x:Key="enumValues_cofileOptions"
@@ -18,62 +19,158 @@
 				<x:Type TypeName="local:CofileOption"/>
 			</ObjectDataProvider.MethodParameters>
 		</ObjectDataProvider>
+
+		<local:HideStringToDoubleConverter x:Key="HideStringToOpacityConverter" />
+
+		<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListViewLinux_Icon">
+			<WrapPanel/>
+		</ItemsPanelTemplate>
+		<DataTemplate x:Key="DataTemplate_ListViewLinux_Icon">
+			<Grid Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}"
+				  Width="70" Margin="0">
+				<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
+					<Rectangle.Fill>
+						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/file.png"/>
+					</Rectangle.Fill>
+					<Rectangle.Visibility>
+						<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
+					</Rectangle.Visibility>
+				</Rectangle>
+				<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
+						   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}">
+					<Rectangle.Fill>
+						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/directory.png"/>
+					</Rectangle.Fill>
+				</Rectangle>
+				<TextBlock x:Name="name" Margin="0,32,0,0" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
+					<Run Text="{Binding BindingName, Mode=OneWay}"/>
+				</TextBlock>
+			</Grid>
+		</DataTemplate>
+
+		<GridView x:Key="GridView_ListViewLinux_Detail" AllowsColumnReorder="True">
+			<GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding BindingName}">
+				<!--<GridViewColumn.CellTemplate>
+					<DataTemplate>
+						--><!--<StackPanel Orientation="Horizontal">
+							-->
+						<!--<Image Width="10" Source="/Manager_proj_4_net4;component/Resources/directory.png"/>-->
+						<!--
+						</StackPanel>--><!--
+						<TextBlock Text="{Binding BindingNameIcon.Name}"/>
+					</DataTemplate>
+				</GridViewColumn.CellTemplate>-->
+			</GridViewColumn>
+			<GridViewColumn Header="WriteTime" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+			<GridViewColumn Header="Type" Width="75" DisplayMemberBinding="{Binding Type}"/>
+			<GridViewColumn Header="Size" Width="75" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.Attributes.Size}"/>
+			<!--<GridViewColumn Header="UserId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.UserId}"/>
+			<GridViewColumn Header="GroupId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.GroupId}"/>-->
+		</GridView>
+
 	</UserControl.Resources>
 	<Grid>
-		<Grid Grid.Row="0" Margin="5, 35, 5, 5" MouseDown="OnMouseDownBackground">
-			<Controls:SplitView x:Name="splitView" DisplayMode="Overlay" PanePlacement="Right" OpenPaneLength="500" Margin="0,0,10,0" IsPaneOpen="True">
+		<Grid Grid.Row="0" Margin="5, 35, 5, 5">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="1*"/>
+				<RowDefinition Height="3*"/>
+			</Grid.RowDefinitions>
+			<Grid Grid.Column="0" Grid.Row="0">
 				<TreeView x:Name="treeView_linux_directory">
 				</TreeView>
-				<Controls:SplitView.Pane>
-					<Grid>
-						<Border BorderBrush="LightBlue" BorderThickness="1"/>
-						<ListView x:Name="listView_linux_directory" BorderBrush="{x:Null}" Margin="2,2,2,2"
+			</Grid>
+			<Grid Grid.Column="0" Grid.Row="1" Margin="2">
+				<Grid Margin="0,0,3,0" Height="30" VerticalAlignment="Top">
+					<Label x:Name="label_listView" Content="label" HorizontalAlignment="Left"/>
+					<CheckBox Content="Detail" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+				</Grid>
+				<ListView x:Name="listView_linux_files" BorderBrush="{x:Null}" Margin="0,30,0,0"
+						  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+						  ScrollViewer.VerticalScrollBarVisibility="Auto" 
+						  ScrollViewer.CanContentScroll="True" 
+						  UseLayoutRounding="True"
+						  ItemsPanel="{StaticResource ItemsPanelTemplate_ListViewLinux_Icon}"
+						  ItemTemplate="{StaticResource DataTemplate_ListViewLinux_Icon}"
+						  SelectionMode="Extended"
+						  >
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="VerticalContentAlignment" Value="Top" />
+						</Style>
+					</ListView.ItemContainerStyle>
+				</ListView>
+			</Grid>
+
+			<Grid Grid.Column="1" Grid.Row="0" Grid.RowSpan="2">
+				<ListView x:Name="listView_work_files" BorderBrush="{x:Null}" Margin="2,2,2,2"
 							  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
 							  ScrollViewer.VerticalScrollBarVisibility="Auto" 
 							  ScrollViewer.CanContentScroll="True" 
 							  UseLayoutRounding="True">
+					
+					<ListView.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel/>
+						</ItemsPanelTemplate>
+					</ListView.ItemsPanel>
 
-							<ListView.ItemsPanel>
-								<ItemsPanelTemplate>
-									<WrapPanel/>
-								</ItemsPanelTemplate>
-							</ListView.ItemsPanel>
-
-							<ListView.ItemTemplate>
-								<DataTemplate>
-									<Grid HorizontalAlignment="Left" Height="70" Width="70"
-										  MouseLeftButtonDown="OnMouseLeftButtonDownListViewItems"
+					<ListView.ItemTemplate>
+						<DataTemplate>
+							<Grid HorizontalAlignment="Left" Height="70" Width="70"
 										  DataContext="{Binding}">
-										<Border x:Name="border" BorderBrush="{x:Null}" BorderThickness="1" HorizontalAlignment="Stretch" Height="50" VerticalAlignment="Stretch" Width="50" CornerRadius="2.5"/>
-										<Grid>
-											<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
-												<Rectangle.Fill>
-													<ImageBrush ImageSource="/Manager_proj_4;component/Resources/file.png"/>
-												</Rectangle.Fill>
-												<Rectangle.Visibility>
-													<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
-												</Rectangle.Visibility>
-											</Rectangle>
-											<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
+								<Border x:Name="border" BorderBrush="{x:Null}" BorderThickness="1" HorizontalAlignment="Stretch" Height="50" VerticalAlignment="Stretch" Width="50" CornerRadius="2.5"/>
+								<Grid>
+									<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
+										<Rectangle.Fill>
+											<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/file.png"/>
+										</Rectangle.Fill>
+										<Rectangle.Visibility>
+											<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
+										</Rectangle.Visibility>
+									</Rectangle>
+									<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
 													   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}">
-												<Rectangle.Fill>
-													<ImageBrush ImageSource="/Manager_proj_4;component/Resources/directory.png"/>
-												</Rectangle.Fill>
-											</Rectangle>
-											<TextBlock x:Name="name" Margin="0,32,0,0" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
-												<Run Text="{Binding Name, Mode=OneWay}"/>
-											</TextBlock>
-										</Grid>
-									</Grid>
-								</DataTemplate>
-							</ListView.ItemTemplate>
+										<Rectangle.Fill>
+											<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/directory.png"/>
+										</Rectangle.Fill>
+									</Rectangle>
+									<TextBlock x:Name="name" Margin="0,32,0,0" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
+												<Run Text="{Binding BindingName, Mode=OneWay}"/>
+									</TextBlock>
+								</Grid>
+							</Grid>
+						</DataTemplate>
+					</ListView.ItemTemplate>
 
-							<Label x:Name="label_listView"/>
-						</ListView>
-					</Grid>
+					<ListView.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="Delete" Click="OnClickDelWorkList"/>
+							<MenuItem Header="Encrypt" Click="OnClickEncrypt"/>
+							<MenuItem Header="Decrypt" Click="OnClickDecrypt"/>
+						</ContextMenu>
+					</ListView.ContextMenu>
+				</ListView>
+			</Grid>
+
+			<GridSplitter Background="Gray"
+						  Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+						  HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="2"/>
+			<GridSplitter Background="Gray"
+						  Grid.Column="0" Grid.Row="0"
+						  HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="2"/>
+			<!--<GridSplitter Background="Gray"
+						  Grid.Column="1" Grid.Row="0"
+						  HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="2"/>-->
+			<!--<Controls:SplitView x:Name="splitView" DisplayMode="Overlay" PanePlacement="Right" OpenPaneLength="500" Margin="0,0,10,0" IsPaneOpen="True">
+				<Controls:SplitView.Pane>
+					
 				</Controls:SplitView.Pane>
 			</Controls:SplitView>
-			<Grid Width="10" Background="White" HorizontalAlignment="Right" MouseEnter="OnMouseEnterSplitView"></Grid>
+			<Grid Width="10" Background="White" HorizontalAlignment="Right" MouseEnter="OnMouseEnterSplitView"></Grid>-->
 		</Grid>
 		<Grid Grid.Row="0" Grid.RowSpan="2" Margin="5" Height="30" VerticalAlignment="Top">
 			<!--<TextBlock Text="Possible Input Pattern"

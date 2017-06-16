@@ -9,7 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace Manager_proj_4.Classes
+namespace Manager_proj_4_net4.Classes
 {
 	class Log
 	{

@@ -1,4 +1,4 @@
-﻿using Manager_proj_4.Classes;
+﻿using Manager_proj_4_net4.Classes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	/// ServerMenu.xaml에 대한 상호 작용 논리

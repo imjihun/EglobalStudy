@@ -185,7 +185,7 @@ namespace Manager_proj_4.UserControls
 			_table.Columns.RemoveAt(new_idx + 1);
 		}
 
-		string filter_total = "";
+		// string filter_total = "";
 		bool bFiltering = false;
 		enum Filter_Idx
 		{
@@ -233,13 +233,12 @@ namespace Manager_proj_4.UserControls
 				filter_string[(int)Filter_Idx.type] = "(_type = '" + log_type[comboBox_type.SelectedIndex] + "')";
 				backup_idx_page = idx_page;
 				idx_page = 0;
-				RefreshDataView(idx_page, cnt_page);
 			}
 			else
 			{
 				filter_string[(int)Filter_Idx.type] = null;
-				RefreshDataView(idx_page, cnt_page);
 			}
+			RefreshDataView(idx_page, cnt_page);
 			e.Handled = true;
 		}
 		private void OnComboBoxChangedAction(object sender, SelectionChangedEventArgs e)
@@ -249,13 +248,12 @@ namespace Manager_proj_4.UserControls
 				filter_string[(int)Filter_Idx.action] = "(_action = '" + log_action[comboBox_action.SelectedIndex] + "')";
 				backup_idx_page = idx_page;
 				idx_page = 0;
-				RefreshDataView(idx_page, cnt_page);
 			}
 			else
 			{
 				filter_string[(int)Filter_Idx.action] = null;
-				RefreshDataView(idx_page, cnt_page);
 			}
+			RefreshDataView(idx_page, cnt_page);
 			e.Handled = true;
 		}
 		private void OnComboBoxChangedResult(object sender, SelectionChangedEventArgs e)
@@ -265,13 +263,12 @@ namespace Manager_proj_4.UserControls
 				filter_string[(int)Filter_Idx.result] = "(_result = '" + log_result[comboBox_result.SelectedIndex] + "')";
 				backup_idx_page = idx_page;
 				idx_page = 0;
-				RefreshDataView(idx_page, cnt_page);
 			}
 			else
 			{
 				filter_string[(int)Filter_Idx.result] = null;
-				RefreshDataView(idx_page, cnt_page);
 			}
+			RefreshDataView(idx_page, cnt_page);
 			e.Handled = true;
 		}
 
@@ -307,6 +304,10 @@ namespace Manager_proj_4.UserControls
 				////	}
 				////	dataGrid.ItemsSource = ItemsSource.CopyToDataTable().DefaultView;
 				//}
+
+				if(dataGrid == null || Current_table == null)
+					return;
+
 				dataGrid.ItemsSource = new DataView();
 
 				Filtering_row = Current_table.Select();
@@ -331,7 +332,7 @@ namespace Manager_proj_4.UserControls
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "RefreshDataView");
+				Log.PrintError(e.Message + " [ " + e.StackTrace + " ]", "RefreshDataView");
 			}
 
 			if(Filtering_row == null)

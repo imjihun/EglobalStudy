@@ -27,7 +27,7 @@ namespace Manager_proj_4.UserControls
 		public TextBox textBox_command;
 		public TextBox textBox_result;
 
-		DispatcherTimer timer_read;
+		DispatcherTimer timer_read = null;
 		ShellStream shell_stream;
 
 		public new Visibility Visibility
@@ -87,9 +87,9 @@ namespace Manager_proj_4.UserControls
 			textBox_result.TextChanged += TextBox_result_TextChanged;
 			this.Children.Add(textBox_result);
 
-			//timer_read = new DispatcherTimer();
-			//timer_read.Interval = TimeSpan.FromSeconds(0.001);
-			//timer_read.Tick += Timer_read_Tick;
+			timer_read = new DispatcherTimer();
+			// timer_read.Interval = TimeSpan.FromSeconds(0.001);
+			// timer_read.Tick += Timer_read_Tick;
 		}
 		private void TextBox_result_TextChanged(object sender, TextChangedEventArgs e)
 		{

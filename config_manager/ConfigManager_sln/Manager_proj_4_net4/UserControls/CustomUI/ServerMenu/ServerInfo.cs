@@ -1,6 +1,6 @@
 ﻿using MahApps.Metro;
 using MahApps.Metro.IconPacks;
-using Manager_proj_4.Classes;
+using Manager_proj_4_net4.Classes;
 using Manager_proj_4_net4;
 using Newtonsoft.Json.Linq;
 using System;
@@ -14,8 +14,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using Manager_proj_4_net4.Windows;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	#region Server Panel
 	/// <summary>
@@ -31,14 +32,21 @@ namespace Manager_proj_4.UserControls
 		
 		public string name;
 		public string ip;
-		public string id;
-		public string password;
-		public ServerInfo(string _name, string _ip, string _id, string _password)
+		public int port;
+		//public string id;
+		//public string password;
+		//public ServerInfo(string _name, string _ip, string _id, string _password)
+		//{
+		//	name = _name;
+		//	ip = _ip;
+		//	id = _id;
+		//	password = _password;
+		//}
+		public ServerInfo(string _name, string _ip, int _port)
 		{
 			name = _name;
 			ip = _ip;
-			id = _id;
-			password = _password;
+			port = _port;
 		}
 		private ServerInfo() { }
 
@@ -191,7 +199,12 @@ namespace Manager_proj_4.UserControls
 			type.GetField("name").SetValue(serverinfo, jprop.Name);
 			foreach(var v in jobj_serverinfo.Properties())
 			{
-				type.GetField(v.Name).SetValue(serverinfo, v.Value.ToString());
+				JValue jval = (JValue)v.Value;
+				// port 받을때
+				if(jval.Type == JTokenType.Integer)
+					type.GetField(v.Name).SetValue(serverinfo, Convert.ToInt32(jval.Value));
+				else
+					type.GetField(v.Name).SetValue(serverinfo, jval.Value);
 			}
 
 			return serverinfo;
@@ -202,9 +215,15 @@ namespace Manager_proj_4.UserControls
 	public class ServerInfoTextBlock : TextBlock
 	{
 		public ServerInfo serverinfo;
-		public ServerInfoTextBlock(string _name, string _ip, string _id, string _pass)
+		//public ServerInfoTextBlock(string _name, string _ip, string _id, string _pass)
+		//{
+		//	serverinfo = new ServerInfo(_name, _ip, _id, _pass);
+		//	this.HorizontalAlignment = HorizontalAlignment.Stretch;
+		//	this.Text = _name;
+		//}
+		public ServerInfoTextBlock(string _name, string _ip, int _port)
 		{
-			serverinfo = new ServerInfo(_name, _ip, _id, _pass);
+			serverinfo = new ServerInfo(_name, _ip, _port);
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			this.Text = _name;
 		}
@@ -245,6 +264,17 @@ namespace Manager_proj_4.UserControls
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			this.ContextMenu.Items.Add(item);
+
+			item = new MenuItem();
+			item.Click += BtnModServer_Click;
+			item.Header = "Modify Server";
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.ServerMinus,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			this.ContextMenu.Items.Add(item);
 		}
 		public ServerList()
 		{
@@ -273,10 +303,11 @@ namespace Manager_proj_4.UserControls
 			wms.Top = pt.Y;
 			if(wms.ShowDialog() == true)
 			{
-				string name = wms.textBox_name.Text;
-				string ip = wms.textBox_ip.Text;
-				string id = wms.textBox_id.Text;
-				string password = wms.textBox_password.Password;
+				string name = wms.ServerName;
+				string ip = wms.Ip;
+				int port = wms.Port;
+				//string id = wms.textBox_id.Text;
+				//string password = wms.textBox_password.Password;
 
 				try
 				{
@@ -284,7 +315,8 @@ namespace Manager_proj_4.UserControls
 					if(jobj == null)
 						return;
 
-					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
+					//ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
+					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, port);
 					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
 
 					if(!ServerInfo.save())
@@ -294,7 +326,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server");
 					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
 				}
 			}
@@ -306,6 +338,44 @@ namespace Manager_proj_4.UserControls
 				return;
 
 			WindowMain.current.ShowMessageDialog("Delete Server", "해당 서버 정보를 정말 삭제하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, DeleteServerInfoUI);
+		}
+		private void BtnModServer_Click(object sender, RoutedEventArgs e)
+		{
+			//if(ServerList.selected_serverinfo_textblock == null)
+			//	return;
+			ServerInfoTextBlock sitb = this.SelectedItem as ServerInfoTextBlock;
+			if(sitb == null)
+				return;
+
+			Window_AddServer wms = new Window_AddServer(sitb.serverinfo);
+			//wms.textBox_password.Password = sitb.serverinfo.password;
+
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wms.Left = pt.X;
+			wms.Top = pt.Y;
+			if(wms.ShowDialog() == true)
+			{
+				string name = wms.ServerName;
+				string ip = wms.Ip;
+				int port = wms.Port;
+
+				JObject jobj = ServerInfo.jobj_root[parent.Content] as JObject;
+				if(jobj == null)
+					return;
+
+				// JProperty 바꾸기
+				JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(name, ip, port));
+				jobj[ServerList.selected_serverinfo_textblock.serverinfo.name].Parent.Replace(newprop);
+
+				if(!ServerInfo.save())
+					return;
+
+				sitb.Text = sitb.serverinfo.name = name;
+				sitb.serverinfo.ip = ip;
+				sitb.serverinfo.port = port;
+				//sitb.serverinfo.id = wms.textBox_id.Text;
+				//sitb.serverinfo.password = wms.textBox_password.Password;
+			}
 		}
 		private void DeleteServerInfoUI()
 		{
@@ -334,37 +404,11 @@ namespace Manager_proj_4.UserControls
 			base.OnMouseDoubleClick(e);
 			if(e.ChangedButton == MouseButton.Left)
 			{
-				ServerInfoTextBlock sitb = this.SelectedItem as ServerInfoTextBlock;
-				if(sitb == null)
-					return;
-
-				Window_AddServer wms = new Window_AddServer();
-				wms.textBox_name.Text = sitb.serverinfo.name;
-				wms.textBox_ip.Text = sitb.serverinfo.ip;
-				wms.textBox_id.Text = sitb.serverinfo.id;
-				wms.textBox_password.Password = sitb.serverinfo.password;
-
-				Point pt = this.PointToScreen(new Point(0, 0));
-				wms.Left = pt.X;
-				wms.Top = pt.Y;
-				if(wms.ShowDialog() == true)
-				{
-					JObject jobj = ServerInfo.jobj_root[parent.Content] as JObject;
-					if(jobj == null)
-						return;
-
-					// JProperty 바꾸기
-					JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(wms.textBox_name.Text, wms.textBox_ip.Text, wms.textBox_id.Text, wms.textBox_password.Password));
-					jobj[ServerList.selected_serverinfo_textblock.serverinfo.name].Parent.Replace(newprop);
-
-					if(!ServerInfo.save())
-						return;
-
-					sitb.Text = sitb.serverinfo.name = wms.textBox_name.Text;
-					sitb.serverinfo.ip = wms.textBox_ip.Text;
-					sitb.serverinfo.id = wms.textBox_id.Text;
-					sitb.serverinfo.password = wms.textBox_password.Password;
-				}
+				//((LinuxTreeViewItem)Cofile.current.treeView_linux_directory.Items[0]).IsExpanded = true;
+				//((LinuxTreeViewItem)Cofile.current.treeView_linux_directory.Items[0]).RefreshChild();
+				//Cofile.current.Refresh();
+				if(WindowMain.current != null)
+					WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
 			}
 		}
 		protected override void OnSelectionChanged(SelectionChangedEventArgs e)
@@ -385,8 +429,17 @@ namespace Manager_proj_4.UserControls
 				ServerCommand.current.Refresh(selected_serverinfo_textblock.serverinfo);
 			}
 
-			if(WindowMain.current != null)
-				WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
+			//if(WindowMain.current != null)
+			//	WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
+		}
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+		{
+			base.OnMouseLeftButtonDown(e);
+			//if(e.ClickCount > 1)
+			//{
+			//	if(WindowMain.current != null)
+			//		WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
+			//}
 		}
 	}
 
@@ -482,10 +535,11 @@ namespace Manager_proj_4.UserControls
 			wms.Top = pt.Y;
 			if(wms.ShowDialog() == true)
 			{
-				string name = wms.textBox_name.Text;
-				string ip = wms.textBox_ip.Text;
-				string id = wms.textBox_id.Text;
-				string password = wms.textBox_password.Password;
+				string name = wms.ServerName;
+				string ip = wms.Ip;
+				int port = wms.Port;
+				//string id = wms.textBox_id.Text;
+				//string password = wms.textBox_password.Password;
 
 
 				try
@@ -494,7 +548,7 @@ namespace Manager_proj_4.UserControls
 					if(jobj == null)
 						return;
 
-					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
+					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, port);
 					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
 
 					if(!ServerInfo.save())
@@ -504,7 +558,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server");
 					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
 				}
 			}
@@ -535,7 +589,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server Menu", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server Menu");
 					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
 				}
 			}
@@ -585,7 +639,7 @@ namespace Manager_proj_4.UserControls
 			base.OnUnchecked(e);
 			this.child.Visibility = Visibility.Collapsed;
 		}
-		Brush background_unchecked = null;
+		// Brush background_unchecked = null;
 		protected override void OnChecked(RoutedEventArgs e)
 		{
 			base.OnChecked(e);

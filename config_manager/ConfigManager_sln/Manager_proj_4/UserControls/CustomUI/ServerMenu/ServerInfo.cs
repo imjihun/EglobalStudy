@@ -293,7 +293,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server");
 					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
 				}
 			}
@@ -503,7 +503,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server");
 					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
 				}
 			}
@@ -534,7 +534,7 @@ namespace Manager_proj_4.UserControls
 				}
 				catch(Exception ex)
 				{
-					//Log.PrintError(ex.Message, "Add Server Menu", test4.m_wnd.richTextBox_status);
+					Log.PrintError(ex.Message, "Add Server Menu");
 					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
 				}
 			}
@@ -584,7 +584,6 @@ namespace Manager_proj_4.UserControls
 			base.OnUnchecked(e);
 			this.child.Visibility = Visibility.Collapsed;
 		}
-		Brush background_unchecked = null;
 		protected override void OnChecked(RoutedEventArgs e)
 		{
 			base.OnChecked(e);

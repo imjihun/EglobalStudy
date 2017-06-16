@@ -1,6 +1,6 @@
 ﻿using MahApps.Metro.IconPacks;
-using Manager_proj_4.Classes;
-using Manager_proj_4.UserControls;
+using Manager_proj_4_net4.Classes;
+using Manager_proj_4_net4.UserControls;
 using Manager_proj_4_net4;
 using Renci.SshNet;
 using Renci.SshNet.Sftp;
@@ -20,8 +20,9 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Manager_proj_4_net4.Windows;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	/// LinuxTreeViewItem	-> Header -> (file or directory)Name TextBox
@@ -49,7 +50,7 @@ namespace Manager_proj_4.UserControls
 
 			SftpFile[] files;
 			// path 가 null 이라면 부모
-			files = SSHController.PollListInDirectory(fileinfo.FullName);
+			files = SSHController.PullListInDirectory(fileinfo.FullName);
 			if(files == null)
 				return false;
 
@@ -126,7 +127,11 @@ namespace Manager_proj_4.UserControls
 				}
 			}
 		}
+		//public string bindingName = "";
+		//public string BindingName { get { return bindingName; } set { bindingName = value; } }
 
+		private SftpFile fileInfo;
+		public SftpFile FileInfo { get { return fileInfo; } set { fileInfo = value; } }
 		#region header
 		public class Grid_Header : Grid
 		{
@@ -164,17 +169,20 @@ namespace Manager_proj_4.UserControls
 		public new Grid_Header Header { get { return base.Header as Grid_Header; } set { base.Header = value; } }
 		#endregion
 
-		public LinuxTreeViewItem(string _path, string header = null, bool _isDirectory = false)
+		public LinuxTreeViewItem(string _path, SftpFile _file, string header, bool _isDirectory, LinuxTreeViewItem _parent)
 		{
 			if(header == null && _path != null)
 			{
 				string[] splited = _path.Split('/');
 				header = splited[splited.Length - 1];
 			}
-
+			
 			this.Header = new Grid_Header(header);
 			this.Cursor = Cursors.Hand;
 			this.Path = _path;
+			this.parent = _parent;
+
+			FileInfo = _file;
 
 			InitContextMenu();
 
@@ -208,12 +216,12 @@ namespace Manager_proj_4.UserControls
 			item.Click += OnClickEncrypt;
 			this.ContextMenu.Items.Add(item);
 			item = new MenuItem();
-			item.Icon = new PackIconFontAwesome()
-			{
-				Kind = PackIconFontAwesomeKind.Unlock,
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Center
-			};
+			//item.Icon = new PackIconFontAwesome()
+			//{
+			//	Kind = PackIconFontAwesomeKind.Unlock,
+			//	VerticalAlignment = VerticalAlignment.Center,
+			//	HorizontalAlignment = HorizontalAlignment.Center
+			//};
 			item.Header = "복호화";
 			item.Click += OnClickDecrypt;
 			this.ContextMenu.Items.Add(item);
@@ -227,7 +235,7 @@ namespace Manager_proj_4.UserControls
 			TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 			txt.Text = "";
 			SSHController.view_message_caption = "Encrypt";
-			SSHController.SendNRecvCofileCommand(selected_list.ToArray(), true);
+			SSHController.SendNRecvCofileCommand(selected_list, true);
 			//LinuxTreeViewItem.Refresh();
 		}
 		private void OnClickDecrypt(object sender, RoutedEventArgs e)
@@ -239,7 +247,7 @@ namespace Manager_proj_4.UserControls
 			TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 			txt.Text = "";
 			SSHController.view_message_caption = "Decrypt";
-			SSHController.SendNRecvCofileCommand(selected_list.ToArray(), false);
+			SSHController.SendNRecvCofileCommand(selected_list, false);
 			//LinuxTreeViewItem.Refresh();
 		}
 		#endregion
@@ -275,7 +283,7 @@ namespace Manager_proj_4.UserControls
 				}
 			}
 		}
-		private void MyFocuse()
+		public new void Focus()
 		{
 			// 다른 선택 해제
 			while(selected_list.Count > 0)
@@ -283,10 +291,20 @@ namespace Manager_proj_4.UserControls
 				selected_list[0].MySelected = false;
 			}
 			MySelected = true;
+
+			var tvItem = (LinuxTreeViewItem)this;
+			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
+			
+			for(var i = itemCount - 1; i >= 0; i--)
+			{
+				var child = VisualTreeHelper.GetChild(tvItem, i);
+				((FrameworkElement)child).BringIntoView();
+			}
 		}
 
 		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
 		{
+			//base.OnMouseLeftButtonDown(e);
 			if(WindowMain.bCtrl)
 				MySelected = !MySelected;
 			else if(WindowMain.bShift && selected_list.Count > 0)
@@ -313,33 +331,91 @@ namespace Manager_proj_4.UserControls
 					}
 				}
 				else
-					MyFocuse();
+					Focus();
 			}
 			else
-				MyFocuse();
+				Focus();
 
+			if(e.ClickCount > 1)
+			{
+				//this.RefreshChild();
+				this.IsExpanded = true;
+			}
+			
 			e.Handled = true;
 		}
 		protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
 		{
 			if(selected_list.IndexOf(this) < 0)
-				this.MyFocuse();
+				this.Focus();
 			base.OnMouseRightButtonDown(e);
 			e.Handled = true;
 		}
 		#endregion
 
-		#region Load Directory On Expanded
+		// 외부에서 수정 불가 이벤트로만 수정
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			PublicMouseMove(e);
+		}
+		public void PublicMouseMove(MouseEventArgs e)
+		{
+			//Log.Print(linked_jtoken);
+			base.OnMouseMove(e);
+			if(e.LeftButton == MouseButtonState.Pressed
+				&& LinuxTreeViewItem.selected_list.Count > 0)
+			{
+				DataObject data = new DataObject();
+				data.SetData("Object", LinuxTreeViewItem.selected_list);
+				DragDrop.DoDragDrop(this, data, DragDropEffects.Copy);
+			}
+
+			e.Handled = true;
+		}
+
+
+		#region Load Directory And Refresh View		
 		protected override void OnExpanded(RoutedEventArgs e)
 		{
-			RefreshChild();
+			base.OnExpanded(e);
+			this.Focus();
+
+
+			var tvItem = (LinuxTreeViewItem)e.OriginalSource;
+			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
+			
+			for(var i = itemCount - 1; i >= 0; i--)
+			{
+				var child = VisualTreeHelper.GetChild(tvItem, i);
+				((FrameworkElement)child).BringIntoView();
+			}
+
+			//if(this.Items.Count > 0)
+			//	((FrameworkElement)this.Items[0]).BringIntoView();
 		}
-		public void RefreshChild()
+		public static LinuxTreeViewItem Last_Refresh_Parent = null;
+		public void RefreshChild(string remained_path = null)
 		{
 			if(IsDirectory)
 			{
-				loadDirectory();
-				Filter_string = filter_string;
+				this.IsExpanded = true;
+
+				Last_Refresh_Parent = this;
+
+				ReLoadDirectory(remained_path);
+				// refresh filter
+				Cofile.Filter_string = Cofile.Filter_string;
+			}
+		}
+		private LinuxTreeViewItem parent = null;
+		public new LinuxTreeViewItem Parent {
+			get
+			{
+				LinuxTreeViewItem ltvi = base.Parent as LinuxTreeViewItem;
+				if(ltvi == null)
+					return parent;
+
+				return ltvi;
 			}
 		}
 		public void RefreshChildFromParent()
@@ -350,11 +426,11 @@ namespace Manager_proj_4.UserControls
 
 			par.RefreshChild();
 		}
-		void loadDirectory()
+		// remind_path = '/' 부터 시작
+		void ReLoadDirectory(string remainned_path = null)
 		{
 			SftpFile[] files;
-			// path 가 null 이라면 부모
-			files = SSHController.PollListInDirectory(this.path);
+			files = SSHController.PullListInDirectory(this.path);
 			if(files == null)
 			{
 				this.IsExpanded = false;
@@ -362,8 +438,6 @@ namespace Manager_proj_4.UserControls
 			}
 
 			this.Items.Clear();
-
-			Cofile.current.RefreshListView(files);
 
 			int count_have_directory = 0;
 			foreach(var file in files)
@@ -382,119 +456,48 @@ namespace Manager_proj_4.UserControls
 				{
 					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, true));
 					//this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
-					ltvi = new LinuxTreeViewItem(file.FullName, file.Name, true);
+					ltvi = new LinuxTreeViewItem(file.FullName, file, file.Name, true, this);
 					this.Items.Insert(count_have_directory++, ltvi);
+
+					// remainned_path = '/' 부터 시작
+					if(remainned_path != null)
+					{
+						string[] split = remainned_path.Split('/');
+						if(split.Length > 1 && split[1] == file.Name)
+						{
+							ltvi.RefreshChild(remainned_path.Substring(split[1].Length + 1));
+						}
+					}
 				}
 				else
 				{
 					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, false));
-					ltvi = new LinuxTreeViewItem(file.FullName, file.Name, false);
+					ltvi = new LinuxTreeViewItem(file.FullName, file, file.Name, false, this);
 					this.Items.Add(ltvi);
 					//if(file.Name.Substring(file.Name.Length - test_filter.Length, test_filter.Length) != test_filter)
 					//	ltvi.Visibility = Visibility.Collapsed;
 				}
-
-
 			}
 		}
-		//void loadDirectory()
-		//{
-		//	SftpFile[] files;
-		//	// path 가 null 이라면 부모
-		//	files = SSHController.PollListInDirectory(this.path);
-		//	if(files == null)
-		//	{
-		//		this.IsExpanded = false;
-		//		return;
-		//	}
-
-		//	this.Items.Clear();
-
-		//	Cofile.current.RefreshListView(files);
-
-		//	int count_have_directory = 0;
-		//	foreach(var file in files)
-		//	{
-		//		int i;
-		//		for(i = 0; i < IGNORE_FILENAME.Length; i++)
-		//		{
-		//			if(file.Name == IGNORE_FILENAME[i])
-		//				break;
-		//		}
-		//		if(i != IGNORE_FILENAME.Length)
-		//			continue;
-
-		//		LinuxTreeViewItem ltvi;
-		//		if(file.IsDirectory)
-		//		{
-		//			//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, true));
-		//			//this.Items.Add(new LinuxTreeViewItem(file.FullName, file.Name, true));
-		//			ltvi = new LinuxTreeViewItem(file.FullName, file.Name, true);
-		//			this.Items.Insert(count_have_directory++, ltvi);
-		//		}
-		//		else
-		//		{
-		//			//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, false));
-		//			ltvi = new LinuxTreeViewItem(file.FullName, file.Name, false);
-		//			this.Items.Add(ltvi);
-		//			//if(file.Name.Substring(file.Name.Length - test_filter.Length, test_filter.Length) != test_filter)
-		//			//	ltvi.Visibility = Visibility.Collapsed;
-		//		}
-
-
-		//	}
-		//}
 		#endregion
 
 		#region Visible Filter Via Regular Expresion
-		static string filter_except_hidden = @"(^[^\.])";
-		static bool bool_except_hidden = true;
-		public static bool Bool_except_hidden
-		{
-			get { return bool_except_hidden; }
-			set
-			{
-				bool_except_hidden = value;
-
-				Filter_string = filter_string;
-			}
-		}
-
-		static string filter_string = "";
-		public static string Filter_string
-		{
-			get { return filter_string; }
-			set
-			{
-				filter_string = value;
-				if(bool_except_hidden)
-				{
-					if(filter_string == "")
-						LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_except_hidden);
-					else
-						LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_except_hidden + ".*" + filter_string);
-				}
-				else
-				{
-					LinuxTreeViewItem.filter(LinuxTreeViewItem.root, filter_string);
-				}
-			}
-		}
-		static void filter(LinuxTreeViewItem parent, string filter_string)
+		
+		public static void Filter(LinuxTreeViewItem parent, string filter_string, bool bShow_hidden)
 		{
 			if(parent == null)
 				return;
 			try
 			{
 				Regex r = new Regex(filter_string);
-				filter_recursive(parent, r);
+				filter_recursive(parent, r, bShow_hidden);
 			}
 			catch(Exception e)
 			{
 				Console.WriteLine(e.Message);
 			}
 		}
-		static void filter_recursive(LinuxTreeViewItem cur, Regex filter_string)
+		static void filter_recursive(LinuxTreeViewItem cur, Regex filter_string, bool bShow_hidden)
 		{
 			for(int i = 0; i < cur.Items.Count; i++)
 			{
@@ -503,11 +506,13 @@ namespace Manager_proj_4.UserControls
 					continue;
 
 				string name = child.Header.Text;
-				if(!filter_string.IsMatch(name))
+				if(!filter_string.IsMatch(name)
+					|| (!bShow_hidden && name[0] == '.'))
 					child.Visibility = Visibility.Collapsed;
 				else
 				{
 					child.Visibility = Visibility.Visible;
+
 					LinuxTreeViewItem parent = child.Parent as LinuxTreeViewItem;
 					while(parent != null)
 					{
@@ -517,7 +522,7 @@ namespace Manager_proj_4.UserControls
 				}
 
 				if(child.IsDirectory)
-					filter_recursive(child, filter_string);
+					filter_recursive(child, filter_string, bShow_hidden);
 			}
 		}
 		#endregion

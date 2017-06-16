@@ -121,7 +121,7 @@ namespace Manager_proj_4
 		#endregion
 
 		public delegate void CallBack();
-		public async void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)
+		public void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)
 		{
 			//MetroDialogOptions.ColorScheme = MetroDialogColorScheme.Theme;
 			//var mySettings = new MetroDialogSettings()

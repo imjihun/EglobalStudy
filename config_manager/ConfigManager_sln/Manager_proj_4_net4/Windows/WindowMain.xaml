@@ -1,18 +1,17 @@
-﻿<Controls:MetroWindow x:Class="Manager_proj_4.WindowMain"
+﻿<Controls:MetroWindow	x:Class="Manager_proj_4_net4.Windows.WindowMain"
 						xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 						xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 						xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 						xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-						xmlns:local="clr-namespace:Manager_proj_4"
-						xmlns:UserControls="clr-namespace:Manager_proj_4.UserControls"
+					  
+						xmlns:local="clr-namespace:Manager_proj_4_net4"
+						xmlns:UserControls="clr-namespace:Manager_proj_4_net4.UserControls"
 					  
 						xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-						xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
-						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-					   xmlns:Util="clr-namespace:Utils"
+						
 						mc:Ignorable="d"
 					    TitleCharacterCasing="Normal"
-						Title="CubeOne™ API For File" Height="756" Width="1024"
+						Title="{StaticResource AppName}" Height="756" Width="1024"
 						ToolBarTray.IsLocked="True">
 	<Grid>
 		<Grid.RowDefinitions>
@@ -57,23 +56,23 @@
 											  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 											  SelectionChanged="TabControl_SelectionChanged"
 											  Controls:TabControlHelper.IsUnderlined="True" Controls:TabControlHelper.Underlined="TabPanel">
-				<TabItem Header="Cofile">
+				<TabItem Header="{StaticResource Tab_Cofile}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<!-- 이렇게 바인딩 시키면 이벤트(버블링)발생할때 탭컨트롤의 자식이된다. (SelectionChanged 이벤트가 Cofile안에 ComboBox 에 의해 발생되어도 탭컨트롤의 SelectionChanged 이벤트가 반응한다. -->
 						<UserControls:Cofile DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="Config">
+				<TabItem Header="{StaticResource Tab_Config}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:ConfigJsonTree DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="Log">
+				<TabItem Header="{StaticResource Tab_Log}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:Sqlite_LogTable DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="Monitor" >
+				<TabItem Header="{StaticResource Tab_Monitor}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:Sqlite_StatusTable DataContext="{Binding}"/>
 					</Grid>
@@ -86,6 +85,7 @@
 					</Grid>
 				</TabItem>-->
 			</Controls:MetroAnimatedTabControl>
+			<Label x:Name="label_serverinfo" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"/>
 		</Grid>
 	</Grid>
 </Controls:MetroWindow>

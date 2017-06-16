@@ -1,4 +1,4 @@
-﻿using Manager_proj_4.Classes;
+﻿using Manager_proj_4_net4.Classes;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Manager_proj_4.Classes
+namespace Manager_proj_4_net4.Classes
 {
 	class JsonController
 	{

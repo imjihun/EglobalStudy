@@ -1,0 +1,13 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:system="clr-namespace:System;assembly=mscorlib" >
+	<!--x:Name="StringResources">-->
+	
+	<system:String x:Key="AppName">CubeOne™ API For File</system:String>
+	
+	<system:String x:Key="Tab_Cofile">Cofile</system:String>
+	<system:String x:Key="Tab_Config">Config</system:String>
+	<system:String x:Key="Tab_Log">Log</system:String>
+	<system:String x:Key="Tab_Monitor">Monitor</system:String>
+
+</ResourceDictionary>

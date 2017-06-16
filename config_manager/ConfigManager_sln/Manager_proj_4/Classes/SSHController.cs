@@ -34,7 +34,10 @@ namespace Manager_proj_4.Classes
 
 			return true;
 		}
-		static bool ReConnect(int timeout_ms = -1)
+
+		const int NO_TIMEOUT = -1;
+		static int timeout_connect_ms = NO_TIMEOUT;
+		static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
 			if(ServerList.selected_serverinfo_textblock == null)
 				return false;
@@ -52,11 +55,11 @@ namespace Manager_proj_4.Classes
 					txt.Text = "";
 
 					sftp = new SftpClient(ip, port, id, password);
-					if(timeout_ms != -1)
+					if(timeout_ms != NO_TIMEOUT)
 						sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
 					sftp.Connect();
 					ssh = new SshClient(ip, port, id, password);
-					if(timeout_ms != -1)
+					if(timeout_ms != NO_TIMEOUT)
 						ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
 					ssh.Connect();
 
@@ -94,7 +97,7 @@ namespace Manager_proj_4.Classes
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
@@ -125,7 +128,7 @@ namespace Manager_proj_4.Classes
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
@@ -160,7 +163,7 @@ namespace Manager_proj_4.Classes
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return false;
 
 			try
@@ -432,7 +435,9 @@ namespace Manager_proj_4.Classes
 			{
 				string str = read();
 				if(str.Length > 0)
+				{
 					;//LinuxTreeViewItem.ViewLog("[read] " + str);
+				}
 			}
 		}
 		#endregion
@@ -459,7 +464,7 @@ namespace Manager_proj_4.Classes
 		}
 		public static SftpFile[] PollListInDirectory(string Path)
 		{
-			if(!SSHController.ReConnect(1000))
+			if(!SSHController.ReConnect(timeout_connect_ms))
 				return null;
 
 			// path 가 null 이라면 root

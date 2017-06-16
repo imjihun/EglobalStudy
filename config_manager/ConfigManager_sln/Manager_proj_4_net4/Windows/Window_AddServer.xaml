@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Manager_proj_4"
+        xmlns:local="clr-namespace:Manager_proj_4_net4"
         xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
-		x:Class="Manager_proj_4.Window_AddServer"
+		x:Class="Manager_proj_4_net4.Windows.Window_AddServer"
         mc:Ignorable="d"
         Title="Window_MakeSession" Height="215" Width="200"
         WindowStyle="None"
@@ -40,21 +40,26 @@
 					<TextBox x:Name="textBox_ip" Background="{x:Null}"
 							 Margin="40,35,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Ip"/>
 
-					<TextBlock Text="id"
+					<TextBlock Text="port"
 							   Margin="5,65,5,5" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" TextAlignment="Right"/>
+					<TextBox x:Name="textBox_port" Background="{x:Null}"
+							 Margin="40,65,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Port"/>
+
+					<!--<TextBlock Text="id"
+							   Margin="5,65,5,5" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" TextAlignment="Right"/>-->
 					<!--<TextBlock Text="Server Id"
 							   Margin="40,65,5,5" VerticalAlignment="Top"
 							   Foreground="LightSteelBlue" Visibility="{Binding Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}, ElementName=textBox_id}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
-					<TextBox x:Name="textBox_id" Background="{x:Null}"
-							 Margin="40,65,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Id"/>
+					<!--<TextBox x:Name="textBox_id" Background="{x:Null}"
+							 Margin="40,65,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Id"/>-->
 
-					<TextBlock Text="pass"
-							   Margin="5,95,5,5" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" TextAlignment="Right"/>
+					<!--<TextBlock Text="pass"
+							   Margin="5,95,5,5" VerticalAlignment="Top" HorizontalAlignment="Left" Width="30" TextAlignment="Right"/>-->
 					<!--<TextBlock x:Name="textBlock_password_hint" Text="Server Password"
 							   Margin="40,95,5,5" VerticalAlignment="Top"
 							   Foreground="LightSteelBlue" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
-					<PasswordBox x:Name="textBox_password" Background="{x:Null}"
-								 Margin="40,95,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Password"/>
+					<!--<PasswordBox x:Name="textBox_password" Background="{x:Null}"
+								 Margin="40,95,5,5" VerticalAlignment="Top" Custom:TextBoxHelper.Watermark="Server Password"/>-->
 				</Grid>
 				<Grid Height="35" VerticalAlignment="Bottom">
 					<Button Content="ok" Background="White"

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	/// ServerCommand.xaml에 대한 상호 작용 논리
@@ -41,7 +41,7 @@ namespace Manager_proj_4.UserControls
 				return;
 
 			CommandView.clear();
-			CommandView.current.textBlock_server_name.Text = si.name + " / " + si.ip + " / " + si.id /*+ " / " + si.password*/;
+			CommandView.current.textBlock_server_name.Text = si.name + " / " + si.ip /*+ " / " + si.id + " / " + si.password*/;
 
 			if(CommandView.current == null)
 				return;

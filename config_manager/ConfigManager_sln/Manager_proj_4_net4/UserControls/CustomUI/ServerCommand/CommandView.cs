@@ -1,4 +1,4 @@
-﻿using Manager_proj_4.Classes;
+﻿using Manager_proj_4_net4.Classes;
 using Renci.SshNet;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	///  빠진 UI
@@ -27,7 +27,7 @@ namespace Manager_proj_4.UserControls
 		public TextBox textBox_command;
 		public TextBox textBox_result;
 
-		DispatcherTimer timer_read;
+		DispatcherTimer timer_read = null;
 		ShellStream shell_stream;
 
 		public new Visibility Visibility
@@ -117,8 +117,10 @@ namespace Manager_proj_4.UserControls
 				return;
 
 			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			string id = "root";
+			string password = "root";
+			//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
 			string command = textBox_command.Text;
 			textBox_command.Text = "";
 
@@ -224,8 +226,10 @@ namespace Manager_proj_4.UserControls
 				return;
 
 			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			string id = "root";
+			string password = "root";
+			//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
 			SftpClient sftp = new SftpClient(ip, id, password);
 			sftp.Connect();
 
@@ -248,8 +252,10 @@ namespace Manager_proj_4.UserControls
 				return;
 
 			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
-			string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
-			string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+			string id = "root";
+			string password = "root";
+			//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+			//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
 			SftpClient sftp = new SftpClient(ip, id, password);
 			sftp.Connect();
 

@@ -1,4 +1,4 @@
-﻿using Manager_proj_4.Classes;
+﻿using Manager_proj_4_net4.Classes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	/// UserControl1.xaml에 대한 상호 작용 논리
@@ -185,7 +185,7 @@ namespace Manager_proj_4.UserControls
 			_table.Columns.RemoveAt(new_idx + 1);
 		}
 
-		string filter_total = "";
+		// string filter_total = "";
 		bool bFiltering = false;
 		enum Filter_Idx
 		{
@@ -307,6 +307,9 @@ namespace Manager_proj_4.UserControls
 				////	}
 				////	dataGrid.ItemsSource = ItemsSource.CopyToDataTable().DefaultView;
 				//}
+				if(dataGrid == null || Current_table == null)
+					return;
+
 				dataGrid.ItemsSource = new DataView();
 
 				Filtering_row = Current_table.Select();

@@ -20,10 +20,11 @@ using System.Windows.Input;
 using System.Windows.Data;
 using MahApps.Metro.Controls;
 using MahApps.Metro.IconPacks;
-using Manager_proj_4.Classes;
+using Manager_proj_4_net4.Classes;
 using Manager_proj_4_net4;
+using Manager_proj_4_net4.Windows;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	#region Json Tree Class
 	/// <summary>
@@ -31,7 +32,7 @@ namespace Manager_proj_4.UserControls
 	///							-> Items  -> JsonTreeViewItem, MoreButton(ToggleButton)
 	/// </summary>
 
-	class Size
+	class JsonTreeViewItemSize
 	{
 		public const int HEIGHT_HEADER = 40;
 		//public const int WIDTH = 30;
@@ -47,7 +48,7 @@ namespace Manager_proj_4.UserControls
 		public const int HEIGHT_MOREBUTTON = 30;
 		public const int WIDTH_MOREBUTTON = 35;
 
-		public const int WIDTH_VALUEPANEL = Size.WIDTH_TEXTBOX + Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX;
+		public const int WIDTH_VALUEPANEL = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX;
 	}
 	class JsonTreeViewItem : TreeViewItem
 	{
@@ -60,6 +61,9 @@ namespace Manager_proj_4.UserControls
 			{
 				path = value;
 
+				if(JsonTreeViewItem.Root == null)
+					return;
+
 				Label label = JsonTreeViewItem.Root.Header.Children[0] as Label;
 				if(label == null)
 					return;
@@ -69,7 +73,8 @@ namespace Manager_proj_4.UserControls
 		public static void Clear()
 		{
 			Path = null;
-			Root.Items.Clear();
+			if(Root != null)
+				Root.Items.Clear();
 		}
 		public static string Filename
 		{
@@ -600,17 +605,16 @@ namespace Manager_proj_4.UserControls
 	{
 		public JsonAddButton addButtn;
 		public JsonDeleteButton deleteButton;
-		public JsonTreeViewItem this_jtvi { get { return this.Parent as JsonTreeViewItem; } }
 		public JsonTreeViewItemHeader()
 		{
-			this.Height = Size.HEIGHT_HEADER;
+			this.Height = JsonTreeViewItemSize.HEIGHT_HEADER;
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			//this.Orientation = Orientation.Horizontal;
 
-			deleteButton = new JsonDeleteButton(this_jtvi);
+			deleteButton = new JsonDeleteButton();
 			AddItem(deleteButton);
 
-			addButtn = new JsonAddButton(this_jtvi);
+			addButtn = new JsonAddButton();
 			AddItem(addButtn);
 
 		}
@@ -626,11 +630,11 @@ namespace Manager_proj_4.UserControls
 			{
 				if(item is JsonDeleteButton)
 				{
-					item.Margin = new Thickness(Size.MARGIN_BUTTON, Size.MARGIN_BUTTON, Size.MARGIN_BUTTON, Size.MARGIN_BUTTON);
+					item.Margin = new Thickness(JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON);
 				}
 				else if(item is JsonAddButton)
 				{
-					item.Margin = new Thickness(Size.MARGIN_BUTTON, Size.MARGIN_BUTTON, Size.MARGIN_BUTTON + Size.WIDTH_BUTTON + Size.MARGIN_BUTTON, Size.MARGIN_BUTTON);
+					item.Margin = new Thickness(JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON + JsonTreeViewItemSize.WIDTH_BUTTON + JsonTreeViewItemSize.MARGIN_BUTTON, JsonTreeViewItemSize.MARGIN_BUTTON);
 				}
 			}
 			else
@@ -638,9 +642,9 @@ namespace Manager_proj_4.UserControls
 				double left = item.Margin.Left;
 				for(int i = 0; i < idx_insert; i++)
 				{
-					left += Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX;
+					left += JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX;
 				}
-				item.Margin = new Thickness(left, Size.MARGIN_TEXTBOX, Size.MARGIN_TEXTBOX, Size.MARGIN_TEXTBOX);
+				item.Margin = new Thickness(left, JsonTreeViewItemSize.MARGIN_TEXTBOX, JsonTreeViewItemSize.MARGIN_TEXTBOX, JsonTreeViewItemSize.MARGIN_TEXTBOX);
 			}
 		}
 	}
@@ -648,24 +652,20 @@ namespace Manager_proj_4.UserControls
 	// Add, Delete Button Class
 	class JsonButton : Button
 	{
-		public JsonTreeViewItem this_jtvi = null;
-		public JsonButton(JsonTreeViewItem _this_jtvi)
+		public JsonButton()
 		{
 			//this.BorderBrush = null;
 			//this.Background = Brushes.White;
 			//this.Margin = new Thickness(Size.MARGIN_BUTTON, Size.MARGIN_BUTTON, 150, Size.MARGIN_BUTTON);
-			this.Width = Size.WIDTH_BUTTON;
-			this.Height = Size.HEIGHT_BUTTON;
+			this.Width = JsonTreeViewItemSize.WIDTH_BUTTON;
+			this.Height = JsonTreeViewItemSize.HEIGHT_BUTTON;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalAlignment = HorizontalAlignment.Right;
-
-			this_jtvi = _this_jtvi;
 		}
 	}
 	class JsonAddButton : JsonButton
 	{
-		public JsonAddButton(JsonTreeViewItem this_jtvi)
-			:base(this_jtvi)
+		public JsonAddButton()
 		{
 			this.Content = new PackIconModern()
 			{
@@ -680,6 +680,7 @@ namespace Manager_proj_4.UserControls
 		protected override void OnClick()
 		{
 			base.OnClick();
+			JsonTreeViewItem this_jtvi = (this.Parent as Grid).Parent as JsonTreeViewItem;
 			if(this_jtvi == null)
 				return;
 
@@ -712,8 +713,7 @@ namespace Manager_proj_4.UserControls
 	}
 	class JsonDeleteButton : JsonButton
 	{
-		public JsonDeleteButton(JsonTreeViewItem this_jtvi)
-			:base(this_jtvi)
+		public JsonDeleteButton()
 		{
 			//this.Content = App.Current.Resources["appbar_close"];
 			//this.Content = new MahApps.Metro.IconPacks.PackIconModern();
@@ -731,6 +731,11 @@ namespace Manager_proj_4.UserControls
 		protected override void OnClick()
 		{
 			base.OnClick();
+
+			JsonTreeViewItem this_jtvi = (this.Parent as Grid).Parent as JsonTreeViewItem;
+			if(this_jtvi == null)
+				return;
+
 			if(this_jtvi != null)
 				this_jtvi.Remove();
 			//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());
@@ -748,8 +753,8 @@ namespace Manager_proj_4.UserControls
 				VerticalAlignment = VerticalAlignment.Stretch,
 				HorizontalAlignment = HorizontalAlignment.Stretch
 			};
-			this.Width = Size.WIDTH_MOREBUTTON;
-			this.Height = Size.HEIGHT_MOREBUTTON;
+			this.Width = JsonTreeViewItemSize.WIDTH_MOREBUTTON;
+			this.Height = JsonTreeViewItemSize.HEIGHT_MOREBUTTON;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 			//this.Background = Brushes.White;
 			//this.BorderBrush = null;
@@ -784,7 +789,7 @@ namespace Manager_proj_4.UserControls
 		{
 			this.AllowDrop = true;
 
-			this.Width = Size.WIDTH_TEXTBOX;
+			this.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 			//this.Height = Size.HEIGHT_TEXTBOX;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 		}
@@ -855,7 +860,7 @@ namespace Manager_proj_4.UserControls
 		public KeyTextBox(string text, bool isModify = true)
 		{
 			this.Text = text;
-			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
+			this.Margin = new Thickness(JsonTreeViewItemSize.MARGIN_TEXTBOX);
 
 			if(!isModify)
 			{
@@ -874,8 +879,8 @@ namespace Manager_proj_4.UserControls
 			this.AllowDrop = true;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 			this.VerticalAlignment = VerticalAlignment.Stretch;
-			this.Margin = new Thickness(Size.MARGIN_TEXTBOX);
-			this.Width = Size.WIDTH_VALUEPANEL;
+			this.Margin = new Thickness(JsonTreeViewItemSize.MARGIN_TEXTBOX);
+			this.Width = JsonTreeViewItemSize.WIDTH_VALUEPANEL;
 			this.Orientation = Orientation.Horizontal;
 
 			type = _type;
@@ -901,7 +906,7 @@ namespace Manager_proj_4.UserControls
 
 					ToggleSwitch ts = new ToggleSwitch();
 					ts.IsChecked = (bool)value;
-					ts.Width = Size.WIDTH_TEXTBOX;
+					ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 					ts.FontSize = 13;
 					ts.OffLabel = "False";
 					ts.OnLabel = "True";
@@ -930,7 +935,7 @@ namespace Manager_proj_4.UserControls
 					//this.Children.Add(tb_integer);
 
 					NumericUpDown tb_integer = new NumericUpDown();
-					tb_integer.Width = Size.WIDTH_TEXTBOX;
+					tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 					//Console.WriteLine("\t\tval = " + this.value.GetType());
 					tb_integer.Value = (System.Int64)this.value;
 					tb_integer.HorizontalContentAlignment = HorizontalAlignment.Left;
@@ -951,7 +956,7 @@ namespace Manager_proj_4.UserControls
 					ValueTextBox tb_string = new ValueTextBox(value.ToString());
 					//ValueTextBox tb_string = new ValueTextBox("\"" + value.ToString() + "\"");
 					//tb_string.Text = "\"" + value.ToString() + "\"";
-					tb_string.Width = Size.WIDTH_TEXTBOX;
+					tb_string.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 					tb_string.TextChanged += delegate { this.value = tb_string.Text; };
 					this.Children.Add(tb_string);
 					break;

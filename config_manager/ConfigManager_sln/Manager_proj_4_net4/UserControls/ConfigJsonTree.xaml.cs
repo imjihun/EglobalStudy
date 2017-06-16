@@ -1,7 +1,8 @@
 ﻿using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
-using Manager_proj_4.Classes;
+using Manager_proj_4_net4.Classes;
+using Manager_proj_4_net4.Windows;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using System;
@@ -22,15 +23,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Manager_proj_4.UserControls
+namespace Manager_proj_4_net4.UserControls
 {
 	/// <summary>
 	/// ConfigJsonTree.xaml에 대한 상호 작용 논리
 	/// </summary>
 	public partial class ConfigJsonTree : UserControl
 	{
+		public static ConfigJsonTree current;
 		public ConfigJsonTree()
 		{
+			current = this;
 			InitializeComponent();
 			InitJsonFileView();
 		}
@@ -49,6 +52,12 @@ namespace Manager_proj_4.UserControls
 			{
 				Log.PrintError(e.Message, "CreateDirectory", Status.current.richTextBox_status);
 			}
+		}
+		public void Refresh()
+		{
+			string path = root_path;
+			path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
+			SSHController.GetConfig(path);
 		}
 		public void refreshJsonTree(JToken jtok_root)
 		{
@@ -71,7 +80,7 @@ namespace Manager_proj_4.UserControls
 			label.VerticalAlignment = VerticalAlignment.Center;
 			label.Content = JsonTreeViewItem.Filename;
 			root_jtree.Header.Children.Insert(0, label);
-			int MAX_WIDTH_TREE = Size.WIDTH_TEXTBOX + Size.MARGIN_TEXTBOX + Size.WIDTH_VALUEPANEL + 50;
+			int MAX_WIDTH_TREE = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX + JsonTreeViewItemSize.WIDTH_VALUEPANEL + 50;
 			root_jtree.Header.Width = MAX_WIDTH_TREE;
 			json_tree_view.Items.Add(root_jtree);
 
@@ -81,13 +90,14 @@ namespace Manager_proj_4.UserControls
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
 			if(JsonTreeViewItem.Path != null)
+			{
 				;
+			}
 
 			WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile);
 		}
 		private void NewJsonFile()
 		{
-
 			JsonTreeViewItem.Clear();
 			//if(JSonInfo.current.IsModify_tree)
 			//{
@@ -102,7 +112,8 @@ namespace Manager_proj_4.UserControls
 			//	}
 			//}
 			//JsonInfo.current.Jtok_root = new JObject();
-			refreshJsonTree(new JObject());
+			JToken jtok = JsonController.parseJson(Properties.Resources.file_config_default);
+			refreshJsonTree(jtok);
 		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
@@ -218,7 +229,7 @@ namespace Manager_proj_4.UserControls
 			if(root == null)
 				return;
 
-			Window_ViewFile w = new Window_ViewFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
+			Window_EditFile w = new Window_EditFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
 			//Window_ViewFile w = new Window_ViewFile(FileContoller.read(JsonInfo.current.Path), JsonInfo.current.Path);
 
 			if(w.ShowDialog() == true)

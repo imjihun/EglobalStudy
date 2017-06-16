@@ -59,6 +59,9 @@ namespace Manager_proj_4.UserControls
 			{
 				path = value;
 
+				if(JsonTreeViewItem.Root == null)
+					return;
+
 				Label label = JsonTreeViewItem.Root.Header.Children[0] as Label;
 				if(label == null)
 					return;
@@ -68,7 +71,8 @@ namespace Manager_proj_4.UserControls
 		public static void Clear()
 		{
 			Path = null;
-			Root.Items.Clear();
+			if(Root != null)
+				Root.Items.Clear();
 		}
 		public static string Filename
 		{
@@ -599,17 +603,16 @@ namespace Manager_proj_4.UserControls
 	{
 		public JsonAddButton addButtn;
 		public JsonDeleteButton deleteButton;
-		public JsonTreeViewItem this_jtvi { get { return this.Parent as JsonTreeViewItem; } }
 		public JsonTreeViewItemHeader()
 		{
 			this.Height = Size.HEIGHT_HEADER;
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			//this.Orientation = Orientation.Horizontal;
 
-			deleteButton = new JsonDeleteButton(this_jtvi);
+			deleteButton = new JsonDeleteButton();
 			AddItem(deleteButton);
 
-			addButtn = new JsonAddButton(this_jtvi);
+			addButtn = new JsonAddButton();
 			AddItem(addButtn);
 
 		}
@@ -647,8 +650,7 @@ namespace Manager_proj_4.UserControls
 	// Add, Delete Button Class
 	class JsonButton : Button
 	{
-		public JsonTreeViewItem this_jtvi = null;
-		public JsonButton(JsonTreeViewItem _this_jtvi)
+		public JsonButton()
 		{
 			//this.BorderBrush = null;
 			//this.Background = Brushes.White;
@@ -657,14 +659,11 @@ namespace Manager_proj_4.UserControls
 			this.Height = Size.HEIGHT_BUTTON;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalAlignment = HorizontalAlignment.Right;
-
-			this_jtvi = _this_jtvi;
 		}
 	}
 	class JsonAddButton : JsonButton
 	{
-		public JsonAddButton(JsonTreeViewItem this_jtvi)
-			:base(this_jtvi)
+		public JsonAddButton()
 		{
 			this.Content = new PackIconModern()
 			{
@@ -679,6 +678,7 @@ namespace Manager_proj_4.UserControls
 		protected override void OnClick()
 		{
 			base.OnClick();
+			JsonTreeViewItem this_jtvi = (this.Parent as Grid).Parent as JsonTreeViewItem;
 			if(this_jtvi == null)
 				return;
 
@@ -711,8 +711,7 @@ namespace Manager_proj_4.UserControls
 	}
 	class JsonDeleteButton : JsonButton
 	{
-		public JsonDeleteButton(JsonTreeViewItem this_jtvi)
-			:base(this_jtvi)
+		public JsonDeleteButton()
 		{
 			//this.Content = App.Current.Resources["appbar_close"];
 			//this.Content = new MahApps.Metro.IconPacks.PackIconModern();
@@ -730,6 +729,10 @@ namespace Manager_proj_4.UserControls
 		protected override void OnClick()
 		{
 			base.OnClick();
+			JsonTreeViewItem this_jtvi = (this.Parent as Grid).Parent as JsonTreeViewItem;
+			if(this_jtvi == null)
+				return;
+
 			if(this_jtvi != null)
 				this_jtvi.Remove();
 			//FileContoller.write(JsonInfo.current.filename, JsonInfo.current.jtok_root.ToString());

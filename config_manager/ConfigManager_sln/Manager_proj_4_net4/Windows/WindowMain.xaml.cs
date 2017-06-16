@@ -24,9 +24,9 @@ using Renci.SshNet.Sftp;
 using MahApps.Metro.Controls;
 using MahApps.Metro;
 using MahApps.Metro.Controls.Dialogs;
-using Manager_proj_4.Classes;
+using Manager_proj_4_net4.Classes;
 
-namespace Manager_proj_4
+namespace Manager_proj_4_net4.Windows
 {
 	/// <summary>
 	/// test4.xaml에 대한 상호 작용 논리
@@ -75,6 +75,7 @@ namespace Manager_proj_4
 		bool bUpdateDataBase = false;
 		bool bUpdateLinuxTree = false;
 		string changed_server_name = "";
+		string Changed_server_name { get { return changed_server_name; } set { changed_server_name = value; label_serverinfo.Content = changed_server_name + " is Connected"; } }
 
 		// 상단 탭이 바뀌었을때 작동
 		int idx_tab_before_change = 0;
@@ -88,7 +89,7 @@ namespace Manager_proj_4
 			if(!bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
 				&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
 			{
-				UserControls.DataBaseInfo.RefreshUi(changed_server_name);
+				UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
 				bUpdateDataBase = true;
 			}
 			idx_tab_before_change = tabControl.SelectedIndex;
@@ -109,6 +110,7 @@ namespace Manager_proj_4
 					}
 					break;
 				case 1:
+					UserControls.ConfigJsonTree.current.Refresh();
 					break;
 				case 2:
 				case 3:
@@ -116,7 +118,7 @@ namespace Manager_proj_4
 					bUpdateDataBase = true;
 					break;
 			}
-			changed_server_name = _changed_server_name;
+			Changed_server_name = _changed_server_name;
 		}
 		#endregion
 
@@ -141,5 +143,11 @@ namespace Manager_proj_4
 			if(alwayse_callback != null)
 				alwayse_callback();
 		}
+		
 	}
+
+
+	#region test
+
+	#endregion
 }

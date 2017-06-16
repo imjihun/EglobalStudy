@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="Manager_proj_4.UserControls.Sqlite_StatusTable"
+﻿<UserControl x:Class="Manager_proj_4_net4.UserControls.Sqlite_StatusTable"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Manager_proj_4.UserControls"
+             xmlns:local="clr-namespace:Manager_proj_4_net4.UserControls"
 			 
 			 xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 			 
