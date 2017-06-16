@@ -1,0 +1,113 @@
+﻿<Window x:Class="Manager_proj_4_net4.UserControls.LinuxDirectoryViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Manager_proj_4_net4.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+	<Window.Resources>
+		<local:HideStringToDoubleConverter x:Key="HideStringToOpacityConverter" />
+
+
+		<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListViewLinux_Icon">
+			<WrapPanel/>
+		</ItemsPanelTemplate>
+		<DataTemplate x:Key="DataTemplate_ListViewLinux_Icon">
+			<Grid Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}"
+				  Width="70" Margin="0">
+				<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
+					<Rectangle.Fill>
+						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/file.png"/>
+					</Rectangle.Fill>
+					<Rectangle.Visibility>
+						<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
+					</Rectangle.Visibility>
+				</Rectangle>
+				<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
+						   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}">
+					<Rectangle.Fill>
+						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/directory.png"/>
+					</Rectangle.Fill>
+				</Rectangle>
+				<TextBlock x:Name="name" Margin="0,32,0,0" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
+					<Run Text="{Binding BindingName, Mode=OneWay}"/>
+				</TextBlock>
+			</Grid>
+		</DataTemplate>
+
+		<GridView x:Key="GridView_ListViewLinux_Detail" AllowsColumnReorder="True">
+			<GridViewColumn Header="Name" Width="100" >
+				<GridViewColumn.CellTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+									Height="20" 
+									Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}">
+							<Image Source="/Manager_proj_4_net4;component/Resources/directory.png" Stretch="UniformToFill"
+								   HorizontalAlignment="Left" VerticalAlignment="Stretch"
+								   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}"/>
+							<Image Source="/Manager_proj_4_net4;component/Resources/file.png" Stretch="UniformToFill"
+								   HorizontalAlignment="Left" VerticalAlignment="Stretch"
+								   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyReverseBoolToVisibilityConverter}, ConverterParameter=true}"/>
+							<TextBlock Text="{Binding BindingName}"
+									   Margin="5,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+						</StackPanel>
+					</DataTemplate>
+				</GridViewColumn.CellTemplate>
+			</GridViewColumn>
+			<GridViewColumn Header="WriteTime" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+			<GridViewColumn Header="Type" Width="75" DisplayMemberBinding="{Binding Type}"/>
+			<GridViewColumn Header="Size" Width="75" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.Attributes.Size}"/>
+			<!--<GridViewColumn Header="UserId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.UserId}"/>
+			<GridViewColumn Header="GroupId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.GroupId}"/>-->
+		</GridView>
+
+		<DataTemplate x:Key="Test_Header">
+			<Label Content="{Binding Path=Name}"/>
+		</DataTemplate>
+		<TreeViewItem x:Key="Test"
+					  HeaderTemplate="{Binding Test_Header}"
+					  ItemTemplate="{Binding Test}"></TreeViewItem>
+	</Window.Resources>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="1*"/>
+			<RowDefinition Height="3*"/>
+		</Grid.RowDefinitions>
+
+		<Grid Grid.Column="0" Grid.Row="0">
+			<TreeView x:Name="treeView_linux_directory" ItemTemplate="{Binding Test_Header}">
+			</TreeView>
+		</Grid>
+		<Grid Grid.Column="0" Grid.Row="1" Margin="2">
+			<Grid Margin="0,0,3,0" Height="30" VerticalAlignment="Top">
+				<Label x:Name="label_listView_linux" Content="label" HorizontalAlignment="Left"/>
+				<Button Content="Refresh" Click="OnButtonClickRefresh"
+							Margin="0,0,75,0" HorizontalAlignment="Right"/>
+				<CheckBox x:Name="checkBox_linux_detail" Content="Detail" HorizontalAlignment="Right" Checked="OnCheckBoxCheckedFileDetail" Unchecked="OnCheckBoxUncheckedFileDetail"/>
+			</Grid>
+			<ListView x:Name="listView_linux_files" BorderBrush="{x:Null}" Margin="0,30,0,0"
+						  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+						  ScrollViewer.VerticalScrollBarVisibility="Auto" 
+						  ScrollViewer.CanContentScroll="True" 
+						  UseLayoutRounding="True"
+						  ItemsPanel="{StaticResource ItemsPanelTemplate_ListViewLinux_Icon}"
+						  ItemTemplate="{StaticResource DataTemplate_ListViewLinux_Icon}"
+						  SelectionMode="Extended"
+						  
+						  MouseDoubleClick="OnMouseDoubleClickLinuxListView"
+						  MouseMove="OnMouseMoveLinuxListView"
+						  >
+				<ListView.ItemContainerStyle>
+					<Style TargetType="ListViewItem">
+						<Setter Property="VerticalContentAlignment" Value="Top" />
+					</Style>
+				</ListView.ItemContainerStyle>
+			</ListView>
+		</Grid>
+
+		<GridSplitter Background="Gray"
+						  Grid.Column="0" Grid.Row="0"
+						  HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="2"/>
+	</Grid>
+</Window>

@@ -5,6 +5,7 @@ using Manager_proj_4_net4.Classes;
 using Manager_proj_4_net4.Windows;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
+using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -37,16 +38,15 @@ namespace Manager_proj_4_net4.UserControls
 			InitializeComponent();
 			InitJsonFileView();
 		}
-
 		#region Json Tree Area
 		static string DIR = @"config\";
 		public static string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
-
+		public static string cur_root_path = root_path;
 		void InitJsonFileView()
 		{
 			try
 			{
-				FileContoller.CreateDirectory(root_path);
+				FileContoller.CreateDirectory(cur_root_path);
 			}
 			catch(Exception e)
 			{
@@ -55,9 +55,13 @@ namespace Manager_proj_4_net4.UserControls
 		}
 		public void Refresh()
 		{
-			string path = root_path;
-			path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
-			SSHController.GetConfig(path);
+			if(ServerList.selected_serverinfo_textblock == null
+				|| ServerList.selected_serverinfo_textblock.serverinfo == null)
+				return;
+
+			cur_root_path = root_path;
+			cur_root_path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
+			SSHController.GetConfig(cur_root_path);
 		}
 		public void refreshJsonTree(JToken jtok_root)
 		{
@@ -93,10 +97,15 @@ namespace Manager_proj_4_net4.UserControls
 			{
 				;
 			}
-
-			WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile);
+			MenuItem mi = sender as MenuItem;
+			if(mi.Header as string == "_File")
+				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File);
+			if(mi.Header as string == "_Sam")
+				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam);
+			if(mi.Header as string == "_Tail")
+				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail);
 		}
-		private void NewJsonFile()
+		private void NewJsonFile_File()
 		{
 			JsonTreeViewItem.Clear();
 			//if(JSonInfo.current.IsModify_tree)
@@ -115,11 +124,32 @@ namespace Manager_proj_4_net4.UserControls
 			JToken jtok = JsonController.parseJson(Properties.Resources.file_config_default);
 			refreshJsonTree(jtok);
 		}
+		private void NewJsonFile_Sam()
+		{
+			JsonTreeViewItem.Clear();
+			JToken jtok = JsonController.parseJson(Properties.Resources.sam_config_default);
+			refreshJsonTree(jtok);
+		}
+		private void NewJsonFile_Tail()
+		{
+			JsonTreeViewItem.Clear();
+			JToken jtok = JsonController.parseJson(Properties.Resources.tail_config_default);
+			refreshJsonTree(jtok);
+		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
+			//SftpFile[] files = SSHController.GetListConfigFile();
+			//if(files != null)
+			//{
+			//	LinuxDirectoryViewer l = new LinuxDirectoryViewer(files);
+			//	l.ShowDialog();
+			//}
+			Refresh();
+
+
 			OpenFileDialog ofd = new OpenFileDialog();
 
-			ofd.InitialDirectory = root_path;
+			ofd.InitialDirectory = cur_root_path;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -136,9 +166,14 @@ namespace Manager_proj_4_net4.UserControls
 				Console.WriteLine(ofd.FileName);
 
 				string json = FileContoller.Read(ofd.FileName);
-				refreshJsonTree(JsonController.parseJson(json));
-
+				JToken jtok = JsonController.parseJson(json);
+				if(jtok != null)
+				{
+					refreshJsonTree(jtok);
+				}
 				JsonTreeViewItem.Path = ofd.FileName;
+				//refreshJsonTree(JsonController.parseJson(json));
+				//JsonTreeViewItem.Path = ofd.FileName;
 			}
 		}
 		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
@@ -176,7 +211,7 @@ namespace Manager_proj_4_net4.UserControls
 		{
 			SaveFileDialog sfd = new SaveFileDialog();
 
-			sfd.InitialDirectory = root_path;
+			sfd.InitialDirectory = cur_root_path;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -211,7 +246,12 @@ namespace Manager_proj_4_net4.UserControls
 
 			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
 			if(Jtok_root != null && FileContoller.Write(path, Jtok_root.ToString()))
-				WindowMain.current.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
+			{
+				if(SSHController.SetConfig(path, cur_root_path) == null)
+					WindowMain.current.ShowMessageDialog("Save", "서버 경로 에러");
+				else
+					WindowMain.current.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
+			}
 			else
 			{
 				string caption = "Save Error";
@@ -225,12 +265,14 @@ namespace Manager_proj_4_net4.UserControls
 			if(JsonTreeViewItem.Path == null)
 				return;
 
-			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			if(root == null)
-				return;
+			//if(json_tree_view.Items.Count <= 0)
+			//	return;
+			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			//if(root == null)
+			//	return;
 
-			Window_EditFile w = new Window_EditFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
-			//Window_ViewFile w = new Window_ViewFile(FileContoller.read(JsonInfo.current.Path), JsonInfo.current.Path);
+			//Window_EditFile w = new Window_EditFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
+			Window_EditFile w = new Window_EditFile(FileContoller.Read(JsonTreeViewItem.Path), JsonTreeViewItem.Path);
 
 			if(w.ShowDialog() == true)
 			{
@@ -251,13 +293,10 @@ namespace Manager_proj_4_net4.UserControls
 		}
 		private void CalcelJsonFile()
 		{
-			string json = FileContoller.Read(JsonTreeViewItem.path);
+			string json = FileContoller.Read(JsonTreeViewItem.Path);
 			refreshJsonTree(JsonController.parseJson(json));
 			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion
-
 	}
-
-	
 }

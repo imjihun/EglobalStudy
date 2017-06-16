@@ -42,6 +42,13 @@
 					<UserControls:Status DataContext="{Binding}"/>
 				</Grid>
 				<!--<Border BorderBrush="Black" BorderThickness="1"/>-->
+
+				<Controls:MetroProgressBar x:Name="progressBar" Foreground="{DynamicResource AccentColorBrush}"
+										   Margin="0 10 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Stretch"
+										   Maximum="100"
+										   Minimum="0"
+										   Value="{Binding ElementName=horizSlider, Path=Value}"
+										   Height="10"/>
 			</Grid>
 
 			<GridSplitter Background="Gray"
@@ -56,23 +63,23 @@
 											  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 											  SelectionChanged="TabControl_SelectionChanged"
 											  Controls:TabControlHelper.IsUnderlined="True" Controls:TabControlHelper.Underlined="TabPanel">
-				<TabItem Header="{StaticResource Tab_Cofile}">
+				<TabItem Header="{StaticResource MainTab.Cofile}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<!-- 이렇게 바인딩 시키면 이벤트(버블링)발생할때 탭컨트롤의 자식이된다. (SelectionChanged 이벤트가 Cofile안에 ComboBox 에 의해 발생되어도 탭컨트롤의 SelectionChanged 이벤트가 반응한다. -->
 						<UserControls:Cofile DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="{StaticResource Tab_Config}">
+				<TabItem Header="{StaticResource MainTab.Config}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:ConfigJsonTree DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="{StaticResource Tab_Log}">
+				<TabItem Header="{StaticResource MainTab.Log}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:Sqlite_LogTable DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="{StaticResource Tab_Monitor}">
+				<TabItem Header="{StaticResource MainTab.Monitor}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
 						<UserControls:Sqlite_StatusTable DataContext="{Binding}"/>
 					</Grid>

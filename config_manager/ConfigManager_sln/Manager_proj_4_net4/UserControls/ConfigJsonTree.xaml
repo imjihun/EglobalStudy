@@ -11,7 +11,11 @@
 		<DockPanel>
 			<Menu DockPanel.Dock="Top">
 				<MenuItem Header="_File">
-					<MenuItem Header="_New" Click="OnClickButtonNewJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=Folder}"/>
+					<MenuItem Header="_New" Icon="{iconPacks:PackIconFontAwesome Kind=Folder}">
+						<MenuItem Header="_File" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Sam" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Tail" Click="OnClickButtonNewJsonFile" />
+					</MenuItem>
 					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=FolderOpen}"/>
 					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSave}"/>
 					<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>

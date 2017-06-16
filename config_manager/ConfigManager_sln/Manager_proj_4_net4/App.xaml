@@ -19,10 +19,15 @@
 
 				<ResourceDictionary Source="Resources/StringResources.xaml"/>
 			</ResourceDictionary.MergedDictionaries>
+			
+			
 			<!-- MyCustom -->
+			
+			<!--Converter-->
 			<BooleanToVisibilityConverter x:Key="MyBoolToVisibilityConverter"/>
 			<local:ReverseBooleanToVisibilityConverter x:Key="MyReverseBoolToVisibilityConverter"/>
 
+			<!--Style-->
 			<Style TargetType="UserControls:LinuxTreeViewItem" BasedOn="{StaticResource MetroTreeViewItem}" />
 
 			<Style TargetType="UserControls:ServerInfoTextBlock" BasedOn="{StaticResource MetroTextBlock}" />

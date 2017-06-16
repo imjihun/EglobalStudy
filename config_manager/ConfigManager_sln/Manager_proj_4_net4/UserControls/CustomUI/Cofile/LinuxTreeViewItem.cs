@@ -292,6 +292,7 @@ namespace Manager_proj_4_net4.UserControls
 			}
 			MySelected = true;
 
+			// scroll bar sycronized
 			var tvItem = (LinuxTreeViewItem)this;
 			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
 			
@@ -304,7 +305,6 @@ namespace Manager_proj_4_net4.UserControls
 
 		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
 		{
-			//base.OnMouseLeftButtonDown(e);
 			if(WindowMain.bCtrl)
 				MySelected = !MySelected;
 			else if(WindowMain.bShift && selected_list.Count > 0)
@@ -315,20 +315,25 @@ namespace Manager_proj_4_net4.UserControls
 					int idx_start = parent.Items.IndexOf(selected_list[0]);
 					int idx_end = parent.Items.IndexOf(this);
 
-					// 선택 초기화
-					while(selected_list.Count > 0)
-						selected_list[0].MySelected = false;
-
-					// 선택
-					int add_i = idx_start < idx_end ? 1 : -1;
-					for(int i = idx_start; i != idx_end + add_i; i += add_i)
+					if(idx_start >= 0 && idx_end >= 0)
 					{
-						LinuxTreeViewItem child = parent.Items[i] as LinuxTreeViewItem;
-						if(child == null)
-							continue;
+						// 선택 초기화
+						while(selected_list.Count > 0)
+							selected_list[0].MySelected = false;
 
-						child.MySelected = true;
+						// 선택
+						int add_i = idx_start < idx_end ? 1 : -1;
+						for(int i = idx_start; i != idx_end + add_i; i += add_i)
+						{
+							LinuxTreeViewItem child = parent.Items[i] as LinuxTreeViewItem;
+							if(child == null)
+								continue;
+
+							child.MySelected = true;
+						}
 					}
+					else
+						Focus();
 				}
 				else
 					Focus();
@@ -339,9 +344,9 @@ namespace Manager_proj_4_net4.UserControls
 			if(e.ClickCount > 1)
 			{
 				//this.RefreshChild();
-				this.IsExpanded = true;
+				this.IsExpanded = !this.IsExpanded;
 			}
-			
+
 			e.Handled = true;
 		}
 		protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
@@ -374,38 +379,51 @@ namespace Manager_proj_4_net4.UserControls
 		}
 
 
-		#region Load Directory And Refresh View		
+		#region Load Directory And Refresh View
 		protected override void OnExpanded(RoutedEventArgs e)
 		{
 			base.OnExpanded(e);
 			this.Focus();
+			
+			if(flag_expanded_via_screen)
+			{
+				this.RefreshChild();
+			}
 
-
+			// scroll bar syncronized
 			var tvItem = (LinuxTreeViewItem)e.OriginalSource;
 			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
 			
 			for(var i = itemCount - 1; i >= 0; i--)
 			{
 				var child = VisualTreeHelper.GetChild(tvItem, i);
+				//((FrameworkElement)child).BringIntoView();
 				((FrameworkElement)child).BringIntoView();
 			}
-
-			//if(this.Items.Count > 0)
-			//	((FrameworkElement)this.Items[0]).BringIntoView();
 		}
-		public static LinuxTreeViewItem Last_Refresh_Parent = null;
-		public void RefreshChild(string remained_path = null)
+		private bool flag_expanded_via_screen = true;
+		public new bool IsExpanded { get { return base.IsExpanded; }  set { flag_expanded_via_screen = false; base.IsExpanded = value; flag_expanded_via_screen = true; } }
+		
+		public static LinuxTreeViewItem Last_Refresh = null;
+		public void RefreshChild(string remained_path = null, bool bRefreshListView = true)
 		{
 			if(IsDirectory)
 			{
 				this.IsExpanded = true;
+				RefreshDirectory(remained_path);
 
-				Last_Refresh_Parent = this;
-
-				ReLoadDirectory(remained_path);
-				// refresh filter
-				Cofile.Filter_string = Cofile.Filter_string;
+				// LinuxTreeViewItem 을 참조하여 ListView 를 재구성하기 때문에 LinuxTreeViewItem 이 Refresh 될 때 Refresh 해야함.
+				if(bRefreshListView)
+					Cofile.current.RefreshListView(this);
 			}
+		}
+		private void RefreshDirectory(string remained_path = null)
+		{
+			Last_Refresh = this;
+
+			ReLoadDirectory(remained_path);
+			// refresh filter
+			Cofile.Filter_string = Cofile.Filter_string;
 		}
 		private LinuxTreeViewItem parent = null;
 		public new LinuxTreeViewItem Parent {

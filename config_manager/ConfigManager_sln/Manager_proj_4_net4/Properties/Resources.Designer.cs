@@ -61,6 +61,15 @@ namespace Manager_proj_4_net4.Properties {
         }
         
         /// <summary>
+        ///   All Encrypt과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string Dialog_AllEncrypt_Title {
+            get {
+                return ResourceManager.GetString("Dialog_AllEncrypt_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
         internal static System.Drawing.Bitmap directory {

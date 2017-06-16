@@ -116,6 +116,9 @@
     <Compile Include="UserControls\CustomUI\ConfigJsonTree\JsonTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ServerCommand\CommandView.cs" />
     <Compile Include="UserControls\CustomUI\ServerMenu\ServerInfo.cs" />
+    <Compile Include="UserControls\LinuxDirectoryViewer.xaml.cs">
+      <DependentUpon>LinuxDirectoryViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ServerCommand.xaml.cs">
       <DependentUpon>ServerCommand.xaml</DependentUpon>
     </Compile>
@@ -175,6 +178,10 @@
     <Page Include="UserControls\ConfigJsonTree.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\LinuxDirectoryViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\ServerCommand.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -1,4 +1,5 @@
 ﻿using Manager_proj_4_net4.Classes;
+using Manager_proj_4_net4.Windows;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace Manager_proj_4_net4.Classes
 			{
 				error_message = e.Message;
 				Log.PrintConsole(e.Message);
+				WindowMain.current.ShowMessageDialog("Json Context Error!!", JsonController.Error_message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 			}
 
 			return obj;

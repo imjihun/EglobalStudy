@@ -114,37 +114,61 @@ namespace Manager_proj_4_net4.Classes
 			return true;
 		}
 
-		static string filename_uploaded = "";
-		static bool UploadFile(string local_path, string remote_directory)
+		private static bool CreateDirectory(string remote_dir_path)
+		{
+			string _path = "/";
+			try
+			{
+				string[] split = remote_dir_path.Split('/');
+
+				for(int i = 0; i < split.Length; i++)
+				{
+					_path += split[i] + "/";
+					if(!sftp.Exists(_path))
+						sftp.CreateDirectory(_path);
+				}
+				return true;
+			}
+			catch(Exception ex)
+			{
+				Log.PrintError(ex.Message + " [" + _path + "]", "CreateDirectory_Remote");
+				return false;
+			}
+		}
+		public static string UploadFile(string local_path, string remote_directory)
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
 			if(!SSHController.ReConnect(timeout_connect_ms))
-				return false;
+				return null;
+			
 
+			string remote_file_path = null;
 			try
 			{
 				FileInfo fi = new FileInfo(local_path);
 				if(fi.Exists)
 				{
+					CreateDirectory(remote_directory);
+
 					FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
-					sftp.UploadFile(fs, remote_directory + fi.Name);
-					Log.PrintConsole(fi.Name + " => " + remote_directory + fi.Name, "upload file"/*, test4.m_wnd.richTextBox_status*/);
-					SSHController.filename_uploaded = fi.Name;
+					remote_file_path = remote_directory + fi.Name;
+					sftp.UploadFile(fs, remote_file_path);
+					Log.PrintConsole(fi.Name + " => " + remote_file_path, "upload file"/*, test4.m_wnd.richTextBox_status*/);
 					fs.Close();
 				}
 				else
 				{
 					Log.PrintError("check the config file path", "upload file", Status.current.richTextBox_status);
-					return false;
+					return null;
 				}
 			}
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "UploadFile", Status.current.richTextBox_status);
-				return false;
+				return null;
 			}
-			return true;
+			return remote_file_path;
 		}
 		public static bool downloadFile(string local_path_folder, string remote_path_file, string local_file_name = null, string remote_filename = null)
 		{
@@ -205,19 +229,22 @@ namespace Manager_proj_4_net4.Classes
 				FileContoller.CreateDirectory(local_folder_path);
 
 				SftpFile[] files = PullListInDirectory(remote_directory_path);
-				string local;
 				for(int i = 0; i < files.Length; i++)
 				{
 					if(files[i].Name == "." || files[i].Name == "..")
 						continue;
+
+					if(files[i].IsDirectory)
+					{
+						string re_local_folder_path = local_folder_path + files[i].Name + @"\";
+						downloadDirectory(re_local_folder_path, files[i].FullName, filter);
+						continue;
+					}
+
 					if(filter != null && !filter.IsMatch(files[i].Name))
 						continue;
 
-					local = local_folder_path + files[i].Name;
-					FileStream fs = new FileStream(local, FileMode.Create);
-					sftp.DownloadFile(files[i].FullName, fs);
-					Log.PrintConsole(files[i].FullName + " => " + local, "downloadFile"/*, test4.m_wnd.richTextBox_status*/);
-					fs.Close();
+					downloadFile(local_folder_path, files[i].FullName, files[i].Name, files[i].Name);
 				}
 			}
 			catch(Exception e)
@@ -597,17 +624,28 @@ namespace Manager_proj_4_net4.Classes
 
 			return str;
 		}
+
+		//public static double RateProcessed = 0;
 		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt)
 		{
 			string env_co_home = LoadEnvCoHome();
 			string remote_directory = env_co_home + add_path_config_upload;
 
-			if(!UploadFile(Cofile.current.Selected_config_file_path, remote_directory))
+			string remote_file_path = UploadFile(Cofile.current.Selected_config_file_path, remote_directory);
+			if(remote_file_path == null)
 				return false;
 
+			//int count = selected_list.Count() + 1;
+
+			List<LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();
 			var enumerator = selected_list.GetEnumerator();
-			for(; enumerator.MoveNext(); )
+			for(int i =0; enumerator.MoveNext(); i++)
 			{
+				//RateProcessed = ((double)(i * 100)) / count;
+				//WindowMain.current.progressBar.Value = RateProcessed;
+				////WindowMain.current.UpdateLayout();
+				//WindowMain.current.InvalidateVisual();
+
 				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
 
 				Manager_proj_4_net4.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as Manager_proj_4_net4.UserControls.Cofile.LinuxListViewItem;
@@ -620,7 +658,7 @@ namespace Manager_proj_4_net4.Classes
 				//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
 				if(!ltvi.IsDirectory)
 				{
-					string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_directory + filename_uploaded);
+					string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_file_path);
 					//SendCommandOnce(send_cmd);
 					sendCommand(send_cmd);
 					//string ret = readMessageBlocking(send_cmd);
@@ -628,8 +666,14 @@ namespace Manager_proj_4_net4.Classes
 					string caption = isEncrypt ? "Encrypt" : "Decrypt";
 					Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
 				}
-				ltvi.RefreshChildFromParent();
+
+				LinuxTreeViewItem parent = ltvi.Parent;
+				if(parent != null && parents.IndexOf(parent) < 0)
+					parents.Add(parent);
 			}
+			WindowMain.current.progressBar.Value = 0;
+			for(int i = 0; i < parents.Count; i++)
+				parents[i].RefreshChild();
 			Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
 			return true;
 		}
@@ -663,12 +707,42 @@ namespace Manager_proj_4_net4.Classes
 			if(remote_directory == null)
 				return null;
 
-			string remote_path_file = remote_directory + add_path_config_dir;
-			if(downloadDirectory(local_folder, remote_path_file, new Regex(@"\.json")))
+			string remote_path_dir = remote_directory + add_path_config_dir;
+			if(downloadDirectory(local_folder, remote_path_dir, new Regex(@"\.json")))
 			{
+				JsonTreeViewItem.RemotePathRootDir = remote_path_dir;
 				return local_folder;
 			}
 			return null;
+		}
+		public static string SetConfig(string local_file_path, string cur_local_root_path)
+		{
+			string remote_directory = LoadEnvCoHome();
+			if(remote_directory == null)
+				return null;
+
+			//string remote_path_dir = remote_directory + add_path_config_dir;
+			if(local_file_path.Substring(0, cur_local_root_path.Length) == cur_local_root_path)
+			{
+				string added_path = local_file_path.Substring(cur_local_root_path.Length).Replace('\\', '/');
+				string[] split = added_path.Split('/');
+				added_path = added_path.Substring(0, added_path.Length - split[split.Length - 1].Length);
+
+				string remote_path_dir = JsonTreeViewItem.RemotePathRootDir + added_path;
+				return UploadFile(local_file_path, remote_path_dir);
+			}
+			return null;
+		}
+
+		public static SftpFile[] GetListConfigFile()
+		{
+			string remote_directory = LoadEnvCoHome();
+			if(remote_directory == null)
+				return null;
+
+			string remote_path_dir = remote_directory + add_path_config_dir;
+
+			return PullListInDirectory(remote_path_dir);
 		}
 		#endregion
 	}

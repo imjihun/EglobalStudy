@@ -53,7 +53,7 @@ namespace Manager_proj_4_net4.UserControls
 	class JsonTreeViewItem : TreeViewItem
 	{
 		public static JsonTreeViewItem Root = null;
-		public static string path;
+		private static string path;
 		public static string Path
 		{
 			get { return path; }
@@ -70,9 +70,15 @@ namespace Manager_proj_4_net4.UserControls
 				label.Content = Filename;
 			}
 		}
+		public static string LocalPathRootFolder;
+		public static string RemotePathRootDir;
+
 		public static void Clear()
 		{
 			Path = null;
+			RemotePathRootDir = null;
+			LocalPathRootFolder = null;
+
 			if(Root != null)
 				Root.Items.Clear();
 		}
@@ -423,7 +429,7 @@ namespace Manager_proj_4_net4.UserControls
 		{
 			if(jtok_root == null)
 			{
-				WindowMain.current.ShowMessageDialog("Json Context Error!!", JsonController.Error_message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				//WindowMain.current.ShowMessageDialog("Json Context Error!!", JsonController.Error_message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 				//MessageBox.Show(JsonController.Error_message, "JSon Context Error");
 				return null;
 			}

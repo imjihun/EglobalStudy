@@ -82,20 +82,23 @@ namespace Manager_proj_4_net4.UserControls
 			checkBox_hidden.IsChecked = false;
 			//Console.WriteLine("ItemContainerStyle = " + listView_linux_files.ItemContainerStyle);
 
-			listView_work_files.Drop += ListView_work_files_Drop;
-			listView_work_files.AllowDrop = true;
-			
-			listView_linux_files.MouseDoubleClick += ListView_linux_files_MouseDoubleClick;
-			listView_linux_files.MouseMove += ListView_linux_files_MouseMove;
+			checkBox_linux_detail.IsChecked = true;
+			checkBox_work_detail.IsChecked = true;
 		}
 
 		private void CheckBox_Checked(object sender, RoutedEventArgs e)
 		{
-			listView_linux_files.View = Resources["GridView_ListViewLinux_Detail"] as GridView;
+			if(sender == checkBox_linux_detail)
+				listView_linux_files.View = Resources["GridView_ListViewLinux_Detail"] as GridView;
+			else if (sender == checkBox_work_detail)
+				listView_work_files.View = Resources["GridView_ListViewWork_Detail"] as GridView;
 		}
 		private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
 		{
-			listView_linux_files.View = null;
+			if(sender == checkBox_linux_detail)
+				listView_linux_files.View = null;
+			else if(sender == checkBox_work_detail)
+				listView_work_files.View = null;
 		}
 		private void ListView_linux_files_MouseMove(object sender, MouseEventArgs e)
 		{
@@ -128,7 +131,8 @@ namespace Manager_proj_4_net4.UserControls
 						return;
 
 					selected.LinuxTVI.RefreshChild();
-					RefreshListView(selected.LinuxTVI);
+					//RefreshListView(selected.LinuxTVI);
+
 					//llvi.LinuxTVI.IsExpanded = false;
 					//llvi.LinuxTVI.IsExpanded = true;
 					selected.LinuxTVI.Focus();
@@ -226,13 +230,24 @@ namespace Manager_proj_4_net4.UserControls
 			{
 				Object data_obj = (Object)e.Data.GetData("Object");
 
-				List<LinuxTreeViewItem> list_ltvi = data_obj as List<LinuxTreeViewItem>;
 				ObservableCollection<object> list_llvi = data_obj as ObservableCollection<object>;
-				//Console.WriteLine(data_obj.GetType());
+				List<LinuxTreeViewItem> list_ltvi = data_obj as List<LinuxTreeViewItem>;
+
 				if(list_ltvi != null)
 				{
 					for(int i = 0; i < list_ltvi.Count; i++)
 					{
+						// 중복 체크
+						int idx_dup;
+						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
+						{
+							LinuxListViewItem llvi = listView_work_files.Items[idx_dup] as LinuxListViewItem;
+							if(llvi.LinuxTVI.Path == list_ltvi[i].Path)
+								break;
+						}
+						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
+							continue;
+						
 						listView_work_files.Items.Add(new LinuxListViewItem() { BindingName = list_ltvi[i].Header.Text, IsDirectory = list_ltvi[i].IsDirectory, LinuxTVI = list_ltvi[i] });
 					}
 				}
@@ -240,7 +255,26 @@ namespace Manager_proj_4_net4.UserControls
 				{
 					for(int i = 0; i < list_llvi.Count; i++)
 					{
-						listView_work_files.Items.Add(list_llvi[i]);
+						LinuxListViewItem llvi = list_llvi[i] as LinuxListViewItem;
+
+						// 중복 체크
+						int idx_dup;
+						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
+						{
+							LinuxListViewItem llvi_for_dup_check = listView_work_files.Items[idx_dup] as LinuxListViewItem;
+							if(llvi_for_dup_check.LinuxTVI.Path == llvi.LinuxTVI.Path)
+								break;
+						}
+						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
+							continue;
+
+						// 상위폴더 체크
+						if(llvi.BindingName == "..")
+						{
+							llvi = new LinuxListViewItem() { BindingName = llvi.LinuxTVI.Header.Text, IsDirectory = llvi.IsDirectory, LinuxTVI = llvi.LinuxTVI };
+						}
+						
+						listView_work_files.Items.Add(llvi);
 					}
 				}
 			}
@@ -265,8 +299,8 @@ namespace Manager_proj_4_net4.UserControls
 			// root 의 path 는 null 로 초기화
 			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
 			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
-			LinuxTreeViewItem.root.RefreshChild(SSHController.WorkingDirectory);
-			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh_Parent);
+			LinuxTreeViewItem.root.RefreshChild(SSHController.WorkingDirectory, false);
+			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			Log.PrintConsole("[refresh]");
 
 			//LinuxTreeViewItem.ReconnectServer();
@@ -288,7 +322,7 @@ namespace Manager_proj_4_net4.UserControls
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			// 초기경로 지정
-			ofd.InitialDirectory = ConfigJsonTree.root_path;
+			ofd.InitialDirectory = ConfigJsonTree.cur_root_path;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -347,7 +381,7 @@ namespace Manager_proj_4_net4.UserControls
 				return;
 
 			cur_LinuxTreeViewItem = cur;
-			label_listView.Content = cur.Path;
+			label_listView_linux.Content = cur.Path;
 
 			list_LinuxListViewItem.Clear();
 			LinuxListViewItem llvi = new LinuxListViewItem() { BindingName = "..", IsDirectory = true, LinuxTVI = cur.Parent as LinuxTreeViewItem };
@@ -369,85 +403,66 @@ namespace Manager_proj_4_net4.UserControls
 					listView_linux_files.Items.Add(list_LinuxListViewItem[i]);
 				}
 			}
-			//listView_linux_files.ItemsSource = list_LinuxListViewItem;
-
-
-			//listView_linux_files.Items.Clear();
-			//listView_linux_files.Items.Add(new LinuxListViewItem() { BindingName = "..", IsDirectory = true, LinuxTVI = cur.Parent as LinuxTreeViewItem });
-			//for(int i = 0; i < cur.Items.Count; i++)
-			//{
-			//	LinuxTreeViewItem ltvi = cur.Items[i] as LinuxTreeViewItem;
-			//	if(ltvi == null)
-			//		continue;
-			//	listView_linux_files.Items.Add(new LinuxListViewItem() { BindingName = ltvi.Header.Text, IsDirectory = ltvi.IsDirectory, LinuxTVI = ltvi });
-			//}
 		}
-		//public void RefreshListView(string path, SftpFile[] files = null)
-		//{
-		//	if(files == null)
-		//	{
-		//		files = SSHController.PollListInDirectory(path);
-		//		if(files == null)
-		//			return;
-		//	}
-
-		//	label_listView.Content = path;
-		//	listView_linux_files.Items.Clear();
-
-		//	int count_dir = 0;
-		//	foreach(var file in files)
-		//	{
-		//		Regex r = new Regex(@"(^\.)([^\.])");
-		//		if(r.IsMatch(file.Name) || file.Name == ".")
-		//			continue;
-
-		//		if(file.IsDirectory)
-		//			listView_linux_files.Items.Insert(count_dir++, file);
-		//		else
-		//			listView_linux_files.Items.Add(file);
-		//	}
-		//	//listView_linux_directory.ItemsSource = files;
-		//}
 
 		private void OnClickDelWorkList(object sender, RoutedEventArgs e)
 		{
-			LinuxListViewItem llit = listView_work_files.SelectedItem as LinuxListViewItem;
-			if(llit == null)
-				return;
+			var sel_items = listView_work_files.SelectedItems;
+			LinuxListViewItem llit;
+			for(int i = sel_items.Count - 1; i >= 0; i--)
+			{
+				llit = sel_items[i] as LinuxListViewItem;
+				if(llit == null)
+					continue;
 
-			listView_work_files.Items.Remove(llit);
+				listView_work_files.Items.Remove(llit);
+			}
 		}
-		private void OnClickEncrypt(object sender, RoutedEventArgs e)
+		private void OnClickAllEncrypt(object sender, RoutedEventArgs e)
+		{
+			WindowMain.current.ShowMessageDialog(Resources["Dialog.AllEncrypt.Title"].ToString(), "모두 암호화 수행하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, AllEncrypt);
+		}
+		private void AllEncrypt()
 		{
 			SSHController.SendNRecvCofileCommand(listView_work_files.Items.Cast<Object>(), true);
 		}
-		private void OnClickDecrypt(object sender, RoutedEventArgs e)
+
+		private void OnClickAllDecrypt(object sender, RoutedEventArgs e)
 		{
-			SSHController.SendNRecvCofileCommand(listView_work_files.Items.Cast<Object>(), true);
+			WindowMain.current.ShowMessageDialog("All Derypt", "모두 복호화 수행하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, AllDecrypt);
+		}
+		private void AllDecrypt()
+		{
+			SSHController.SendNRecvCofileCommand(listView_work_files.Items.Cast<Object>(), false);
 		}
 
+		private void OnClickSelectedEncrypt(object sender, RoutedEventArgs e)
+		{
+			WindowMain.current.ShowMessageDialog("Selected Enrypt", "선택된 항목을 암호화 수행하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, SelectedEncrypt);
+		}
+		private void SelectedEncrypt()
+		{
+			SSHController.SendNRecvCofileCommand(listView_work_files.SelectedItems.Cast<Object>(), true);
+		}
+
+		private void OnClickSelectedDecrypt(object sender, RoutedEventArgs e)
+		{
+			WindowMain.current.ShowMessageDialog("Selected Derypt", "선택된 항목을 복호화 수행하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, SelectedDecrypt);
+		}
+		private void SelectedDecrypt()
+		{
+			SSHController.SendNRecvCofileCommand(listView_work_files.SelectedItems.Cast<Object>(), false);
+		}
+
+		private void OnButtonClickRefresh(object sender, RoutedEventArgs e)
+		{
+			LinuxTreeViewItem.root.RefreshChild(LinuxTreeViewItem.Last_Refresh.Path, false);
+			RefreshListView(LinuxTreeViewItem.Last_Refresh);
+		}
 	}
 
 
 
 
-
-	public class HideStringToDoubleConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType,
-			object parameter, CultureInfo culture)
-		{
-			string str = value.ToString();
-			if(str[0] == '.')
-				return .5;
-			return 1;
-		}
-
-		public object ConvertBack(object value, Type targetType,
-			object parameter, CultureInfo culture)
-		{
-			throw new Exception();
-		}
-	}
 
 }

@@ -74,6 +74,7 @@ namespace Manager_proj_4_net4.Windows
 		#region View Update
 		bool bUpdateDataBase = false;
 		bool bUpdateLinuxTree = false;
+		bool bUpdateConfigFile = false;
 		string changed_server_name = "";
 		string Changed_server_name { get { return changed_server_name; } set { changed_server_name = value; label_serverinfo.Content = changed_server_name + " is Connected"; } }
 
@@ -92,6 +93,11 @@ namespace Manager_proj_4_net4.Windows
 				UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
 				bUpdateDataBase = true;
 			}
+			if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null)
+			{
+				UserControls.ConfigJsonTree.current.Refresh();
+				bUpdateConfigFile = true;
+			}
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
 
@@ -100,6 +106,8 @@ namespace Manager_proj_4_net4.Windows
 		{
 			bUpdateDataBase = false;
 			bUpdateLinuxTree = false;
+			bUpdateConfigFile = false;
+
 			switch(tabControl.SelectedIndex)
 			{
 				case 0:
@@ -110,7 +118,11 @@ namespace Manager_proj_4_net4.Windows
 					}
 					break;
 				case 1:
-					UserControls.ConfigJsonTree.current.Refresh();
+					if(UserControls.ConfigJsonTree.current != null)
+					{
+						UserControls.ConfigJsonTree.current.Refresh();
+						bUpdateConfigFile = true;
+					}
 					break;
 				case 2:
 				case 3:
@@ -143,11 +155,5 @@ namespace Manager_proj_4_net4.Windows
 			if(alwayse_callback != null)
 				alwayse_callback();
 		}
-		
 	}
-
-
-	#region test
-
-	#endregion
 }

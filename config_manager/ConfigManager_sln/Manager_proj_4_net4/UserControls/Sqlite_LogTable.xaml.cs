@@ -136,13 +136,13 @@ namespace Manager_proj_4_net4.UserControls
 			{
 				SQLiteDataAdapter dataAdapter = new SQLiteDataAdapter(sql, con);
 
-				DataTable[] tables = new DataTable[1] {new DataTable() };
-				dataAdapter.Fill(0, 600, tables);
-				Current_table = tables[0];
+				//DataTable[] tables = new DataTable[1] {new DataTable() };
+				//dataAdapter.Fill(0, 600, tables);
+				//Current_table = tables[0];
 
-				//DataSet dataSet = new DataSet();
-				//dataAdapter.Fill(dataSet);
-				//current_table = dataSet.Tables[0];
+				DataSet dataSet = new DataSet();
+				dataAdapter.Fill(dataSet);
+				current_table = dataSet.Tables[0];
 
 				ChangeColumnIntToString(log_type, Current_table, "type");
 				ChangeColumnIntToString(log_action, Current_table, "action");
