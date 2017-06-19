@@ -19,7 +19,7 @@
 			</Border.Effect>
 			<Grid Background="White" >
 				<Grid Height="30" VerticalAlignment="Top">
-					<Label Content="Add Server Menu" FontSize="15"
+					<Label Content="Login Server" FontSize="15"
 						   HorizontalAlignment="Center"/>
 				</Grid>
 				<Grid Height="70" VerticalAlignment="Center">

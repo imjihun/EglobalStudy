@@ -21,6 +21,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Manager_proj_4_net4.Windows;
+using System.Windows.Media.Imaging;
 
 namespace Manager_proj_4_net4.UserControls
 {
@@ -29,39 +30,40 @@ namespace Manager_proj_4_net4.UserControls
 	///						-> Items -> LinuxTreeViewItem
 	/// </summary>
 
-	public class LinuxDirectoryTree
+	public class LinuxTree
 	{
-		public static LinuxDirectoryTree Root;
+		public static LinuxTree Root;
 
-		public SftpFile fileinfo;
-		List<LinuxDirectoryTree> Childs = new List<LinuxDirectoryTree>();
+		private SftpFile fileinfo;
+		public SftpFile Fileinfo { get { return fileinfo; } set { fileinfo = value; } }
+		private List<LinuxTree> childs = new List<LinuxTree>();
+		public List<LinuxTree> Childs { get { return childs; } set { childs = value; } }
 
 		private bool IsLoaded = false;
 
-		public LinuxDirectoryTree(SftpFile _fileinfo)
+		public LinuxTree(SftpFile _fileinfo)
 		{
-			fileinfo = _fileinfo;
+			Fileinfo = _fileinfo;
 		}
-
-		private bool LoadChild()
+		public bool LoadChild()
 		{
-			if(!IsLoaded)
+			if(IsLoaded)
 				return true;
 
 			SftpFile[] files;
-			// path 가 null 이라면 부모
-			files = SSHController.PullListInDirectory(fileinfo.FullName);
+			
+			files = SSHController.PullListInDirectory(Fileinfo.FullName);
 			if(files == null)
 				return false;
 
 			this.Childs.Clear();
 			foreach(var file in files)
-				this.Childs.Add(new LinuxDirectoryTree(file));
+				this.Childs.Add(new LinuxTree(file));
 
 			IsLoaded = true;
 			return true;
 		}
-		public LinuxDirectoryTree[] GetChild()
+		public LinuxTree[] GetChild()
 		{
 			LoadChild();
 			return Childs.ToArray();
@@ -133,14 +135,14 @@ namespace Manager_proj_4_net4.UserControls
 		private SftpFile fileInfo;
 		public SftpFile FileInfo { get { return fileInfo; } set { fileInfo = value; } }
 		#region header
-		public class Grid_Header : Grid
+		public class Grid_Header : StackPanel
 		{
-			const int HEIGHT = 30;
+			//const int HEIGHT = 30;
 			public string Text
 			{
 				get
 				{
-					TextBlock tb = this.Children[0] as TextBlock;
+					TextBlock tb = this.Children[1] as TextBlock;
 					if(tb == null)
 						return null;
 					return tb.Text;
@@ -148,22 +150,48 @@ namespace Manager_proj_4_net4.UserControls
 				}
 				set
 				{
-					TextBlock tb = this.Children[0] as TextBlock;
+					TextBlock tb = this.Children[1] as TextBlock;
 					if(tb == null)
 						return;
 					tb.Text = value;
 				}
 			}
 
-			public Grid_Header(string header)
+			public Grid_Header(string header, bool isDirectory)
 			{
 				//this.Height = HEIGHT;
+				this.Orientation = Orientation.Horizontal;
+				Image img = new Image();
+				if(isDirectory)
+					img.Source = new BitmapImage(new System.Uri("/Manager_proj_4_net4;component/Resources/directory.png", System.UriKind.Relative));
+					//img.Source = BitmapToImageSource(Properties.Resources.directory);
+				else
+					img.Source = new BitmapImage(new System.Uri("/Manager_proj_4_net4;component/Resources/file.png", System.UriKind.Relative));
+					//img.Source = BitmapToImageSource(Properties.Resources.file);
+				img.Height = img.Width = 20;
+				this.Children.Add(img);
 
 				TextBlock tb = new TextBlock();
 				tb.Text = header;
 				tb.VerticalAlignment = VerticalAlignment.Center;
 				this.Children.Add(tb);
 			}
+			BitmapImage BitmapToImageSource(System.Drawing.Bitmap bitmap)
+			{
+				using(MemoryStream memory = new MemoryStream())
+				{
+					bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+					memory.Position = 0;
+					BitmapImage bitmapimage = new BitmapImage();
+					bitmapimage.BeginInit();
+					bitmapimage.StreamSource = memory;
+					bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
+					bitmapimage.EndInit();
+
+					return bitmapimage;
+				}
+			}
+
 		}
 		// Casting ( Object To Grid_Header )
 		public new Grid_Header Header { get { return base.Header as Grid_Header; } set { base.Header = value; } }
@@ -177,7 +205,7 @@ namespace Manager_proj_4_net4.UserControls
 				header = splited[splited.Length - 1];
 			}
 			
-			this.Header = new Grid_Header(header);
+			this.Header = new Grid_Header(header, _isDirectory);
 			this.Cursor = Cursors.Hand;
 			this.Path = _path;
 			this.parent = _parent;
@@ -228,27 +256,11 @@ namespace Manager_proj_4_net4.UserControls
 		}
 		private void OnClickEncrypt(object sender, RoutedEventArgs e)
 		{
-			WindowMain.current.ShowMessageDialog("Encrypt", "[Type = " + Cofile.current.comboBox_cofile_type.SelectedItem + "]\n선택된 파일들을 암호화 하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, Encrypt);
-		}
-		private void Encrypt()
-		{
-			TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
-			txt.Text = "";
-			SSHController.view_message_caption = "Encrypt";
-			SSHController.SendNRecvCofileCommand(selected_list, true);
-			//LinuxTreeViewItem.Refresh();
+			Cofile.current.ConfirmEncDec(selected_list, true);
 		}
 		private void OnClickDecrypt(object sender, RoutedEventArgs e)
 		{
-			WindowMain.current.ShowMessageDialog("Decrypt", "[Type = " + Cofile.current.comboBox_cofile_type.SelectedItem + "]\n선택된 파일들을 복호화 하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, Decrypt);
-		}
-		private void Decrypt()
-		{
-			TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
-			txt.Text = "";
-			SSHController.view_message_caption = "Decrypt";
-			SSHController.SendNRecvCofileCommand(selected_list, false);
-			//LinuxTreeViewItem.Refresh();
+			Cofile.current.ConfirmEncDec(selected_list, false);
 		}
 		#endregion
 
@@ -292,15 +304,17 @@ namespace Manager_proj_4_net4.UserControls
 			}
 			MySelected = true;
 
-			// scroll bar sycronized
-			var tvItem = (LinuxTreeViewItem)this;
-			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
-			
-			for(var i = itemCount - 1; i >= 0; i--)
-			{
-				var child = VisualTreeHelper.GetChild(tvItem, i);
-				((FrameworkElement)child).BringIntoView();
-			}
+			this.BringIntoView();
+			//this.BringIntoView(new Rect(0,0,50,50));
+			//// scroll bar sycronized
+			//var tvItem = (LinuxTreeViewItem)this;
+			//var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
+
+			//for(var i = itemCount - 1; i >= 0; i--)
+			//{
+			//	var child = VisualTreeHelper.GetChild(tvItem, i);
+			//	((FrameworkElement)child).BringIntoView();
+			//}
 		}
 
 		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -390,16 +404,17 @@ namespace Manager_proj_4_net4.UserControls
 				this.RefreshChild();
 			}
 
-			// scroll bar syncronized
-			var tvItem = (LinuxTreeViewItem)e.OriginalSource;
-			var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
-			
-			for(var i = itemCount - 1; i >= 0; i--)
-			{
-				var child = VisualTreeHelper.GetChild(tvItem, i);
-				//((FrameworkElement)child).BringIntoView();
-				((FrameworkElement)child).BringIntoView();
-			}
+			this.BringIntoView();
+			//this.BringIntoView(new Rect(0, 0, 50, 50));
+			//// scroll bar syncronized
+			//var tvItem = (LinuxTreeViewItem)e.OriginalSource;
+			//var itemCount = VisualTreeHelper.GetChildrenCount(tvItem);
+
+			//for(var i = itemCount - 1; i >= 0; i--)
+			//{
+			//	var child = VisualTreeHelper.GetChild(tvItem, i);
+			//	((FrameworkElement)child).BringIntoView();
+			//}
 		}
 		private bool flag_expanded_via_screen = true;
 		public new bool IsExpanded { get { return base.IsExpanded; }  set { flag_expanded_via_screen = false; base.IsExpanded = value; flag_expanded_via_screen = true; } }
@@ -489,11 +504,8 @@ namespace Manager_proj_4_net4.UserControls
 				}
 				else
 				{
-					//this.Items.Insert(0, new LinuxTreeViewItem(file.FullName, file.Name, false));
 					ltvi = new LinuxTreeViewItem(file.FullName, file, file.Name, false, this);
 					this.Items.Add(ltvi);
-					//if(file.Name.Substring(file.Name.Length - test_filter.Length, test_filter.Length) != test_filter)
-					//	ltvi.Visibility = Visibility.Collapsed;
 				}
 			}
 		}

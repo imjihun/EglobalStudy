@@ -25,6 +25,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro;
 using MahApps.Metro.Controls.Dialogs;
 using Manager_proj_4_net4.Classes;
+using Manager_proj_4_net4.UserControls;
 
 namespace Manager_proj_4_net4.Windows
 {
@@ -82,6 +83,9 @@ namespace Manager_proj_4_net4.Windows
 		int idx_tab_before_change = 0;
 		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+			if(e.Source != tabControl)
+				return;
+
 			if(!bUpdateLinuxTree && UserControls.Cofile.current != null)
 			{
 				UserControls.Cofile.current.Refresh();
@@ -132,6 +136,10 @@ namespace Manager_proj_4_net4.Windows
 			}
 			Changed_server_name = _changed_server_name;
 		}
+		public void Clear()
+		{
+			Cofile.current.Clear();
+		}
 		#endregion
 
 		public delegate void CallBack();
@@ -155,5 +163,38 @@ namespace Manager_proj_4_net4.Windows
 			if(alwayse_callback != null)
 				alwayse_callback();
 		}
+
+		
+
+
+
+
+
+
+
+
+
+		//public void initTest()
+		//{
+		//	SftpFile[] files = SSHController.PullListInDirectory(@"/home/cofile/");
+		//	for(int i = 0; i < files.Length; i++)
+		//	{
+		//		if(files[i].Name == "var")
+		//		{
+		//			LinuxTree lt = new LinuxTree(files[i]);
+		//			trv_test.Items.Add(lt);
+		//			lt.LoadChild();
+		//			Console.WriteLine("lt.Childs.Count = " + lt.Childs.Count);
+		//		}
+		//	}
+		//}
+
+		//private void trv_test_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		//{
+		//	TreeView tv = sender as TreeView;
+		//	LinuxTree lt = tv.SelectedItem as LinuxTree;
+		//	lt.LoadChild();
+		//	//Console.WriteLine();
+		//}
 	}
 }

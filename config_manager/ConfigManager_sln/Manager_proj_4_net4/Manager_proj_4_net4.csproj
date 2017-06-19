@@ -257,6 +257,7 @@
     </None>
     <AppDesigner Include="Properties\" />
     <Content Include="Resources\file_config_default.txt" />
+    <None Include="Resources\Image1.png" />
     <Content Include="Resources\sam_config_default.txt" />
     <Content Include="Resources\tail_config_default.txt" />
   </ItemGroup>

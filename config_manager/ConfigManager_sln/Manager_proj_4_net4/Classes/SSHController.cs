@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Threading;
 
@@ -49,7 +50,7 @@ namespace Manager_proj_4_net4.Classes
 
 		const int NO_TIMEOUT = -1;
 		static int timeout_connect_ms = NO_TIMEOUT;
-		static bool ReConnect(int timeout_ms = NO_TIMEOUT)
+		public static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
 			if(ServerList.selected_serverinfo_textblock == null)
 				return false;
@@ -66,15 +67,20 @@ namespace Manager_proj_4_net4.Classes
 				{
 					TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 					txt.Text = "";
+					
+					Window_LogIn wl = new Window_LogIn();
 
-					//Window_LogIn wl = new Window_LogIn();
-					//if(wl.ShowDialog() != true)
-					//	return false;
+					Point pt = ServerList.selected_serverinfo_textblock.PointToScreen(new Point(0, 0));
+					wl.Left = pt.X;
+					wl.Top = pt.Y;
 
-					//string id = wl.Id;
-					//string password = wl.Password;
-					string id = "cofile";
-					string password = "cofile";
+					if(wl.ShowDialog() != true)
+						return false;
+
+					string id = wl.Id;
+					string password = wl.Password;
+					//string id = "cofile";
+					//string password = "cofile";
 
 					sftp = new SftpClient(ip, port, id, password);
 					if(timeout_ms != NO_TIMEOUT)
@@ -102,7 +108,7 @@ namespace Manager_proj_4_net4.Classes
 					//shell_stream_read_timer.Start();
 					Log.PrintConsole(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
 
-					readMessageBlocking(null);
+					readDummyMessageBlocking(null);
 					return true;
 				}
 			}
@@ -113,7 +119,12 @@ namespace Manager_proj_4_net4.Classes
 			}
 			return true;
 		}
-
+		public static bool DisConnect()
+		{
+			ssh.Disconnect();
+			sftp.Disconnect();
+			return true;
+		}
 		private static bool CreateDirectory(string remote_dir_path)
 		{
 			string _path = "/";
@@ -213,7 +224,7 @@ namespace Manager_proj_4_net4.Classes
 				return false;
 
 			sendCommand("rm -rf " + remote_path_file);
-			readMessageBlocking(null);
+			readDummyMessageBlocking(null);
 
 			return true;
 		}
@@ -332,7 +343,7 @@ namespace Manager_proj_4_net4.Classes
 			}
 			return read_line_ssh;
 		}
-		private static string readMessageBlocking(string cmd_send)
+		private static string readDummyMessageBlocking(string cmd_send)
 		{
 			// 수정중..
 			shell_stream_read_timer.Stop();
@@ -343,9 +354,10 @@ namespace Manager_proj_4_net4.Classes
 			string ret_message = null;
 			try
 			{
-				// '$' 의 값이 나올떄까지 리드
+				// '$' or '#' 의 값이 나올떄까지 리드
+				// 대신 output 에 $ 이나 # 이 있으면 안됨.
 				string str_recv = "";
-				while(str_recv.Length < 1 || str_recv.LastIndexOf('$') < 0)
+				while(str_recv.Length < 1 || (str_recv.LastIndexOf('$') < 0 && str_recv.LastIndexOf('#') < 0))
 				{
 					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
 					str_recv += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
@@ -353,7 +365,6 @@ namespace Manager_proj_4_net4.Classes
 				int l = str_recv.Length;
 				Log.PrintConsole(str_recv, "readMessageBlocking][" + l);
 				//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, Status.current.richTextBox_status);
-
 				if(cmd_send == null || cmd_send == "")
 					return cmd_send;
 
@@ -591,7 +602,7 @@ namespace Manager_proj_4_net4.Classes
 			return env_co_home;
 		}
 
-		public static string add_path_config_upload = "/var/conf/";
+		public static string add_path_config_upload = "/var/conf/tmp/";
 		public static string add_path_run_cofile = "/bin/cofile";
 		public static CofileOption selected_type = CofileOption.file;
 		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
@@ -604,6 +615,8 @@ namespace Manager_proj_4_net4.Classes
 			else
 				str += " -d";
 
+			string[] split = path.Split('/');
+			string filename = split[split.Length - 1];
 			switch(type)
 			{
 				case CofileOption.sam:
@@ -614,6 +627,8 @@ namespace Manager_proj_4_net4.Classes
 						str += " -o " + path + ".codec";
 					break;
 				case CofileOption.file:
+					str += " -f " + filename;
+					break;
 				case CofileOption.tail:
 					str += " -f " + path;
 					break;
@@ -622,6 +637,45 @@ namespace Manager_proj_4_net4.Classes
 			if(configname != null)
 				str += " -c " + configname;
 
+			if(type == CofileOption.file)
+			{
+				str += " -id " + path.Substring(0, path.Length - filename.Length);
+			}
+			return str;
+		}
+		public static string MakeCommandRunCofileDirectory(string path_run, CofileOption type, bool isEncrypt, string path, string configname)
+		{
+			string str = path_run;
+			str += " " + type.ToString().ToLower();
+
+			if(isEncrypt)
+				str += " -e";
+			else
+				str += " -d";
+			
+			switch(type)
+			{
+				case CofileOption.sam:
+					str += " -i " + path;
+					if(isEncrypt)
+						str += " -o " + path + ".coenc";
+					else
+						str += " -o " + path + ".codec";
+					break;
+				case CofileOption.file:
+					break;
+				case CofileOption.tail:
+					str += " -f " + path;
+					break;
+			}
+
+			if(configname != null)
+				str += " -c " + configname;
+
+			if(type == CofileOption.file)
+			{
+				str += " -id " + path;
+			}
 			return str;
 		}
 
@@ -653,7 +707,7 @@ namespace Manager_proj_4_net4.Classes
 					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
 
 				if(ltvi == null)
-					return false;
+					break;
 
 				//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
 				if(!ltvi.IsDirectory)
@@ -662,6 +716,14 @@ namespace Manager_proj_4_net4.Classes
 					//SendCommandOnce(send_cmd);
 					sendCommand(send_cmd);
 					//string ret = readMessageBlocking(send_cmd);
+					string ret = readCofileMessageBlocking();
+					string caption = isEncrypt ? "Encrypt" : "Decrypt";
+					Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+				}
+				else
+				{
+					string send_cmd = MakeCommandRunCofileDirectory(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_file_path);
+					sendCommand(send_cmd);
 					string ret = readCofileMessageBlocking();
 					string caption = isEncrypt ? "Encrypt" : "Decrypt";
 					Log.ViewMessage(ret, caption, Status.current.richTextBox_status);

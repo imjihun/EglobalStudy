@@ -244,7 +244,7 @@ namespace Manager_proj_4_net4.UserControls
 		{
 			this.ContextMenu = new ContextMenu();
 			MenuItem item = new MenuItem();
-			item.Click += BtnAddServer_Click;
+			item.Click += OnClickAddServer;
 			item.Header = "Add Server";
 			item.Icon = new PackIconMaterial()
 			{
@@ -255,7 +255,7 @@ namespace Manager_proj_4_net4.UserControls
 			this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
-			item.Click += BtnDelServer_Click;
+			item.Click += OnClickDeleteServer;
 			item.Header = "Delete Server";
 			item.Icon = new PackIconMaterial()
 			{
@@ -263,17 +263,27 @@ namespace Manager_proj_4_net4.UserControls
 				VerticalAlignment = VerticalAlignment.Center,
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
+
+			this.ContextMenu.Items.Add(item);
+			item = new MenuItem();
+			item.Click += OnClickConnectServer;
+			item.Header = "Connect Server";
 			this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
-			item.Click += BtnModServer_Click;
+			item.Click += OnClickDisConnectServer;
+			item.Header = "DisConnect Server";
+			this.ContextMenu.Items.Add(item);
+
+			item = new MenuItem();
+			item.Click += OnClickModifyServer;
 			item.Header = "Modify Server";
-			item.Icon = new PackIconMaterial()
-			{
-				Kind = PackIconMaterialKind.ServerMinus,
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Center
-			};
+			//item.Icon = new PackIconMaterial()
+			//{
+			//	Kind = PackIconMaterialKind.ServerMinus,
+			//	VerticalAlignment = VerticalAlignment.Center,
+			//	HorizontalAlignment = HorizontalAlignment.Center
+			//};
 			this.ContextMenu.Items.Add(item);
 		}
 		public ServerList()
@@ -295,7 +305,7 @@ namespace Manager_proj_4_net4.UserControls
 			//btn.Click += BtnAdd_Click;
 			//this.Items.Add(btn);
 		}
-		private void BtnAddServer_Click(object sender, RoutedEventArgs e)
+		private void OnClickAddServer(object sender, RoutedEventArgs e)
 		{
 			Window_AddServer wms = new Window_AddServer();
 			Point pt = this.PointToScreen(new Point(0, 0));
@@ -332,14 +342,30 @@ namespace Manager_proj_4_net4.UserControls
 			}
 
 		}
-		private void BtnDelServer_Click(object sender, RoutedEventArgs e)
+		private void OnClickDeleteServer(object sender, RoutedEventArgs e)
 		{
 			if(ServerList.selected_serverinfo_textblock == null)
 				return;
 
 			WindowMain.current.ShowMessageDialog("Delete Server", "해당 서버 정보를 정말 삭제하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, DeleteServerInfoUI);
 		}
-		private void BtnModServer_Click(object sender, RoutedEventArgs e)
+		private void OnClickConnectServer(object sender, RoutedEventArgs e)
+		{
+			//if(ServerList.selected_serverinfo_textblock == null)
+			//	return;
+			ServerInfoTextBlock sitb = this.SelectedItem as ServerInfoTextBlock;
+			if(sitb == null)
+				return;
+
+			SSHController.ReConnect();
+			WindowMain.current.Refresh(sitb.serverinfo.name);
+		}
+		private void OnClickDisConnectServer(object sender, RoutedEventArgs e)
+		{
+			SSHController.DisConnect();
+			WindowMain.current.Clear();
+		}
+		private void OnClickModifyServer(object sender, RoutedEventArgs e)
 		{
 			//if(ServerList.selected_serverinfo_textblock == null)
 			//	return;
@@ -409,6 +435,8 @@ namespace Manager_proj_4_net4.UserControls
 				//Cofile.current.Refresh();
 				if(WindowMain.current != null)
 					WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
+
+				//WindowMain.current.initTest();
 			}
 		}
 		protected override void OnSelectionChanged(SelectionChangedEventArgs e)
