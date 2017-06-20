@@ -99,11 +99,11 @@ namespace Manager_proj_4_net4.UserControls
 			}
 			MenuItem mi = sender as MenuItem;
 			if(mi.Header as string == "_File")
-				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File);
+				WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File);
 			if(mi.Header as string == "_Sam")
-				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam);
+				WindowMain.current.ShowMessageDialog("New Sam Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam);
 			if(mi.Header as string == "_Tail")
-				WindowMain.current.ShowMessageDialog("New", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail);
+				WindowMain.current.ShowMessageDialog("New Tail Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail);
 		}
 		private void NewJsonFile_File()
 		{
@@ -248,7 +248,7 @@ namespace Manager_proj_4_net4.UserControls
 			if(Jtok_root != null && FileContoller.Write(path, Jtok_root.ToString()))
 			{
 				if(SSHController.SetConfig(path, cur_root_path) == null)
-					WindowMain.current.ShowMessageDialog("Save", "서버 경로 에러");
+					WindowMain.current.ShowMessageDialog("Save", "서버 연결 에러");
 				else
 					WindowMain.current.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
 			}

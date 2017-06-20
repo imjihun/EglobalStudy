@@ -321,7 +321,6 @@ namespace Manager_proj_4_net4.UserControls
 
 			//LinuxTreeViewItem.ReconnectServer();
 		}
-
 		private string selected_config_file_path = "Not Selected";
 		public string Selected_config_file_path
 		{
@@ -335,6 +334,14 @@ namespace Manager_proj_4_net4.UserControls
 		}
 		private void OnClickButtonSelectConfigFile(object sender, EventArgs e)
 		{
+			//SftpFileTree root = SSHController.GetListConfigFile();
+			//if(root == null)
+			//	return;
+
+			//Window_SelectJsonFile ws = new Window_SelectJsonFile(root);
+			//if(ws.ShowDialog() == true)
+			//	Selected_config_file_path = ws.FilePathRemote;
+
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			// 초기경로 지정
@@ -352,16 +359,7 @@ namespace Manager_proj_4_net4.UserControls
 			// 파일 열기
 			ofd.Filter = "JSon Files (.json)|*.json";
 			if(ofd.ShowDialog() == true)
-			{
 				Selected_config_file_path = ofd.FileName;
-				Console.WriteLine(Selected_config_file_path);
-				//Console.WriteLine(ofd.FileName);
-
-				//string json = FileContoller.read(ofd.FileName);
-				//refreshJsonTree(JsonController.parseJson(json));
-
-				//JsonInfo.current.Path = ofd.FileName;
-			}
 		}
 		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
 		{
@@ -516,14 +514,14 @@ namespace Manager_proj_4_net4.UserControls
 			if(isEncrypt)
 			{
 				SSHController.view_message_caption = "Encrypt";
-				title += "Encrypt?";
-				message += "위 항목들을 암호화 수행하시겠습니까?";
+				title += Resources["String.MainDialog.Encrypt.Title"];
+				message += Resources["String.MainDialog.Encrypt.Message"];
 			}
 			else
 			{
 				SSHController.view_message_caption = "Decrypt";
-				title += "Decrypt?";
-				message += "위 항목들을 복호화 수행하시겠습니까?";
+				title += Resources["String.MainDialog.Decrypt.Title"];
+				message += Resources["String.MainDialog.Decrypt.Message"];
 			}
 
 			WindowMain.current.ShowMessageDialog(title

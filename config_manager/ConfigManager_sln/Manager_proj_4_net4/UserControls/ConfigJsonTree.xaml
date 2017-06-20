@@ -18,7 +18,7 @@
 					</MenuItem>
 					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=FolderOpen}"/>
 					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSave}"/>
-					<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>
+					<MenuItem Header="_Other Save" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>
 					<!--<MenuItem Header="_New" Click="OnClickButtonNewJsonFile"/>
 					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile"/>
 					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile"/>

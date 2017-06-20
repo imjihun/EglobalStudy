@@ -77,7 +77,9 @@ namespace Manager_proj_4_net4.Windows
 		bool bUpdateLinuxTree = false;
 		bool bUpdateConfigFile = false;
 		string changed_server_name = "";
-		string Changed_server_name { get { return changed_server_name; } set { changed_server_name = value; label_serverinfo.Content = changed_server_name + " is Connected"; } }
+		string Changed_server_name { get { return changed_server_name; } set {
+				changed_server_name = value;
+				label_serverinfo.Content = "[" + changed_server_name + "] is Connected from " + ServerList.selected_serverinfo_textblock.serverinfo.id; } }
 
 		// 상단 탭이 바뀌었을때 작동
 		int idx_tab_before_change = 0;

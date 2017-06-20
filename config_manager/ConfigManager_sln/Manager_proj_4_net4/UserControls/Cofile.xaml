@@ -15,95 +15,102 @@
 			 
              d:DesignHeight="300" d:DesignWidth="800">
 	<UserControl.Resources>
-		<ObjectDataProvider x:Key="enumValues_cofileOptions"
-							MethodName="GetValues" ObjectType="{x:Type System:Enum}">
-			<ObjectDataProvider.MethodParameters>
-				<x:Type TypeName="local:CofileOption"/>
-			</ObjectDataProvider.MethodParameters>
-		</ObjectDataProvider>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/Manager_proj_4_net4;component/Resources/StringResources/StringCofile.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
 
-		<local:HideStringToDoubleConverter x:Key="HideStringToOpacityConverter" />
+			<ObjectDataProvider x:Key="enumValues_cofileOptions"
+								MethodName="GetValues" ObjectType="{x:Type System:Enum}">
+				<ObjectDataProvider.MethodParameters>
+					<x:Type TypeName="local:CofileOption"/>
+				</ObjectDataProvider.MethodParameters>
+			</ObjectDataProvider>
 
-		<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListView_Icon">
-			<WrapPanel/>
-		</ItemsPanelTemplate>
-		<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListView_Detail">
-			<StackPanel/>
-		</ItemsPanelTemplate>
-		<DataTemplate x:Key="DataTemplate_ListView_ItemTemplate_Icon">
-			<Grid Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}"
-				  Width="70" Margin="0">
-				<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
-					<Rectangle.Fill>
-						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/file.png"/>
-					</Rectangle.Fill>
-					<Rectangle.Visibility>
-						<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
-					</Rectangle.Visibility>
-				</Rectangle>
-				<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
-						   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}">
-					<Rectangle.Fill>
-						<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/directory.png"/>
-					</Rectangle.Fill>
-				</Rectangle>
-				<TextBlock x:Name="name" Margin="0,32,0,0" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
-					<Run Text="{Binding BindingName, Mode=OneWay}"/>
-				</TextBlock>
-			</Grid>
-		</DataTemplate>
-		<Style x:Key="Style_ListView_ItemContainer" TargetType="ListViewItem">
-			<Setter Property="VerticalContentAlignment" Value="Top" />
-			<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-		</Style>
+			<local:HideStringToDoubleConverter x:Key="HideStringToOpacityConverter" />
 
-		<Style x:Key="StyleListView" TargetType="ListView" BasedOn="{StaticResource MetroListView}">
-			<Setter Property="BorderBrush" Value="{x:Null}"/>
-			<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-			<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-			<Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
-			<Setter Property="UseLayoutRounding" Value="True"/>
-			<Setter Property="ItemsPanel" Value="{StaticResource ItemsPanelTemplate_ListView_Icon}"/>
-			<Setter Property="ItemTemplate" Value="{StaticResource DataTemplate_ListView_ItemTemplate_Icon}"/>
-			<Setter Property="ItemContainerStyle" Value="{StaticResource Style_ListView_ItemContainer}"/>
-			<Setter Property="SelectionMode" Value="Extended"/>
-		</Style>
-		<DataTemplate x:Key="DataTemplate_GridView_Name">
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-								Height="20" 
-								Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}">
-				<Image Source="/Manager_proj_4_net4;component/Resources/directory.png" Stretch="UniformToFill"
-								HorizontalAlignment="Left" VerticalAlignment="Stretch"
-								Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}"/>
-				<Image Source="/Manager_proj_4_net4;component/Resources/file.png" Stretch="UniformToFill"
-								HorizontalAlignment="Left" VerticalAlignment="Stretch"
-								Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyReverseBoolToVisibilityConverter}, ConverterParameter=true}"/>
-				<TextBlock Text="{Binding BindingName}"
-									Margin="5,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
-			</StackPanel>
-		</DataTemplate>
-		<DataTemplate x:Key="DataTemplate_GridView_Size">
-			<TextBlock Text="{Binding Size}" TextAlignment="Right"/>
-		</DataTemplate>
-		<GridView x:Key="GridView_ListViewLinux_Detail" AllowsColumnReorder="True">
-			<GridViewColumn Header="Name" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
-			<GridViewColumn Header="WriteTime" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
-			<!--<GridViewColumn Header="Type" Width="75" DisplayMemberBinding="{Binding Type}"/>-->
-			<GridViewColumn Header="Size" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
-			<!--<GridViewColumn Header="UserId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.UserId}"/>
-			<GridViewColumn Header="GroupId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.GroupId}"/>-->
-		</GridView>
-		<GridView x:Key="GridView_ListViewWork_Detail" AllowsColumnReorder="True">
-			<GridViewColumn Header="Name" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
-			<GridViewColumn Header="WriteTime" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
-			<GridViewColumn Header="Size" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
-		</GridView>
+			<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListView_Icon">
+				<WrapPanel/>
+			</ItemsPanelTemplate>
+			<ItemsPanelTemplate x:Key="ItemsPanelTemplate_ListView_Detail">
+				<StackPanel/>
+			</ItemsPanelTemplate>
+			<DataTemplate x:Key="DataTemplate_ListView_ItemTemplate_Icon">
+				<Grid Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}"
+					  Width="70" Margin="0">
+					<Rectangle Width="32" Height="32" VerticalAlignment="Top" >
+						<Rectangle.Fill>
+							<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/file.png"/>
+						</Rectangle.Fill>
+						<Rectangle.Visibility>
+							<Binding Path="IsDirectory" Converter="{StaticResource MyReverseBoolToVisibilityConverter}" ConverterParameter="true"/>
+						</Rectangle.Visibility>
+					</Rectangle>
+					<Rectangle Width="32" Height="32" VerticalAlignment="Top" 
+							   Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}">
+						<Rectangle.Fill>
+							<ImageBrush ImageSource="/Manager_proj_4_net4;component/Resources/directory.png"/>
+						</Rectangle.Fill>
+					</Rectangle>
+					<TextBlock x:Name="name" Margin="0,32,0,0" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch" TextAlignment="Center">
+						<Run Text="{Binding BindingName, Mode=OneWay}"/>
+					</TextBlock>
+				</Grid>
+			</DataTemplate>
+			<Style x:Key="Style_ListView_ItemContainer" TargetType="ListViewItem">
+				<Setter Property="VerticalContentAlignment" Value="Top" />
+				<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+			</Style>
 
-		<Style x:Key="StyleBolderSplitter" TargetType="Border">
-			<Setter Property="BorderBrush" Value="LightGray"/>
-			<Setter Property="BorderThickness" Value="0,0,0,2"/>
-			<Setter Property="Background" Value="White"/>
-		</Style>
+			<Style x:Key="StyleListView" TargetType="ListView" BasedOn="{StaticResource MetroListView}">
+				<Setter Property="BorderBrush" Value="{x:Null}"/>
+				<Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+				<Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+				<Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+				<Setter Property="UseLayoutRounding" Value="True"/>
+				<Setter Property="ItemsPanel" Value="{StaticResource ItemsPanelTemplate_ListView_Icon}"/>
+				<Setter Property="ItemTemplate" Value="{StaticResource DataTemplate_ListView_ItemTemplate_Icon}"/>
+				<Setter Property="ItemContainerStyle" Value="{StaticResource Style_ListView_ItemContainer}"/>
+				<Setter Property="SelectionMode" Value="Extended"/>
+			</Style>
+			<DataTemplate x:Key="DataTemplate_GridView_Name">
+				<StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+									Height="20" 
+									Opacity="{Binding BindingName, Converter={StaticResource HideStringToOpacityConverter}}">
+					<Image Source="/Manager_proj_4_net4;component/Resources/directory.png" Stretch="UniformToFill"
+									HorizontalAlignment="Left" VerticalAlignment="Stretch"
+									Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyBoolToVisibilityConverter}}"/>
+					<Image Source="/Manager_proj_4_net4;component/Resources/file.png" Stretch="UniformToFill"
+									HorizontalAlignment="Left" VerticalAlignment="Stretch"
+									Visibility="{Binding Path=IsDirectory, Converter={StaticResource MyReverseBoolToVisibilityConverter}, ConverterParameter=true}"/>
+					<TextBlock Text="{Binding BindingName}"
+										Margin="5,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+				</StackPanel>
+			</DataTemplate>
+			<DataTemplate x:Key="DataTemplate_GridView_Size">
+				<TextBlock Text="{Binding Size}" TextAlignment="Right"/>
+			</DataTemplate>
+			<GridView x:Key="GridView_ListViewLinux_Detail" AllowsColumnReorder="True">
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Name}" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+				<!--<GridViewColumn Header="Type" Width="75" DisplayMemberBinding="{Binding Type}"/>-->
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Size}" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
+				<!--<GridViewColumn Header="UserId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.UserId}"/>
+				<GridViewColumn Header="GroupId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.GroupId}"/>-->
+			</GridView>
+			<GridView x:Key="GridView_ListViewWork_Detail" AllowsColumnReorder="True">
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Name}" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Size}" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
+			</GridView>
+
+			<Style x:Key="StyleBolderSplitter" TargetType="Border">
+				<Setter Property="BorderBrush" Value="LightGray"/>
+				<Setter Property="BorderThickness" Value="0,0,0,2"/>
+				<Setter Property="Background" Value="White"/>
+			</Style>
+			<System:String x:Key="String.TextBlock.SelectConfig.NotSelect">Not Selected</System:String>
+		</ResourceDictionary>
 	</UserControl.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
@@ -116,17 +123,17 @@
 											   Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"
 											   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_linux_directory_filter, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
 			<TextBox x:Name="textBox_linux_directory_filter" Text="" Background="{x:Null}"
-					 Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" Custom:TextBoxHelper.Watermark="Filter Regular Expression"/>
-			<CheckBox x:Name="checkBox_hidden" Content="숨김 파일 표시" Margin="210,0,0,0" HorizontalAlignment="Left"/>
+					 Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" Controls:TextBoxHelper.Watermark="{DynamicResource String.TextBox.Filter}"/>
+			<CheckBox x:Name="checkBox_hidden" Content="{DynamicResource String.CheckBox.HiddenFile}" Margin="210,0,0,0" HorizontalAlignment="Left"/>
 
 			<ComboBox x:Name="comboBox_cofile_type"
 					  Margin="0, 0, 320, 0" Width="100" Height="25" HorizontalAlignment="Right" SelectionChanged="OnChangeComboBoxCofileType"
 					  ItemsSource="{Binding Source={StaticResource enumValues_cofileOptions}}"
 					  SelectedIndex="0"/>
-			<Button Content="Select Config"
+			<Button Content="{DynamicResource String.Button.SelectConfig}"
 					Margin="0,0,210,0" Width="100" Height="25" VerticalAlignment="Center" HorizontalAlignment="Right"
 					Click="OnClickButtonSelectConfigFile"/>
-			<TextBlock x:Name="textBlock_selected_config_file_name" Text="Not Selected" Background="{x:Null}"
+			<TextBlock x:Name="textBlock_selected_config_file_name" Text="{DynamicResource String.TextBlock.SelectConfig.NotSelect}" Background="{x:Null}"
 					   Margin="0,0,0,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"/>
 		</Grid>
 		<Grid Grid.Row="1">
@@ -143,12 +150,12 @@
 
 				<Grid Grid.Row="0" Margin="0,0,0,0">
 					<Border Style="{StaticResource StyleBolderSplitter}"/>
-					<ComboBox x:Name="comboBox_listView_linuxpath" Text="label"
+					<ComboBox x:Name="comboBox_listView_linuxpath" Text="{DynamicResource String.ComboBox.LinuxPath.Init}"
 							  Height="25" Margin="0,0,120,0" HorizontalAlignment="Stretch" IsEditable="True" KeyDown="label_listView_linux_KeyDown">
 					</ComboBox>
-					<Button Content="Refresh" Background="White" Click="OnButtonClickRefresh"
+					<Button Content="{DynamicResource String.Button.Refresh}" Background="White" Click="OnButtonClickRefresh"
 							Height="25" Width="55" Margin="0,0,65,0" HorizontalAlignment="Right"/>
-					<CheckBox x:Name="checkBox_linux_detail" Content="Detail" 
+					<CheckBox x:Name="checkBox_linux_detail" Content="{DynamicResource String.CheckBox.DetailListView}" 
 							  Width="60" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
 				</Grid>
 				<Grid Grid.Row="1">
@@ -161,8 +168,8 @@
 
 						<ListView.ContextMenu>
 							<ContextMenu>
-								<MenuItem Header="Encrypt" Click="OnClickLinuxFileEncrypt"/>
-								<MenuItem Header="Decrypt" Click="OnClickLinuxFileDecrypt"/>
+								<MenuItem Header="{DynamicResource String.Context.Encrypt}" Click="OnClickLinuxFileEncrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Lock}"/>
+								<MenuItem Header="{DynamicResource String.Context.Decrypt}" Click="OnClickLinuxFileDecrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Unlock}"/>
 							</ContextMenu>
 						</ListView.ContextMenu>
 					</ListView>
@@ -179,8 +186,8 @@
 				</Grid.RowDefinitions>
 				<Grid Grid.Row="0" Margin="0,0,3,0">
 					<Border Style="{StaticResource StyleBolderSplitter}"/>
-					<Label x:Name="label_listView_work" Content="Selected Files" HorizontalAlignment="Left"/>
-					<CheckBox x:Name="checkBox_work_detail" Content="Detail" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+					<Label x:Name="label_listView_work" Content="{DynamicResource String.Label.ListViewWork}" HorizontalAlignment="Left"/>
+					<CheckBox x:Name="checkBox_work_detail" Content="{DynamicResource String.CheckBox.DetailListView}" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
 				</Grid>
 				<Grid Grid.Row="1">
 					<ListView x:Name="listView_work_files" Style="{StaticResource StyleListView}"
@@ -189,11 +196,11 @@
 
 						<ListView.ContextMenu>
 							<ContextMenu>
-								<MenuItem Header="Delete" Click="OnClickWorkFileDelete"/>
-								<MenuItem Header="All Encrypt" Click="OnClickWorkFileAllEncrypt"/>
-								<MenuItem Header="All Decrypt" Click="OnClickWorkFileAllDecrypt"/>
-								<MenuItem Header="Selected Encrypt" Click="OnClickWorkFileSelectedEncrypt"/>
-								<MenuItem Header="Selected Decrypt" Click="OnClickWorkFileSelectedDecrypt"/>
+								<MenuItem Header="{DynamicResource String.Context.Delete}" Click="OnClickWorkFileDelete"  Icon="{iconPacks:PackIconMaterial Kind=Delete}"/>
+								<MenuItem Header="{DynamicResource String.Context.AllEncrypt}" Click="OnClickWorkFileAllEncrypt"  Icon="{iconPacks:PackIconFontAwesome Kind=Lock}"/>
+								<MenuItem Header="{DynamicResource String.Context.AllDecrypt}" Click="OnClickWorkFileAllDecrypt"  Icon="{iconPacks:PackIconFontAwesome Kind=Unlock}"/>
+								<MenuItem Header="{DynamicResource String.Context.SelectedEncrypt}" Click="OnClickWorkFileSelectedEncrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Lock}"/>
+								<MenuItem Header="{DynamicResource String.Context.SelectedDecrypt}" Click="OnClickWorkFileSelectedDecrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Unlock}"/>
 							</ContextMenu>
 						</ListView.ContextMenu>
 					</ListView>

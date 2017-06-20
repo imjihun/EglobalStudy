@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{190AF002-429A-4F0E-914E-FF95FC57847C}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Manager_proj_4_net4</RootNamespace>
     <AssemblyName>Manager_proj_4_net4</AssemblyName>
@@ -34,6 +34,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -161,13 +163,20 @@
     <Compile Include="Classes\Log.cs" />
     <Compile Include="Classes\Resources.cs" />
     <Compile Include="Classes\SSHController.cs" />
+    <Compile Include="Windows\Window_SelectJsonFile.xaml.cs">
+      <DependentUpon>Window_SelectJsonFile.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\Window_ViewFile.xaml.cs">
       <DependentUpon>Window_ViewFile.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Window_ViewImage.xaml.cs">
       <DependentUpon>Window_ViewImage.xaml</DependentUpon>
     </Compile>
-    <Page Include="Resources\StringResources.xaml">
+    <Page Include="Resources\StringResources\StringCofile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\StringResources\StringResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -226,6 +235,10 @@
     <Page Include="Windows\Window_EditFile.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_SelectJsonFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Window_ViewFile.xaml">
       <SubType>Designer</SubType>

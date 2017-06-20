@@ -234,7 +234,7 @@ namespace Manager_proj_4_net4.UserControls
 		{
 			this.ContextMenu = new ContextMenu();
 			MenuItem item = new MenuItem();
-			item.Header = "암호화";
+			item.Header = Cofile.current.Resources["String.Context.Encrypt"];
 			item.Icon = new PackIconFontAwesome()
 			{
 				Kind = PackIconFontAwesomeKind.Lock,
@@ -244,13 +244,13 @@ namespace Manager_proj_4_net4.UserControls
 			item.Click += OnClickEncrypt;
 			this.ContextMenu.Items.Add(item);
 			item = new MenuItem();
-			//item.Icon = new PackIconFontAwesome()
-			//{
-			//	Kind = PackIconFontAwesomeKind.Unlock,
-			//	VerticalAlignment = VerticalAlignment.Center,
-			//	HorizontalAlignment = HorizontalAlignment.Center
-			//};
-			item.Header = "복호화";
+			item.Icon = new PackIconFontAwesome()
+			{
+				Kind = PackIconFontAwesomeKind.Unlock,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			item.Header = Cofile.current.Resources["String.Context.Decrypt"];
 			item.Click += OnClickDecrypt;
 			this.ContextMenu.Items.Add(item);
 		}

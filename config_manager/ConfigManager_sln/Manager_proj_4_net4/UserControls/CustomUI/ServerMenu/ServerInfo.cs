@@ -33,7 +33,7 @@ namespace Manager_proj_4_net4.UserControls
 		public string name;
 		public string ip;
 		public int port;
-		//public string id;
+		public string id = "";
 		//public string password;
 		//public ServerInfo(string _name, string _ip, string _id, string _password)
 		//{
@@ -268,22 +268,34 @@ namespace Manager_proj_4_net4.UserControls
 			item = new MenuItem();
 			item.Click += OnClickConnectServer;
 			item.Header = "Connect Server";
+			item.Icon = new PackIconModern()
+			{
+				Kind = PackIconModernKind.Connect,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
 			this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
 			item.Click += OnClickDisConnectServer;
 			item.Header = "DisConnect Server";
+			item.Icon = new PackIconModern()
+			{
+				Kind = PackIconModernKind.Disconnect,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
 			this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
 			item.Click += OnClickModifyServer;
 			item.Header = "Modify Server";
-			//item.Icon = new PackIconMaterial()
-			//{
-			//	Kind = PackIconMaterialKind.ServerMinus,
-			//	VerticalAlignment = VerticalAlignment.Center,
-			//	HorizontalAlignment = HorizontalAlignment.Center
-			//};
+			item.Icon = new PackIconMaterial()
+			{
+				Kind = PackIconMaterialKind.Settings,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
 			this.ContextMenu.Items.Add(item);
 		}
 		public ServerList()

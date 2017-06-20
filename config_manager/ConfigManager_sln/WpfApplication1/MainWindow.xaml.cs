@@ -22,7 +22,7 @@ namespace WpfApplication1
 		public MainWindow()
 		{
 			InitializeComponent();
-			Manager_proj_4_net4.Windows.WindowMain wnd = new Manager_proj_4_net4.Windows.WindowMain();
+			CofileUI.Windows.WindowMain wnd = new CofileUI.Windows.WindowMain();
 		}
 	}
 }
