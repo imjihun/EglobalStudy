@@ -19,11 +19,13 @@
 				</DataGrid.Style>
 			</DataGrid>
 		</Grid>
-		<Grid Height="30" VerticalAlignment="Bottom">
-			<Button Content="KillAll"
-					Margin="0,0,120,0" Width="100" Height="30" HorizontalAlignment="Right"/>
-			<Button Content="Kill"
-					Margin="0,0,10,0" Width="100" Height="30" HorizontalAlignment="Right"/>
+		<Grid Height="30" VerticalAlignment="Bottom" Margin="0,0,10,0">
+			<Button Content="Refresh" Click="OnClickRefresh"
+					Margin="0,0,160,0" Width="75" HorizontalAlignment="Right"/>
+			<Button Content="KillAll" Click="OnClickKillAll"
+					Margin="0,0,80,0" Width="75" Height="30" HorizontalAlignment="Right"/>
+			<Button Content="Kill" Click="OnClickKillSelected"
+					Margin="0,0,0,0" Width="75" Height="30" HorizontalAlignment="Right"/>
 		</Grid>
 	</Grid>
 </UserControl>

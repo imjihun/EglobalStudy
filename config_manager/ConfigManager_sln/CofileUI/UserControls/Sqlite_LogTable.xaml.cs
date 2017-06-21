@@ -36,15 +36,17 @@ namespace CofileUI.UserControls
 
 		static string DIR = @"system\tmp\";
 		static string path_root = AppDomain.CurrentDomain.BaseDirectory + DIR;
-		public static void RefreshUi(string changed_server_name)
+		static int idx_db_name = 0;
+		public static void RefreshUi(string db_name = "")
 		{
-			string db_name = changed_server_name + ".db";
+			db_name = db_name + (idx_db_name++) + ".db";
 			Path = SSHController.GetDataBase(path_root, db_name);
 
 			if(Sqlite_LogTable.current != null)
 				Sqlite_LogTable.current.Refresh();
 			if(Sqlite_StatusTable.current != null)
 				Sqlite_StatusTable.current.Refresh();
+			FileContoller.Delete(path_root + db_name);
 		}
 	}
 
@@ -63,9 +65,9 @@ namespace CofileUI.UserControls
 			foreach(var v in log_result)
 				comboBox_result.Items.Add(v);
 
-			comboBox_type.Items.Add("type");
-			comboBox_action.Items.Add("action");
-			comboBox_result.Items.Add("result");
+			comboBox_type.Items.Add("Type");
+			comboBox_action.Items.Add("Action");
+			comboBox_result.Items.Add("Result");
 			comboBox_type.SelectedIndex = comboBox_type.Items.Count - 1;
 			comboBox_action.SelectedIndex = comboBox_action.Items.Count - 1;
 			comboBox_result.SelectedIndex = comboBox_result.Items.Count - 1;
@@ -78,6 +80,7 @@ namespace CofileUI.UserControls
 			comboBox_change_count_page.SelectedIndex = 0;
 			comboBox_change_count_page.SelectionChanged += ComboBox_change_count_page_SelectionChanged;
 		}
+
 		DataTable current_table;
 		DataTable Current_table { get { return current_table; } set { current_table = value; } }
 		DataRow[] filtering_table;
@@ -94,14 +97,7 @@ namespace CofileUI.UserControls
 		{
 			try
 			{
-				Current_table = new DataTable();
-				dataGrid.ItemsSource = Current_table.DefaultView;
-				idx_page = 0;
-				cnt_page = arr_cnt_page[0];
-				max_idx_page = 0;
-				//dataGrid.Columns.Clear();
-				////dataGrid.Items.Clear();
-				//dataGrid.Items.Refresh();
+				Clear();
 
 				//string path = DataBaseInfo.LoadDataBase("log.db");
 				//if(path == null)
@@ -127,7 +123,19 @@ namespace CofileUI.UserControls
 			}
 
 		}
-		string[] log_type = new string[] {"sam", "tail", "file"};
+		public void Clear()
+		{
+			Current_table = new DataTable();
+			dataGrid.ItemsSource = Current_table.DefaultView;
+			idx_page = 0;
+			cnt_page = arr_cnt_page[0];
+			max_idx_page = 0;
+			//dataGrid.Columns.Clear();
+			////dataGrid.Items.Clear();
+			//dataGrid.Items.Refresh();
+		}
+
+		string[] log_type = new string[] {"Sam", "Tail", "File"};
 		string[] log_action = new string[] {"Encrypt", "Decrypt"};
 		string[] log_result = new string[] {"Success", "Fail"};
 		private void UpdateDataGrid(SQLiteConnection con, string sql)
@@ -135,9 +143,8 @@ namespace CofileUI.UserControls
 			try
 			{
 				SQLiteDataAdapter dataAdapter = new SQLiteDataAdapter(sql, con);
-
 				//DataTable[] tables = new DataTable[1] {new DataTable() };
-				//dataAdapter.Fill(0, 600, tables);
+				//dataAdapter.Fill(0, 20000, tables);
 				//Current_table = tables[0];
 
 				DataSet dataSet = new DataSet();
@@ -341,7 +348,7 @@ namespace CofileUI.UserControls
 				return;
 
 			label_inform_page.Content = _idx_page * _cnt_page + " ~ " + (_idx_page + 1) * _cnt_page;
-			label_total_count.Content = Filtering_row.Length;
+			label_total_count.Content = "/ " + Filtering_row.Length + " 개 중";
 		}
 		private void btnFirst_Click(object sender, RoutedEventArgs e)
 		{
@@ -423,6 +430,31 @@ namespace CofileUI.UserControls
 		private void OnIsEnabledChangedEndDate(object sender, DependencyPropertyChangedEventArgs e)
 		{
 			EndDateChanged();
+		}
+		private void OnClickRefresh(object sender, RoutedEventArgs e)
+		{
+			UserControls.DataBaseInfo.RefreshUi();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			StringBuilder command = new StringBuilder();
+			command.Append("cofile_monitor -k ");
+
+			foreach(var v in dataGrid.SelectedItems)
+			{
+				DataRowView drv = v as DataRowView;
+				if(drv == null)
+					continue;
+
+				if(drv.Row.ItemArray.Length > 0)
+				{
+					command.Append(drv.Row.ItemArray[0].ToString());
+					command.Append(",");
+				}
+			}
+			command.Remove(command.Length - 1, 1);
+			Console.WriteLine(command.ToString());
 		}
 	}
 }

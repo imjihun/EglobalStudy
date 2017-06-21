@@ -1,4 +1,5 @@
 ﻿using CofileUI.Classes;
+using CofileUI.Windows;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -33,11 +34,6 @@ namespace CofileUI.UserControls
 		{
 			try
 			{
-				dataGrid.ItemsSource = new DataTable().DefaultView;
-				//dataGrid.Columns.Clear();
-				////dataGrid.Items.Clear();
-				//dataGrid.Items.Refresh();
-
 				//string path = DataBaseInfo.LoadDataBase("status.db");
 				//if(path == null)
 				//	return;
@@ -60,7 +56,17 @@ namespace CofileUI.UserControls
 			//Console.WriteLine(this.);
 		}
 
+		public void Clear()
+		{
+			dataGrid.ItemsSource = new DataTable().DefaultView;
+			//dataGrid.Columns.Clear();
+			////dataGrid.Items.Clear();
+			//dataGrid.Items.Refresh();
+
+		}
+
 		string[] status_type = new string[] {"sam", "tail", "file" };
+
 		private void UpdateDataGrid(SQLiteConnection con, string sql)
 		{
 			try
@@ -71,7 +77,7 @@ namespace CofileUI.UserControls
 
 				DataTable table = dataSet.Tables[0];
 
-				ChangeColumnIntToString(status_type, table, "type");
+				//ChangeColumnIntToString(status_type, table, "type");
 
 				dataGrid.ItemsSource = table.DefaultView;
 			}
@@ -107,6 +113,47 @@ namespace CofileUI.UserControls
 			table.Columns.RemoveAt(new_idx + 1);
 		}
 
+		private void OnClickKillAll(object sender, RoutedEventArgs e)
+		{
+			if(dataGrid.Items.Count > 0)
+				WindowMain.current.ShowMessageDialog("Kill All", "모든 프로세스를 죽이시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillAll);
+		}
+		private void KillAll()
+		{
+			SSHController.RunCofileCommand("cofile_monitor -killall");
 
+			UserControls.DataBaseInfo.RefreshUi();
+		}
+		private void OnClickKillSelected(object sender, RoutedEventArgs e)
+		{
+			if(dataGrid.SelectedItems.Count > 0)
+				WindowMain.current.ShowMessageDialog("Kill Selected", "선택된 프로세스를 죽이시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillSelected);
+		}
+		private void KillSelected()
+		{
+			StringBuilder command = new StringBuilder();
+			command.Append("cofile_monitor -k ");
+
+			foreach(var v in dataGrid.SelectedItems)
+			{
+				DataRowView drv = v as DataRowView;
+				if(drv == null)
+					continue;
+
+				if(drv.Row.ItemArray.Length > 0)
+				{
+					command.Append(drv.Row.ItemArray[0].ToString());
+					command.Append(",");
+				}
+			}
+			command.Remove(command.Length - 1, 1);
+			SSHController.RunCofileCommand(command.ToString());
+
+			UserControls.DataBaseInfo.RefreshUi();
+		}
+		private void OnClickRefresh(object sender, RoutedEventArgs e)
+		{
+			UserControls.DataBaseInfo.RefreshUi();
+		}
 	}
 }

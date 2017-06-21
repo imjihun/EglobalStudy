@@ -212,7 +212,7 @@ namespace CofileUI.UserControls
 
 			FileInfo = _file;
 
-			InitContextMenu();
+			//InitContextMenu();
 
 			this.IsDirectory = _isDirectory;
 

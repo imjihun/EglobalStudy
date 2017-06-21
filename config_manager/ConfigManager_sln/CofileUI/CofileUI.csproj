@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8682379-697C-4A25-A387-A03DEBE6B2E1}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CofileUI</RootNamespace>
     <AssemblyName>CofileUI</AssemblyName>
@@ -295,7 +295,9 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy $(TargetDir)*.dll $(TargetDir)\bin\ /y</PostBuildEvent>
+    <PostBuildEvent>xcopy $(TargetDir)*.dll $(ProjectDir)\bin\CofileUI\CofileUI\ /y
+xcopy $(TargetDir)$(TargetFileName) $(ProjectDir)\bin\CofileUI\CofileUI\ /y
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

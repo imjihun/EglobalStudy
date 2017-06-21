@@ -156,7 +156,26 @@ namespace CofileUI.UserControls
 			}
 		}
 
+		public static string PreviewExtension = "preview_extension_ll";
 		static ulong Idx_Encrypt_File_Open = 0;
+		string FindDecryptFile(string remote_path_enc_file)
+		{
+			JToken jtok = JsonController.parseJson(FileContoller.Read(current.Selected_config_file_path));
+			if(jtok == null)
+				return null;
+			
+			JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
+			string output_extension = PreviewExtension;
+
+			string remote_path = remote_path_enc_file;
+			if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1)
+				//&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
+				remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
+
+			string remote_path_dec_file = remote_path + "." + output_extension;
+
+			return remote_path_dec_file;
+		}
 		void EncryptFileOpen()
 		{
 			if(listView_linux_files.SelectedItems.Count < 1)
@@ -166,39 +185,34 @@ namespace CofileUI.UserControls
 			if(llvi == null)
 				return;
 
-			if(SSHController.SendNRecvCofileCommand(listView_linux_files.SelectedItems.Cast<Object>(), false))
+			if(SSHController.SendNRecvCofileCommandPreview(listView_linux_files.SelectedItems.Cast<Object>(), false))
 			{
 				string remote_path = llvi.LinuxTVI.Path;
-				JToken jtok = JsonController.parseJson(FileContoller.Read(current.Selected_config_file_path));
-				if(jtok == null)
-					return;
 
-				JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
-				JValue jval_output_extension = jtok["dec_option"]["output_extension"] as JValue;
-
-				if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1
-					&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
-					remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
-
-				string remote_dec_path = remote_path + "." + jval_output_extension.Value.ToString();
-				string[] split_remote_path = remote_path.Split('/');
-				string local_filename = split_remote_path[split_remote_path.Length - 1] + Idx_Encrypt_File_Open++;
-
-				if(SSHController.moveFileToLocal(root_path, remote_dec_path, local_filename))
+				string local_filename = "temp" + Idx_Encrypt_File_Open++;
+				string remote_path_dec_file  = FindDecryptFile(remote_path);
+				if(SSHController.moveFileToLocal(root_path, remote_path_dec_file, local_filename))
 				{
 					llvi.LinuxTVI.RefreshChildFromParent();
 					Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
 
 					string url_localfile = root_path + local_filename;
 					string[] split = remote_path.Split('.');
-					if(split[split.Length - 1] == "gif"
-						|| split[split.Length - 1] == "bmp"
-						|| split[split.Length - 1] == "jpg"
-						|| split[split.Length - 1] == "png"
+					string expansion = split[split.Length - 2];
+					if(expansion == "png"
+						|| expansion == "dib"
+						|| expansion == "bmp"
+						|| expansion == "jpg"
+						|| expansion == "jpeg"
+						|| expansion == "jpe"
+						|| expansion == "jfif"
+						|| expansion == "gif"
+						|| expansion == "tif"
+						|| expansion == "tiff"
 						)
 					{
 						Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-						File.Delete(url_localfile);
+						FileContoller.Delete(url_localfile);
 
 						wvi.ShowDialog();
 					}
@@ -206,7 +220,7 @@ namespace CofileUI.UserControls
 					{
 
 						string str = FileContoller.Read(url_localfile);
-						File.Delete(url_localfile);
+						FileContoller.Delete(url_localfile);
 
 						Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
 						wvf.ShowDialog();
@@ -217,6 +231,61 @@ namespace CofileUI.UserControls
 					Log.PrintError("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
 				}
 			}
+
+
+			//string remote_path_enc_file = llvi.LinuxTVI.Path;
+			//string[] split = remote_path_enc_file.Split('/');
+			//if(remote_path_enc_file.Length <= split[split.Length - 1].Length)
+			//	return;
+
+			//string remote_path_configfile = SSHController.GetRemoteConfigFilePath(Selected_config_file_path);
+			//string remote_path_enc_file_base_dir = remote_path_enc_file.Substring(0, remote_path_enc_file.Length - split[split.Length - 1].Length);
+			////string command = "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_configfile + " -id / -od " + remote_path_enc_file_base_dir;
+			//// # cofile file -d -f /home/cofile/TestOutput/tail_config_default.json.coenc -c /home/cofile/var/conf/cofile/file_config_default1.json -id / -od /home/cofile/TestOutput/
+			//// 위의 커맨드를 실행시키니 output_dir 경로가 중복된다.
+			//string command = "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_configfile + " -id / -od /";
+			//SSHController.RunCofileCommand(command);
+			//Console.WriteLine("command = " + command);
+
+			//string remote_path_dec_file  = FindDecryptFile(remote_path_enc_file);
+			//Console.WriteLine("remote_path_dec_file  = " + remote_path_dec_file);
+
+			//string local_filename = "tmp" + Idx_Encrypt_File_Open++;
+			//if(SSHController.moveFileToLocal(root_path, remote_path_dec_file, local_filename))
+			//{
+			//	llvi.LinuxTVI.RefreshChildFromParent();
+			//	Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
+
+			//	string url_localfile = root_path + local_filename;
+			//	string[] split_expansion = remote_path_dec_file.Split('.');
+			//	string expansion = split_expansion[split_expansion.Length - 2];
+			//	if(expansion == "gif"
+			//		|| expansion == "bmp"
+			//		|| expansion == "jpg"
+			//		|| expansion == "png"
+			//		)
+			//	{
+			//		Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
+			//		File.Delete(url_localfile);
+
+			//		wvi.ShowDialog();
+			//	}
+			//	else
+			//	{
+
+			//		string str = FileContoller.Read(url_localfile);
+			//		File.Delete(url_localfile);
+
+			//		Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
+			//		wvf.ShowDialog();
+			//	}
+			//}
+			//else
+			//{
+			//	Log.PrintError("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
+			//}
+
+
 		}
 		private BitmapImage LoadImage(string uri_ImageFile)
 		{
@@ -292,10 +361,10 @@ namespace CofileUI.UserControls
 			}
 		}
 
-		public void Refresh()
+		public int Refresh()
 		{
 			if(WindowMain.current == null)
-				return;
+				return -1;
 
 			//if(ssh != null && ssh.IsConnected)
 			//	ssh.Disconnect();
@@ -313,12 +382,13 @@ namespace CofileUI.UserControls
 			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			string working_dir = SSHController.WorkingDirectory;
 			if(working_dir == null)
-				return;
+				return -1;
 
 			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
 			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			Log.PrintConsole("[refresh]");
 
+			return 0;
 			//LinuxTreeViewItem.ReconnectServer();
 		}
 		private string selected_config_file_path = "Not Selected";
@@ -529,8 +599,8 @@ namespace CofileUI.UserControls
 												, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative
 												, delegate
 												{
-													TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
-													txt.Text = "";
+													//TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
+													//txt.Text = "";
 													SSHController.SendNRecvCofileCommand(selected_list, isEncrypt);
 													//LinuxTreeViewItem.Refresh();
 												});

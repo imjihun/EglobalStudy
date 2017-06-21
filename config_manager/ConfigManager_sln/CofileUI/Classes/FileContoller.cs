@@ -22,6 +22,17 @@ namespace CofileUI.Classes
 			}
 			return true;
 		}
+		public static void Delete(string path)
+		{
+			try
+			{
+				File.Delete(path);
+			}
+			catch(Exception e)
+			{
+				Log.PrintConsole(e.Message, "FileContoller.Delete");
+			}
+		}
 		public static string Read(string path)
 		{
 			if(path == null)

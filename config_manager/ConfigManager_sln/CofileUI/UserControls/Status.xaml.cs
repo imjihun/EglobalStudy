@@ -32,5 +32,10 @@ namespace CofileUI.UserControls
 			//textBox_status.ScrollToEnd();
 			richTextBox_status.ScrollToEnd();
 		}
+		public void Clear()
+		{
+			TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
+			txt.Text = "";
+		}
 	}
 }

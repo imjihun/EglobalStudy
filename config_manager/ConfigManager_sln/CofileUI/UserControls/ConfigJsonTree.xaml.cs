@@ -60,7 +60,7 @@ namespace CofileUI.UserControls
 				return;
 
 			cur_root_path = root_path;
-			cur_root_path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
+			cur_root_path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
 			SSHController.GetConfig(cur_root_path);
 		}
 		public void refreshJsonTree(JToken jtok_root)

@@ -110,7 +110,8 @@ namespace CofileUI.Classes
 			}
 
 			// 마지막에 문단 나누기 추가
-			string str = "\r\n";
+			//string str = "\r\n";
+			string str = "";
 			if(output_ui != null)
 			{
 				TextBox tb = output_ui as TextBox;

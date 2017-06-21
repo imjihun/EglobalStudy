@@ -240,19 +240,22 @@ namespace CofileUI.UserControls
 		public ServerMenuButton parent;
 		public static ServerInfoTextBlock selected_serverinfo_textblock;
 
+		MenuItem Disconnect;
 		private void InitContextMenu()
 		{
 			this.ContextMenu = new ContextMenu();
-			MenuItem item = new MenuItem();
-			item.Click += OnClickAddServer;
-			item.Header = "Add Server";
-			item.Icon = new PackIconMaterial()
-			{
-				Kind = PackIconMaterialKind.ServerPlus,
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Center
-			};
-			this.ContextMenu.Items.Add(item);
+			MenuItem item;
+
+			//item = new MenuItem();
+			//item.Click += OnClickAddServer;
+			//item.Header = "Add Server";
+			//item.Icon = new PackIconMaterial()
+			//{
+			//	Kind = PackIconMaterialKind.ServerPlus,
+			//	VerticalAlignment = VerticalAlignment.Center,
+			//	HorizontalAlignment = HorizontalAlignment.Center
+			//};
+			//this.ContextMenu.Items.Add(item);
 
 			item = new MenuItem();
 			item.Click += OnClickDeleteServer;
@@ -276,16 +279,16 @@ namespace CofileUI.UserControls
 			};
 			this.ContextMenu.Items.Add(item);
 
-			item = new MenuItem();
-			item.Click += OnClickDisConnectServer;
-			item.Header = "DisConnect Server";
-			item.Icon = new PackIconModern()
+			Disconnect = new MenuItem();
+			Disconnect.Click += OnClickDisConnectServer;
+			Disconnect.Header = "DisConnect Server";
+			Disconnect.Icon = new PackIconModern()
 			{
 				Kind = PackIconModernKind.Disconnect,
 				VerticalAlignment = VerticalAlignment.Center,
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
-			this.ContextMenu.Items.Add(item);
+			this.ContextMenu.Items.Add(Disconnect);
 
 			item = new MenuItem();
 			item.Click += OnClickModifyServer;
@@ -297,7 +300,22 @@ namespace CofileUI.UserControls
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			this.ContextMenu.Items.Add(item);
+
+			this.ContextMenu.Opened += ContextMenu_Opened;
 		}
+		private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+		{
+			if(Disconnect != null)
+			{
+				string ip = selected_serverinfo_textblock.serverinfo.ip;
+				int port = selected_serverinfo_textblock.serverinfo.port;
+				if(SSHController.CheckConnection(ip, port))
+					Disconnect.IsEnabled = true;
+				else
+					Disconnect.IsEnabled = false;
+			}
+		}
+
 		public ServerList()
 		{
 			this.Margin = new Thickness(20, 0, 0, 0);
@@ -369,13 +387,18 @@ namespace CofileUI.UserControls
 			if(sitb == null)
 				return;
 
-			SSHController.ReConnect();
+			//SSHController.ReConnect();
 			WindowMain.current.Refresh(sitb.serverinfo.name);
 		}
 		private void OnClickDisConnectServer(object sender, RoutedEventArgs e)
 		{
 			SSHController.DisConnect();
-			WindowMain.current.Clear();
+			if(WindowMain.current != null)
+				WindowMain.current.Clear();
+			if(Sqlite_LogTable.current != null)
+				Sqlite_LogTable.current.Clear();
+			if(Sqlite_StatusTable.current != null)
+				Sqlite_StatusTable.current.Clear();
 		}
 		private void OnClickModifyServer(object sender, RoutedEventArgs e)
 		{
@@ -512,7 +535,7 @@ namespace CofileUI.UserControls
 
 			item = new MenuItem();
 			item.Click += BtnAddServerMenu_Click;
-			item.Header = "Add Server Menu";
+			item.Header = "Add Server Group";
 			item.Icon = new PackIconMaterial()
 			{
 				Kind = PackIconMaterialKind.FolderPlus,
@@ -523,7 +546,7 @@ namespace CofileUI.UserControls
 
 			item = new MenuItem();
 			item.Click += BtnDelServerMenu_Click;
-			item.Header = "Del Server Menu";
+			item.Header = "Del Server Group";
 			item.Icon = new PackIconMaterial()
 			{
 				Kind = PackIconMaterialKind.FolderRemove,

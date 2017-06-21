@@ -738,6 +738,24 @@ namespace CofileUI.UserControls
 		{
 			base.OnClick();
 
+			string message = "";
+			JsonTreeViewItemHeader header = this.Parent as JsonTreeViewItemHeader;
+			if(header != null)
+			{
+				if(header.Children.Count > 0)
+				{
+					JsonTextBox tb = header.Children[0] as JsonTextBox;
+					if(tb != null)
+					{
+						message += "Key = " + tb.Text + "\r";
+					}
+				}
+			}
+			message += "선택된 항목을 삭제하시겠습니까?\r(하위항목도 같이 삭제됩니다.)";
+			WindowMain.current.ShowMessageDialog("Delete", message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, Delete);
+		}
+		private void Delete()
+		{
 			JsonTreeViewItem this_jtvi = (this.Parent as Grid).Parent as JsonTreeViewItem;
 			if(this_jtvi == null)
 				return;

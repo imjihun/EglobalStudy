@@ -1,5 +1,6 @@
 ﻿using CofileUI.UserControls;
 using CofileUI.Windows;
+using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
@@ -28,6 +29,13 @@ namespace CofileUI.Classes
 		public static DispatcherTimer shell_stream_read_timer;
 
 
+		public static bool CheckConnection(string ip, int port)
+		{
+			if(CheckConnection(sftp, ip, port) && CheckConnection(ssh, ip, port))
+				return true;
+
+			return false;
+		}
 		static bool CheckConnection(BaseClient client, string ip, int port, string id)
 		{
 			if((client == null || !client.IsConnected)
@@ -63,8 +71,12 @@ namespace CofileUI.Classes
 			try
 			{
 				//if(!CheckConnection(sftp, ip, port, id) || !CheckConnection(ssh, ip, port, id))
-				if(!CheckConnection(sftp, ip, port) || !CheckConnection(ssh, ip, port))
+				if(!CheckConnection(ip, port))
 				{
+					if(WindowMain.current != null)
+						WindowMain.current.Changed_server_name = "";
+
+
 					TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
 					txt.Text = "";
 					
@@ -83,14 +95,14 @@ namespace CofileUI.Classes
 					//string password = "cofile";
 					ServerList.selected_serverinfo_textblock.serverinfo.id = id;
 
-					sftp = new SftpClient(ip, port, id, password);
-					if(timeout_ms != NO_TIMEOUT)
-						sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
-					sftp.Connect();
 					ssh = new SshClient(ip, port, id, password);
 					if(timeout_ms != NO_TIMEOUT)
 						ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
 					ssh.Connect();
+					sftp = new SftpClient(ip, port, id, password);
+					if(timeout_ms != NO_TIMEOUT)
+						sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
+					sftp.Connect();
 
 					if(ssh.IsConnected)
 					{
@@ -105,11 +117,16 @@ namespace CofileUI.Classes
 						shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
 						shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
 					}
-					//shell_stream_read_timer.Stop();
-					//shell_stream_read_timer.Start();
+					shell_stream_read_timer.Stop();
+					shell_stream_read_timer.Start();
 					Log.PrintConsole(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
 
 					readDummyMessageBlocking(null);
+					//for(int i = 0; i < 500; i++)
+					//	Log.PrintConsole(read(), "Lost SSH Stream");
+
+					if(WindowMain.current != null)
+						WindowMain.current.Changed_server_name = ServerList.selected_serverinfo_textblock.serverinfo.name;
 					return true;
 				}
 			}
@@ -122,8 +139,12 @@ namespace CofileUI.Classes
 		}
 		public static bool DisConnect()
 		{
-			ssh.Disconnect();
-			sftp.Disconnect();
+			if(ssh != null)
+				ssh.Disconnect();
+			if(sftp != null)
+				sftp.Disconnect();
+			if(WindowMain.current != null)
+				WindowMain.current.Changed_server_name = "";
 			return true;
 		}
 		private static bool CreateDirectory(string remote_dir_path)
@@ -221,17 +242,16 @@ namespace CofileUI.Classes
 
 			try
 			{
-				if(remote_filename == null)
-				{
-					string[] split = remote_path_file.Split('/');
-					remote_filename = split[split.Length - 1];
-				}
-
 				string local;
 				if(local_file_name != null)
 					local = local_path_folder + local_file_name;
 				else
 				{
+					if(remote_filename == null)
+					{
+						string[] split = remote_path_file.Split('/');
+						remote_filename = split[split.Length - 1];
+					}
 					local = local_path_folder + remote_filename;
 				}
 
@@ -255,7 +275,7 @@ namespace CofileUI.Classes
 				return false;
 			ssh.RunCommand("rm -rf " + remote_path_file);
 			//sendCommand("rm -rf " + remote_path_file);
-			//readDummyMessageBlocking(null);
+			readDummyMessageBlocking(null);
 
 			return true;
 		}
@@ -309,10 +329,17 @@ namespace CofileUI.Classes
 				// send
 				if(shell_stream_reader != null)
 				{
+					readDummyMessageBlocking(null);
+					//while(!shell_stream_reader.EndOfStream)
+					//	Log.PrintConsole(read(), "Lost SSH Stream");
+
 					shell_stream_writer.Write(command);
 					shell_stream_writer.Write("\n");
 					shell_stream_writer.Flush();
 					Log.PrintConsole(command, "send command"/*, test4.m_wnd.richTextBox_status*/);
+
+					bStart = false;
+
 					return true;
 				}
 			}
@@ -328,40 +355,62 @@ namespace CofileUI.Classes
 		static string[] view_log_start = new string[] {"inform"};
 		static string[] view_error_start = new string[] {"error" };
 		public static string view_message_caption = "";
+		static bool bstart = false;
+		static bool bStart { get { return bstart; }
+			set
+			{
+				bstart = value;
+				//if(!value)
+				//	read_line_ssh = "";
+			}
+		}
 		private static string read()
 		{
 			int size_buffer = 4096;
 			char[] buffer = new char[size_buffer];
+
+			string _read = "";
 			try
 			{
 				int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
 
-				read_line_ssh += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
+				_read = new string(buffer, 0, cnt);
+				read_line_ssh += _read;/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
 				if(read_line_ssh.Length > 0)
 				{
 					//Log.Print(read_line_ssh, "read"/*, test4.m_wnd.richTextBox_status*/);
 					int idx_newline = 0;
-					if((idx_newline = read_line_ssh.IndexOf('\n')) >= 0)
+					if((idx_newline = read_line_ssh.IndexOf('\n')) >= 0
+						|| (idx_newline = read_line_ssh.IndexOf('\r')) >= 0)
 					{
 						string line = read_line_ssh.Substring(0, idx_newline);
-						int i;
-						for(i = 0; i < view_log_start.Length; i++)
+						//int i;
+						//for(i = 0; i < view_log_start.Length; i++)
+						//{
+						//	if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
+						//	{
+						//		Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
+						//	}
+						//}
+						//if(i == view_log_start.Length)
+						//{
+						//	for(i = 0; i < view_error_start.Length; i++)
+						//	{
+						//		if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
+						//			Log.PrintError(line, view_message_caption, Status.current.richTextBox_status);
+						//	}
+						//	if(i == view_error_start.Length)
+						//		Log.ViewUndefine(line, "__undefined][" + view_message_caption, Status.current.richTextBox_status);
+						//}
+						if(line.IndexOf("Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.") >= 0)
 						{
-							if(line.Length > view_log_start[i].Length && line.Substring(0, view_log_start[i].Length).ToLower() == view_log_start[i])
-							{
-								Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
-							}
+							bStart = true;
 						}
-						if(i == view_log_start.Length)
+						else if(bStart)
 						{
-							for(i = 0; i < view_error_start.Length; i++)
-							{
-								if(line.Length > view_error_start[i].Length && line.Substring(0, view_error_start[i].Length).ToLower() == view_error_start[i])
-									Log.PrintError(line, view_message_caption, Status.current.richTextBox_status);
-							}
-							if(i == view_error_start.Length)
-								Log.ViewUndefine(line, "__undefined][" + view_message_caption, Status.current.richTextBox_status);
+							Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
 						}
+					
 
 						Log.PrintConsole(line, "Read");
 						read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
@@ -373,64 +422,71 @@ namespace CofileUI.Classes
 			{
 				Log.PrintError(e.Message, "read", Status.current.richTextBox_status);
 			}
-			return read_line_ssh;
+			return _read;
 		}
 		private static string readDummyMessageBlocking(string cmd_send)
 		{
 			// 수정중..
-			shell_stream_read_timer.Stop();
 
 			int size_buffer = 4096;
 			char[] buffer = new char[size_buffer];
-			string message = "";
-			string ret_message = null;
-			try
-			{
-				// '$' or '#' 의 값이 나올떄까지 리드
-				// 대신 output 에 $ 이나 # 이 있으면 안됨.
-				string str_recv = "";
-				while(str_recv.Length < 1 || (str_recv.LastIndexOf('$') < 0 && str_recv.LastIndexOf('#') < 0))
-				{
-					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
-					str_recv += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
-				}
-				int l = str_recv.Length;
-				Log.PrintConsole(str_recv, "readMessageBlocking][" + l);
-				//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, Status.current.richTextBox_status);
-				if(cmd_send == null || cmd_send == "")
-					return cmd_send;
+			for(int i = 0; i < 500; i++)
+				shell_stream_reader.Read(buffer, 0, size_buffer);
+			return null;
 
-				// 명령어 전까지 자르기.(dummy 제거)
-				//if(str_recv.LastIndexOf(cmd_send) >= 0)
-				//	message = str_recv.Substring(str_recv.LastIndexOf(cmd_send));
-				// 명령어가 이상한 값이 들어가므로.. 명령어 라인까지 자르기 (전제조건 : 명령어 부터 리시브를 받는다)
-				if(str_recv.IndexOf('\n') >= 0 && str_recv.Length > str_recv.IndexOf('\n') + 1)
-				{
-					message = str_recv.Substring(str_recv.IndexOf('\n') + 1);
-				}
+			//shell_stream_read_timer.Stop();
 
-				// 명령어 라인과 
-				// 마지막라인 '[~] $' 제거
-				if(message.IndexOf('\n') >= 0 && message.IndexOf('\n') + 1 < message.Length)
-				{
-					// 명령어는 이미 잘려있기 때문에
-					//int idx = message.IndexOf('\n');
-					int idx = 0;
+			//int size_buffer = 4096;
+			//char[] buffer = new char[size_buffer];
+			//string message = "";
+			//string ret_message = null;
+			//try
+			//{
+			//	// '$' or '#' 의 값이 나올떄까지 리드
+			//	// 대신 output 에 $ 이나 # 이 있으면 안됨.
+			//	string str_recv = "";
+			//	while(str_recv.Length < 1 || (str_recv.LastIndexOf('$') < 0 && str_recv.LastIndexOf('#') < 0))
+			//	{
+			//		int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
+			//		str_recv += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
+			//	}
+			//	int l = str_recv.Length;
+			//	Log.PrintConsole(str_recv, "readMessageBlocking][" + l);
+			//	//Log.ViewMessage(str_recv, "readMessageBlocking][" + l, Status.current.richTextBox_status);
+			//	if(cmd_send == null || cmd_send == "")
+			//		return cmd_send;
 
-					int len = message.LastIndexOf('\n') - idx;
-					if(len > 0)
-						ret_message = message.Substring(idx + 1, len);
-				}
+			//	// 명령어 전까지 자르기.(dummy 제거)
+			//	//if(str_recv.LastIndexOf(cmd_send) >= 0)
+			//	//	message = str_recv.Substring(str_recv.LastIndexOf(cmd_send));
+			//	// 명령어가 이상한 값이 들어가므로.. 명령어 라인까지 자르기 (전제조건 : 명령어 부터 리시브를 받는다)
+			//	if(str_recv.IndexOf('\n') >= 0 && str_recv.Length > str_recv.IndexOf('\n') + 1)
+			//	{
+			//		message = str_recv.Substring(str_recv.IndexOf('\n') + 1);
+			//	}
+
+			//	// 명령어 라인과 
+			//	// 마지막라인 '[~] $' 제거
+			//	if(message.IndexOf('\n') >= 0 && message.IndexOf('\n') + 1 < message.Length)
+			//	{
+			//		// 명령어는 이미 잘려있기 때문에
+			//		//int idx = message.IndexOf('\n');
+			//		int idx = 0;
+
+			//		int len = message.LastIndexOf('\n') - idx;
+			//		if(len > 0)
+			//			ret_message = message.Substring(idx + 1, len);
+			//	}
 
 
-			}
-			catch(Exception e)
-			{
-				Log.PrintError(e.Message, "readMessageBlocking", Status.current.richTextBox_status);
-			}
+			//}
+			//catch(Exception e)
+			//{
+			//	Log.PrintError(e.Message, "readMessageBlocking", Status.current.richTextBox_status);
+			//}
 
-			shell_stream_read_timer.Start();
-			return ret_message;
+			//shell_stream_read_timer.Start();
+			//return ret_message;
 		}
 		private static string readCofileMessageBlocking()
 		{
@@ -491,26 +547,29 @@ namespace CofileUI.Classes
 			string env_co_home = null;
 			try
 			{
-				while((prevstr.Length < cmd_length || prevstr.IndexOf(cmd_send) < 0 || prevstr.Length <= prevstr.IndexOf(cmd_send) + cmd_length))
+				int i=0;
+				while(i < 500 || (prevstr.Length < cmd_length || prevstr.IndexOf(cmd_send) < 0 || prevstr.Length <= prevstr.IndexOf(cmd_send) + cmd_length))
 				{
 					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
 					prevstr += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
+					i++;
 				}
+
 				int startline = 0;
 				startline = prevstr.IndexOf(cmd_send);
 				line = prevstr.Substring(startline + cmd_length);
-				if(prevstr.IndexOf(cmd_send) > 2 && prevstr[startline - 2] != '$')
-				{
-					prevstr = line;
-					while((prevstr.Length < cmd_length || prevstr.IndexOf(cmd_send) < 0 || prevstr.Length <= prevstr.IndexOf(cmd_send) + cmd_length))
-					{
-						int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
-						prevstr += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
-					}
-					startline = 0;
-					startline = prevstr.IndexOf(cmd_send);
-					line = prevstr.Substring(startline + cmd_length);
-				}
+				//if(startline > 2 && prevstr[startline - 2] != '$')
+				//{
+				//	prevstr = line;
+				//	while((prevstr.Length < cmd_length || prevstr.IndexOf(cmd_send) < 0 || prevstr.Length <= prevstr.IndexOf(cmd_send) + cmd_length))
+				//	{
+				//		int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
+				//		prevstr += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
+				//	}
+				//	startline = 0;
+				//	startline = prevstr.IndexOf(cmd_send);
+				//	line = prevstr.Substring(startline + cmd_length);
+				//}
 
 				//bool bGet_end = false;
 				while(line.Length < cmd_length || line.IndexOf('\n') < 0)
@@ -621,6 +680,11 @@ namespace CofileUI.Classes
 		static string cmd_get_co_home = "echo $CO_HOME";
 		private static string LoadEnvCoHome()
 		{
+			//LinuxTreeViewItem.ReconnectServer();
+			//LinuxTreeViewItem.ReConnect();
+			if(!SSHController.ReConnect(timeout_connect_ms))
+				return null;
+
 			if(!SSHController.sendCommand(cmd_get_co_home))
 				return null;
 			string env_co_home = readCoHomeBlocking(cmd_get_co_home);
@@ -635,7 +699,8 @@ namespace CofileUI.Classes
 		}
 
 		public static string add_path_config_upload = "/var/conf/";
-		public static string add_path_run_cofile = "/bin/cofile";
+		public static string add_path_bin = "/bin/";
+		public static string add_path_run_cofile = add_path_bin + "cofile";
 		public static CofileOption selected_type = CofileOption.file;
 		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname, bool isDirectory)
 		{
@@ -684,35 +749,84 @@ namespace CofileUI.Classes
 			return str;
 		}
 
-		//public static double RateProcessed = 0;
-		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt)
+		public static string MakeCommandRunCofilePreview(string path_run, CofileOption type, bool isEncrypt, string path, string configname, bool isDirectory)
+		{
+			string str = path_run;
+			str += " " + type.ToString().ToLower();
+
+			if(isEncrypt)
+				str += " -e";
+			else
+				str += " -d";
+
+			string[] split = path.Split('/');
+			string filename = split[split.Length - 1];
+
+			if(!isDirectory)
+				str += " -f " + filename;
+
+			if(configname != null)
+				str += " -c " + configname;
+
+			if(isDirectory)
+				str += " -id " + path;
+			else
+				str += " -id " + path.Substring(0, path.Length - filename.Length);
+
+			if(isDirectory)
+				str += " -od " + path;
+			else
+				str += " -od " + path.Substring(0, path.Length - filename.Length);
+
+			str += " -oe " + Cofile.PreviewExtension;
+			return str;
+		}
+
+		public static string GetRemoteConfigFilePath(string local_path_configfile)
 		{
 			string env_co_home = LoadEnvCoHome();
-			string remote_directory = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
-
-			string path_sel = Cofile.current.Selected_config_file_path;
+			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
+			
 			string path_root = ConfigJsonTree.cur_root_path;
-			string remote_file_path = remote_directory;
-			if(path_sel.Length > path_root.Length
-				&& path_sel.Substring(0, path_root.Length) == ConfigJsonTree.cur_root_path)
+			string remote_path_configfile = remote_path_configfile_dir;
+			if(local_path_configfile.Length > path_root.Length
+				&& local_path_configfile.Substring(0, path_root.Length) == ConfigJsonTree.cur_root_path)
 			{
-				remote_file_path += path_sel.Substring(path_root.Length).Replace('\\', '/');
-				if(!sftp.Exists(remote_file_path))
-					return false;
+				remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
+				if(!sftp.Exists(remote_path_configfile))
+					return null;
 			}
 			else
 			{
-				string[] split = path_sel.Split('\\');
-				remote_file_path = remote_directory + split[split.Length - 1];
-				if(!sftp.Exists(remote_file_path))
-					return false;
+				string[] split = local_path_configfile.Split('\\');
+				remote_path_configfile = remote_path_configfile_dir + split[split.Length - 1];
+				if(!sftp.Exists(remote_path_configfile))
+					return null;
 			}
+			return remote_path_configfile;
+		}
+		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt)
+		{
+			Status.current.Clear();
 
+			string local_path_configfile = Cofile.current.Selected_config_file_path;
+			if(local_path_configfile == null)
+			{
+				Log.PrintError("Check Config File", output_ui: Status.current.richTextBox_status);
+				return false;
+			}
+			string remote_configfile_path = GetRemoteConfigFilePath(local_path_configfile);
+			if(remote_configfile_path == null)
+			{
+				Log.PrintError("Check Config File", output_ui: Status.current.richTextBox_status);
+				return false;
+			}
 
 			//string remote_file_path = UploadFile(Cofile.current.Selected_config_file_path, remote_directory);
 			//if(remote_file_path == null)
 			//	return false;
 
+			string env_co_home = LoadEnvCoHome();
 			List <LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();
 			var enumerator = selected_list.GetEnumerator();
 			for(int i =0; enumerator.MoveNext(); i++)
@@ -732,14 +846,15 @@ namespace CofileUI.Classes
 					break;
 
 				//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
-
-				string send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_file_path, ltvi.IsDirectory);
+				string send_cmd;
+				send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 				//SendCommandOnce(send_cmd);
 				sendCommand(send_cmd);
 				//string ret = readMessageBlocking(send_cmd);
-				string ret = readCofileMessageBlocking();
-				string caption = isEncrypt ? "Encrypt" : "Decrypt";
-				Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+
+				//string ret = readCofileMessageBlocking();
+				//string caption = isEncrypt ? "Encrypt" : "Decrypt";
+				//Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
 
 				LinuxTreeViewItem parent = ltvi.Parent;
 				if(parent != null && parents.IndexOf(parent) < 0)
@@ -751,7 +866,81 @@ namespace CofileUI.Classes
 			Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
 			return true;
 		}
-		
+		public static bool SendNRecvCofileCommandPreview(IEnumerable<Object> selected_list, bool isEncrypt)
+		{
+			Status.current.Clear();
+
+			string local_path_configfile = Cofile.current.Selected_config_file_path;
+			if(local_path_configfile == null)
+			{
+				Log.PrintError("Check Config File", output_ui: Status.current.richTextBox_status);
+				return false;
+			}
+			string remote_configfile_path = GetRemoteConfigFilePath(local_path_configfile);
+			if(remote_configfile_path == null)
+			{
+				Log.PrintError("Check Config File", output_ui: Status.current.richTextBox_status);
+				return false;
+			}
+
+			string env_co_home = LoadEnvCoHome();
+			List <LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();
+			var enumerator = selected_list.GetEnumerator();
+			for(int i = 0; enumerator.MoveNext(); i++)
+			{
+				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
+
+				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
+				if(llvi != null)
+					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
+
+				if(ltvi == null)
+					break;
+
+				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
+
+				sendCommand(send_cmd);
+
+				//string ret = readCofileMessageBlocking();
+				//string caption = isEncrypt ? "Encrypt" : "Decrypt";
+				//Log.ViewMessage(ret, caption, Status.current.richTextBox_status);
+
+				LinuxTreeViewItem parent = ltvi.Parent;
+				if(parent != null && parents.IndexOf(parent) < 0)
+					parents.Add(parent);
+			}
+			WindowMain.current.progressBar.Value = 0;
+			for(int i = 0; i < parents.Count; i++)
+				parents[i].RefreshChild();
+			Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
+			return true;
+		}
+		public static bool RunCofileCommand(string command)
+		{
+			string env_co_home = LoadEnvCoHome();
+			string path_bin = env_co_home + add_path_bin;
+			sendCommand(path_bin + command);
+			//ssh.RunCommand(path_bin + command);
+			return true;
+		}
+		public static bool GetFileAfterDecrypt(string remote_path_enc_file, string remote_path_config_file)
+		{
+			//string env_co_home = LoadEnvCoHome();
+			//string path_bin = env_co_home + add_path_bin;
+
+			//string[] split = remote_path_enc_file.Split('/');
+			//if(remote_path_enc_file.Length <= split[split.Length - 1].Length)
+			//	return false;
+
+			//string remote_path_enc_file_base_dir = remote_path_enc_file.Substring(0, remote_path_enc_file.Length - split[split.Length - 1].Length);
+			//string command = path_bin + "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_config_file + " -id / -od " + remote_path_enc_file_base_dir;
+			//ssh.RunCommand(command);
+
+			//string remote_path_dec_file = remote_path_enc_file_base_dir + 
+
+			//moveFileToLocal(root_path, remote_path_dec_file, local_filename)
+			return true;
+		}
 		#endregion
 
 

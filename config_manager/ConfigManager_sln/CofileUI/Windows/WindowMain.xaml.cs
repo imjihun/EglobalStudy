@@ -84,13 +84,26 @@ namespace CofileUI.Windows
 
 
 		#region View Update
-		bool bUpdateDataBase = false;
-		bool bUpdateLinuxTree = false;
-		bool bUpdateConfigFile = false;
+		bool bUpdateDataBase = true;
+		bool bUpdateLinuxTree = true;
+		bool bUpdateConfigFile = true;
+		public void bUpdateInit(bool val)
+		{
+			bUpdateDataBase = val;
+			bUpdateLinuxTree = val;
+			bUpdateConfigFile = val;
+		}
 		string changed_server_name = "";
-		string Changed_server_name { get { return changed_server_name; } set {
+		public string Changed_server_name { get { return changed_server_name; }
+			set
+			{
 				changed_server_name = value;
-				label_serverinfo.Content = "[" + changed_server_name + "] is Connected from " + ServerList.selected_serverinfo_textblock.serverinfo.id; } }
+				if(value == "")
+					label_serverinfo.Content = "";
+				else
+					label_serverinfo.Content = "[" + changed_server_name + "] is Connected from " + ServerList.selected_serverinfo_textblock.serverinfo.id;
+			}
+		}
 
 		// 상단 탭이 바뀌었을때 작동
 		int idx_tab_before_change = 0;
@@ -107,7 +120,8 @@ namespace CofileUI.Windows
 			if(!bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
 				&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
 			{
-				UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
+				//UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
+				UserControls.DataBaseInfo.RefreshUi();
 				bUpdateDataBase = true;
 			}
 			if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null)
@@ -118,7 +132,7 @@ namespace CofileUI.Windows
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
 
-		// 서버메뉴리스트 선택이 바뀌었을때 작동 View Update
+		// 서버메뉴리스트에서 서버를 컨넥팅 동작을 할 때 작동
 		public void Refresh(string _changed_server_name)
 		{
 			bUpdateDataBase = false;
@@ -143,11 +157,12 @@ namespace CofileUI.Windows
 					break;
 				case 2:
 				case 3:
-					UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+					//UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+					UserControls.DataBaseInfo.RefreshUi();
 					bUpdateDataBase = true;
 					break;
 			}
-			Changed_server_name = _changed_server_name;
+			//Changed_server_name = _changed_server_name;
 		}
 		public void Clear()
 		{
