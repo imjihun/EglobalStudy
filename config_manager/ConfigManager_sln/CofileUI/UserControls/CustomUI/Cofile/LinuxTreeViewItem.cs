@@ -426,7 +426,14 @@ namespace CofileUI.UserControls
 				//flag_expanded_via_screen = true;
 			}
 		}
-		
+		public static void Clear()
+		{
+			if(LinuxTreeViewItem.root != null)
+			{
+				LinuxTreeViewItem.root.Items.Clear();
+				LinuxTreeViewItem.root = null;
+			}
+		}
 		public static LinuxTreeViewItem Last_Refresh = null;
 		public void RefreshChild(string remained_path = null, bool bRefreshListView = true)
 		{

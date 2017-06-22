@@ -41,27 +41,63 @@ namespace CofileUI.UserControls
 		#region Json Tree Area
 		static string DIR = @"config\";
 		public static string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
-		public static string cur_root_path = root_path;
+		public static string curRootPath = root_path;
+		public static string CurRootPath {
+			get
+			{
+				curRootPath = root_path;
+				if(ServerList.selected_serverinfo_textblock == null
+					|| ServerList.selected_serverinfo_textblock.serverinfo == null)
+				{ }
+				else
+				{
+					if(ServerList.selected_serverinfo_textblock.serverinfo.name != null && ServerList.selected_serverinfo_textblock.serverinfo.name != "")
+						curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
+					if(ServerList.selected_serverinfo_textblock.serverinfo.id != null && ServerList.selected_serverinfo_textblock.serverinfo.id != "")
+						curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
+				}
+
+				return curRootPath;
+			}
+		}
+
 		void InitJsonFileView()
 		{
 			try
 			{
-				FileContoller.CreateDirectory(cur_root_path);
+				FileContoller.CreateDirectory(CurRootPath);
 			}
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "CreateDirectory", Status.current.richTextBox_status);
 			}
 		}
-		public void Refresh()
+		int RemoveConfigFile(string path)
 		{
+			FileContoller.DirectoryDelete(path);
+			return 0;
+		}
+		public void InitOpenFile()
+		{
+			curRootPath = root_path;
 			if(ServerList.selected_serverinfo_textblock == null
 				|| ServerList.selected_serverinfo_textblock.serverinfo == null)
-				return;
+			{ }
+			else
+				curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
 
-			cur_root_path = root_path;
-			cur_root_path += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
-			SSHController.GetConfig(cur_root_path);
+			RemoveConfigFile(CurRootPath);
+			SSHController.GetConfig(CurRootPath);
+		}
+		public void Refresh()
+		{
+			Clear();
+			InitOpenFile();
+		}
+		public void Clear()
+		{
+			JsonTreeViewItem.Clear();
+			json_tree_view.Items.Clear();
 		}
 		public void refreshJsonTree(JToken jtok_root)
 		{
@@ -71,14 +107,14 @@ namespace CofileUI.UserControls
 				return;
 
 			// 삭제
-			json_tree_view.Items.Clear();
+			Clear();
 
 			// 추가
 			//TextBlock tblock = new TextBlock();
 			//tblock.Text = JsonInfo.current.Filename;
 			//root_jtree.Header.Children.Insert(0, tblock);
 			//json_tree_view.Items.Add(root_jtree);
-			
+
 			// 추가
 			Label label = new Label();
 			label.VerticalAlignment = VerticalAlignment.Center;
@@ -121,19 +157,19 @@ namespace CofileUI.UserControls
 			//	}
 			//}
 			//JsonInfo.current.Jtok_root = new JObject();
-			JToken jtok = JsonController.parseJson(Properties.Resources.file_config_default);
+			JToken jtok = JsonController.ParseJson(Properties.Resources.file_config_default);
 			refreshJsonTree(jtok);
 		}
 		private void NewJsonFile_Sam()
 		{
 			JsonTreeViewItem.Clear();
-			JToken jtok = JsonController.parseJson(Properties.Resources.sam_config_default);
+			JToken jtok = JsonController.ParseJson(Properties.Resources.sam_config_default);
 			refreshJsonTree(jtok);
 		}
 		private void NewJsonFile_Tail()
 		{
 			JsonTreeViewItem.Clear();
-			JToken jtok = JsonController.parseJson(Properties.Resources.tail_config_default);
+			JToken jtok = JsonController.ParseJson(Properties.Resources.tail_config_default);
 			refreshJsonTree(jtok);
 		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
@@ -144,12 +180,11 @@ namespace CofileUI.UserControls
 			//	LinuxDirectoryViewer l = new LinuxDirectoryViewer(files);
 			//	l.ShowDialog();
 			//}
-			Refresh();
-
+			InitOpenFile();
 
 			OpenFileDialog ofd = new OpenFileDialog();
 
-			ofd.InitialDirectory = cur_root_path;
+			ofd.InitialDirectory = CurRootPath;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -166,7 +201,7 @@ namespace CofileUI.UserControls
 				Console.WriteLine(ofd.FileName);
 
 				string json = FileContoller.Read(ofd.FileName);
-				JToken jtok = JsonController.parseJson(json);
+				JToken jtok = JsonController.ParseJson(json);
 				if(jtok != null)
 				{
 					refreshJsonTree(jtok);
@@ -211,7 +246,7 @@ namespace CofileUI.UserControls
 		{
 			SaveFileDialog sfd = new SaveFileDialog();
 
-			sfd.InitialDirectory = cur_root_path;
+			sfd.InitialDirectory = CurRootPath;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -247,7 +282,7 @@ namespace CofileUI.UserControls
 			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
 			if(Jtok_root != null && FileContoller.Write(path, Jtok_root.ToString()))
 			{
-				if(SSHController.SetConfig(path, cur_root_path) == null)
+				if(SSHController.SetConfig(path, CurRootPath) == null)
 					WindowMain.current.ShowMessageDialog("Save", "서버 연결 에러");
 				else
 					WindowMain.current.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
@@ -276,7 +311,7 @@ namespace CofileUI.UserControls
 
 			if(w.ShowDialog() == true)
 			{
-				refreshJsonTree(JsonController.parseJson(w.tb_file.Text));
+				refreshJsonTree(JsonController.ParseJson(w.tb_file.Text));
 			}
 		}
 		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
@@ -294,7 +329,7 @@ namespace CofileUI.UserControls
 		private void CalcelJsonFile()
 		{
 			string json = FileContoller.Read(JsonTreeViewItem.Path);
-			refreshJsonTree(JsonController.parseJson(json));
+			refreshJsonTree(JsonController.ParseJson(json));
 			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion

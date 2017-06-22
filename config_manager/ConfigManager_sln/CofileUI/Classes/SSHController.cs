@@ -1,6 +1,5 @@
 ﻿using CofileUI.UserControls;
 using CofileUI.Windows;
-using Newtonsoft.Json.Linq;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using Renci.SshNet.Sftp;
@@ -28,7 +27,16 @@ namespace CofileUI.Classes
 		public static StreamWriter shell_stream_writer;
 		public static DispatcherTimer shell_stream_read_timer;
 
-
+		public static bool IsConnected {
+			get
+			{
+				if(ssh != null && ssh.IsConnected 
+					&& sftp != null && sftp.IsConnected)
+					return true;
+				else
+					return false;
+			}
+		}
 		public static bool CheckConnection(string ip, int port)
 		{
 			if(CheckConnection(sftp, ip, port) && CheckConnection(ssh, ip, port))
@@ -122,11 +130,13 @@ namespace CofileUI.Classes
 					Log.PrintConsole(ip + " / " + port + " / " + id, "ReConnect"/*, test4.m_wnd.richTextBox_status*/);
 
 					readDummyMessageBlocking(null);
-					//for(int i = 0; i < 500; i++)
-					//	Log.PrintConsole(read(), "Lost SSH Stream");
+					EnvCoHome = _LoadEnvCoHome();
 
 					if(WindowMain.current != null)
+					{
 						WindowMain.current.Changed_server_name = ServerList.selected_serverinfo_textblock.serverinfo.name;
+						WindowMain.current.bUpdateInit(false);
+					}
 					return true;
 				}
 			}
@@ -275,7 +285,6 @@ namespace CofileUI.Classes
 				return false;
 			ssh.RunCommand("rm -rf " + remote_path_file);
 			//sendCommand("rm -rf " + remote_path_file);
-			readDummyMessageBlocking(null);
 
 			return true;
 		}
@@ -329,9 +338,7 @@ namespace CofileUI.Classes
 				// send
 				if(shell_stream_reader != null)
 				{
-					readDummyMessageBlocking(null);
-					//while(!shell_stream_reader.EndOfStream)
-					//	Log.PrintConsole(read(), "Lost SSH Stream");
+					//readDummyMessageBlocking(null);
 
 					shell_stream_writer.Write(command);
 					shell_stream_writer.Write("\n");
@@ -402,15 +409,21 @@ namespace CofileUI.Classes
 						//	if(i == view_error_start.Length)
 						//		Log.ViewUndefine(line, "__undefined][" + view_message_caption, Status.current.richTextBox_status);
 						//}
-						if(line.IndexOf("Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.") >= 0)
-						{
-							bStart = true;
-						}
-						else if(bStart)
-						{
+
+						//if(line.IndexOf("Copyright (c) 2004-2016, eGlobal Systems, Co., Ltd.") >= 0)
+						//{
+						//	bStart = true;
+						//}
+						//else if(bStart)
+						//{
+						//	Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
+						//}
+
+						//if(line.IndexOf("\r") != line.LastIndexOf("\r") || line.IndexOf("\n") != line.LastIndexOf("\n"))
+						//{ }
+						//else
 							Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
-						}
-					
+
 
 						Log.PrintConsole(line, "Read");
 						read_line_ssh = read_line_ssh.Substring(idx_newline + 1);
@@ -430,7 +443,10 @@ namespace CofileUI.Classes
 
 			int size_buffer = 4096;
 			char[] buffer = new char[size_buffer];
-			for(int i = 0; i < 500; i++)
+			//shell_stream.Flush();
+			DateTime start = DateTime.Now;
+			DateTime end = start.AddMilliseconds(200);
+			for(int i = 0; /*i < 1000 && */end > DateTime.Now; i++)
 				shell_stream_reader.Read(buffer, 0, size_buffer);
 			return null;
 
@@ -537,7 +553,8 @@ namespace CofileUI.Classes
 		}
 		private static string readCoHomeBlocking(string cmd_send)
 		{
-			cmd_send += "\r\n";
+			string newLine = "\r\n";
+			cmd_send += newLine;
 			int cmd_length = cmd_send.Length;
 			shell_stream_read_timer.Stop();
 			int size_buffer = 4096;
@@ -548,7 +565,13 @@ namespace CofileUI.Classes
 			try
 			{
 				int i=0;
-				while(i < 500 || (prevstr.Length < cmd_length || prevstr.IndexOf(cmd_send) < 0 || prevstr.Length <= prevstr.IndexOf(cmd_send) + cmd_length))
+				while(i < 500 
+					// 보낸 명령어 길이보다 많이 수신해야함.
+					|| (prevstr.Length < cmd_length 
+						// 보낸 명령어를 수신했는지 검사
+						|| prevstr.LastIndexOf(cmd_send) < 0 
+						// 보낸 명령어를 수신한 뒤에 개행을 수신했는지 검사
+						|| prevstr.IndexOf(newLine, prevstr.LastIndexOf(cmd_send) + cmd_length) < 0))
 				{
 					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
 					prevstr += new string(buffer, 0, cnt);/* Encoding.UTF8.GetString(buffer, 0, cnt);*/
@@ -556,7 +579,7 @@ namespace CofileUI.Classes
 				}
 
 				int startline = 0;
-				startline = prevstr.IndexOf(cmd_send);
+				startline = prevstr.LastIndexOf(cmd_send);
 				line = prevstr.Substring(startline + cmd_length);
 				//if(startline > 2 && prevstr[startline - 2] != '$')
 				//{
@@ -597,34 +620,6 @@ namespace CofileUI.Classes
 
 			shell_stream_read_timer.Start();
 			return env_co_home;
-		}
-		private static string readInit(string cmd_send)
-		{
-			int cmd_length = cmd_send.Length + 2;
-			shell_stream_read_timer.Stop();
-			int size_buffer = 4096;
-			char[] buffer = new char[size_buffer];
-			StringBuilder read = new StringBuilder();
-			try
-			{
-				//bool bGet_end = false;
-				while(read.Length < cmd_length || read.ToString().IndexOf('\n', cmd_length) < 0)
-				{
-					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
-					read.Append(new string(buffer, 0, cnt)/* Encoding.UTF8.GetString(buffer, 0, cnt)*/);
-				}
-				string str = read.ToString().Substring(cmd_length + 2);
-
-				Log.PrintConsole(str, "readInit");
-
-			}
-			catch(Exception e)
-			{
-				Log.PrintError(e.Message, "readInit", Status.current.richTextBox_status);
-			}
-
-			shell_stream_read_timer.Start();
-			return read.ToString();
 		}
 		private static void Shell_stream_read_timer_Tick(object sender, EventArgs e)
 		{
@@ -678,12 +673,19 @@ namespace CofileUI.Classes
 
 		#region Excute Cofile Command
 		static string cmd_get_co_home = "echo $CO_HOME";
+		static string EnvCoHome = null;
 		private static string LoadEnvCoHome()
+		{
+			return EnvCoHome;
+		}
+		private static string _LoadEnvCoHome()
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
 			if(!SSHController.ReConnect(timeout_connect_ms))
 				return null;
+			
+			//readDummyMessageBlocking(null);
 
 			if(!SSHController.sendCommand(cmd_get_co_home))
 				return null;
@@ -787,10 +789,10 @@ namespace CofileUI.Classes
 			string env_co_home = LoadEnvCoHome();
 			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
 			
-			string path_root = ConfigJsonTree.cur_root_path;
+			string path_root = ConfigJsonTree.CurRootPath;
 			string remote_path_configfile = remote_path_configfile_dir;
 			if(local_path_configfile.Length > path_root.Length
-				&& local_path_configfile.Substring(0, path_root.Length) == ConfigJsonTree.cur_root_path)
+				&& local_path_configfile.Substring(0, path_root.Length) == ConfigJsonTree.CurRootPath)
 			{
 				remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
 				if(!sftp.Exists(remote_path_configfile))
@@ -805,7 +807,7 @@ namespace CofileUI.Classes
 			}
 			return remote_path_configfile;
 		}
-		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt)
+		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt, bool is_tail_deamon)
 		{
 			Status.current.Clear();
 
@@ -849,6 +851,9 @@ namespace CofileUI.Classes
 				string send_cmd;
 				send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 				//SendCommandOnce(send_cmd);
+				if(!is_tail_deamon)
+					send_cmd += send_cmd + " -1";
+
 				sendCommand(send_cmd);
 				//string ret = readMessageBlocking(send_cmd);
 

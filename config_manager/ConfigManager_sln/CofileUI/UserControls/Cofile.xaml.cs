@@ -28,6 +28,7 @@ using System.Reflection;
 using System.Globalization;
 using System.Windows.Controls.Primitives;
 using Newtonsoft.Json.Linq;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace CofileUI.UserControls
 {
@@ -139,31 +140,42 @@ namespace CofileUI.UserControls
 
 				if(selected.IsDirectory)
 				{
-					if(selected.LinuxTVI == null)
-						return;
-
-					selected.LinuxTVI.RefreshChild();
-					//RefreshListView(selected.LinuxTVI);
-
-					//llvi.LinuxTVI.IsExpanded = false;
-					//llvi.LinuxTVI.IsExpanded = true;
-					selected.LinuxTVI.Focus();
+					OpenDirectory(selected);
 				}
 				else
 				{
-					EncryptFileOpen();
+					OpenEncryptFile();
 				}
 			}
+		}
+		private int OpenDirectory(LinuxListViewItem llvi)
+		{
+			if(llvi.IsDirectory)
+			{
+				if(llvi.LinuxTVI == null)
+					return -1;
+
+				llvi.LinuxTVI.RefreshChild();
+				//RefreshListView(selected.LinuxTVI);
+
+				//llvi.LinuxTVI.IsExpanded = false;
+				//llvi.LinuxTVI.IsExpanded = true;
+				llvi.LinuxTVI.Focus();
+			}
+			return 0;
 		}
 
 		public static string PreviewExtension = "preview_extension_ll";
 		static ulong Idx_Encrypt_File_Open = 0;
 		string FindDecryptFile(string remote_path_enc_file)
 		{
-			JToken jtok = JsonController.parseJson(FileContoller.Read(current.Selected_config_file_path));
+			JToken jtok = JsonController.ParseJson(FileContoller.Read(current.Selected_config_file_path));
 			if(jtok == null)
 				return null;
-			
+
+			if(jtok["dec_option"] == null || jtok["dec_option"]["input_extension"] == null)
+				return null;
+
 			JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
 			string output_extension = PreviewExtension;
 
@@ -176,7 +188,7 @@ namespace CofileUI.UserControls
 
 			return remote_path_dec_file;
 		}
-		void EncryptFileOpen()
+		void OpenEncryptFile()
 		{
 			if(listView_linux_files.SelectedItems.Count < 1)
 				return;
@@ -212,7 +224,7 @@ namespace CofileUI.UserControls
 						)
 					{
 						Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-						FileContoller.Delete(url_localfile);
+						FileContoller.FileDelete(url_localfile);
 
 						wvi.ShowDialog();
 					}
@@ -220,7 +232,7 @@ namespace CofileUI.UserControls
 					{
 
 						string str = FileContoller.Read(url_localfile);
-						FileContoller.Delete(url_localfile);
+						FileContoller.FileDelete(url_localfile);
 
 						Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
 						wvf.ShowDialog();
@@ -372,18 +384,19 @@ namespace CofileUI.UserControls
 			//	sftp.Disconnect();
 
 			// 삭제
-			treeView_linux_directory.Items.Clear();
-			listView_linux_files.Items.Clear();
+			//treeView_linux_directory.Items.Clear();
+			//listView_linux_files.Items.Clear();
+			Clear();
 
 			// 추가
 			//string home_dir = sftp.WorkingDirectory;
 			// root 의 path 는 null 로 초기화
-			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
-			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			string working_dir = SSHController.WorkingDirectory;
 			if(working_dir == null)
 				return -1;
 
+			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
+			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
 			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			Log.PrintConsole("[refresh]");
@@ -415,8 +428,8 @@ namespace CofileUI.UserControls
 			OpenFileDialog ofd = new OpenFileDialog();
 
 			// 초기경로 지정
-			ConfigJsonTree.current.Refresh();
-			ofd.InitialDirectory = ConfigJsonTree.cur_root_path;
+			ConfigJsonTree.current.InitOpenFile();
+			ofd.InitialDirectory = ConfigJsonTree.CurRootPath;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -445,24 +458,46 @@ namespace CofileUI.UserControls
 			private bool isDirectory = false;
 			public bool IsDirectory { get { return isDirectory; } set { isDirectory = value; } }
 			private static string[] STR_UNITS = new string[] {"Bytes", "KB", "MB", "GB", "TB", "max" };
-			public string Size { get
+			public string Size {
+				get
 				{
-					float size = linuxTVI.FileInfo.Length;
-					string str_unit;
+					if(bindingName == "..")
+						return null;
 
-					float _size;
-					int i;
-					for(i = 0; i < STR_UNITS.Length; i++)
+					float size = 0;
+					string str_unit = STR_UNITS[0];
+
+					// FileInfo == null 이면 '/' 인 최상루트 디렉토리
+					if(linuxTVI.FileInfo != null)
 					{
-						_size = size / 1024;
-						if(_size < 1)
-							break;
-						size = _size;
+						size = linuxTVI.FileInfo.Length;
+						float _size;
+						int i;
+						for(i = 0; i < STR_UNITS.Length; i++)
+						{
+							_size = size / 1024;
+							if(_size < 1)
+								break;
+							size = _size;
+						}
+						str_unit = STR_UNITS[i];
 					}
-					str_unit = STR_UNITS[i];
-
 					return string.Format("{0} {1}", Math.Round(size), str_unit);
 					//return string.Format("{0:N2} {1}", size, str_unit);
+				}
+			}
+			public string LastWriteTime {
+				get
+				{
+					if(bindingName == "..")
+						return null;
+
+					string str = "";
+					if(linuxTVI.FileInfo != null)
+					{
+						str = linuxTVI.FileInfo.LastWriteTime.ToString();
+					}
+					return str;
 				}
 			}
 			public string Type {
@@ -533,6 +568,17 @@ namespace CofileUI.UserControls
 
 		private void OnClickWorkFileDelete(object sender, RoutedEventArgs e)
 		{
+			WorkFileDelete();
+		}
+		private void OnKeyDownWorkFiles(object sender, KeyEventArgs e)
+		{
+			if(e.Key == Key.Delete)
+			{
+				WorkFileDelete();
+			}
+		}
+		private void WorkFileDelete()
+		{
 			var sel_items = listView_work_files.SelectedItems;
 			LinuxListViewItem llit;
 			for(int i = sel_items.Count - 1; i >= 0; i--)
@@ -560,11 +606,30 @@ namespace CofileUI.UserControls
 		{
 			ConfirmEncDec(listView_work_files.SelectedItems.Cast<Object>(), false);
 		}
-
-		public void ConfirmEncDec(IEnumerable<Object> selected_list, bool isEncrypt)
+		bool CheckHaveDirectory(IEnumerable<Object> selected_list)
 		{
-			string title = "", message = "";
+			var enumerator = selected_list.GetEnumerator();
+			bool haveDirectory = true;
+			for(int i = 0; haveDirectory = enumerator.MoveNext(); i++)
+			{
+				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
 
+				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
+				if(llvi != null)
+					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
+
+				if(ltvi == null)
+					break;
+
+				if(ltvi.IsDirectory)
+					break;
+			}
+
+			return haveDirectory;
+		}
+		string GetFileListString(IEnumerable<Object> selected_list)
+		{
+			string str = "";
 			var enumerator = selected_list.GetEnumerator();
 			for(int i = 0; enumerator.MoveNext(); i++)
 			{
@@ -577,11 +642,50 @@ namespace CofileUI.UserControls
 				if(ltvi == null)
 					break;
 
-				message += ltvi.Path + "\n";
+				str += ltvi.Path + "\n";
 			}
+			return str;
+		}
 
+		public void ConfirmEncDec(IEnumerable<Object> selected_list, bool isEncrypt)
+		{
+			string title = "", message = "";
+			MessageDialogStyle dialog_style = MessageDialogStyle.AffirmativeAndNegative;
+			WindowMain.CallBack affirmative_callback = delegate
+			{
+				//TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
+				//txt.Text = "";
+				SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, true);
+				//LinuxTreeViewItem.Refresh();
+			};
+			WindowMain.CallBack negative_callback = null;
+			MetroDialogSettings settings = null;
+
+			message += GetFileListString(selected_list);
 			message += "\n";
-			if(isEncrypt)
+
+			if(isEncrypt 
+				&& SSHController.selected_type == CofileOption.tail 
+				&& !CheckHaveDirectory(selected_list))
+			{
+				SSHController.view_message_caption = "Encrypt";
+				title += Resources["String.MainDialog.Encrypt.Title"];
+				message += Resources["String.MainDialog.Encrypt.Message.Tail"];
+
+				dialog_style = MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary;
+				negative_callback = delegate
+				{
+					SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, false);
+				};
+				settings = new MetroDialogSettings()
+				{
+					AffirmativeButtonText = "Yes"
+					, NegativeButtonText = "No"
+					, FirstAuxiliaryButtonText = "Cancel"
+					//, ColorScheme = MetroDialogOptions.ColorScheme
+				};
+			}
+			else if(isEncrypt)
 			{
 				SSHController.view_message_caption = "Encrypt";
 				title += Resources["String.MainDialog.Encrypt.Title"];
@@ -593,70 +697,34 @@ namespace CofileUI.UserControls
 				title += Resources["String.MainDialog.Decrypt.Title"];
 				message += Resources["String.MainDialog.Decrypt.Message"];
 			}
+			message += "\n [ Type = " + SSHController.selected_type.ToString().ToUpper() + " ]";
 
-			WindowMain.current.ShowMessageDialog(title
-												, message
-												, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative
-												, delegate
-												{
-													//TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
-													//txt.Text = "";
-													SSHController.SendNRecvCofileCommand(selected_list, isEncrypt);
-													//LinuxTreeViewItem.Refresh();
-												});
+			WindowMain.current.ShowMessageDialog(title, message, dialog_style, affirmative_callback, negative_callback, settings: settings);
+			
 		}
-		//public void AllEncDec_(IEnumerable<Object> selected_list, bool isEncrypt)
-		//{
-		//	string title, message;
-		//	if(isEncrypt)
-		//	{
-		//		title = "All Encrypt";
-		//		message = "모두 암호화 수행하시겠습니까?";
-		//	}
-		//	else
-		//	{
-		//		title = "All Decrypt";
-		//		message = "모두 복호화 수행하시겠습니까?";
-		//	}
-
-		//	WindowMain.current.ShowMessageDialog(title
-		//											, message
-		//											, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative
-		//											, delegate
-		//											{
-		//												SSHController.SendNRecvCofileCommand(selected_list, isEncrypt);
-		//											});
-		//}
-		//public void SelectedEncDec_(IEnumerable<Object> selected_list, bool isEncrypt)
-		//{
-		//	string title, message;
-		//	if(isEncrypt)
-		//	{
-		//		title = "Selected Encrypt";
-		//		message = "선택된 항목을 암호화 수행하시겠습니까?";
-		//	}
-		//	else
-		//	{
-		//		title = "Selected Decrypt";
-		//		message = "선택된 항목을 복호화 수행하시겠습니까?";
-		//	}
-
-		//	WindowMain.current.ShowMessageDialog(title
-		//										, message
-		//										, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative
-		//										, delegate 
-		//										{
-		//											SSHController.SendNRecvCofileCommand(selected_list, isEncrypt);
-		//										});
-		//}
 
 		private void OnButtonClickRefresh(object sender, RoutedEventArgs e)
 		{
-			LinuxTreeViewItem.root.RefreshChild(LinuxTreeViewItem.Last_Refresh.Path, false);
-			RefreshListView(LinuxTreeViewItem.Last_Refresh);
+			if(LinuxTreeViewItem.root == null)
+				Refresh();
+
+			else if(LinuxTreeViewItem.root != null)
+			{
+				string path = null;
+				if(LinuxTreeViewItem.Last_Refresh == null)
+					path = SSHController.WorkingDirectory;
+				else
+					path = LinuxTreeViewItem.Last_Refresh.Path;
+
+				if(path != null)
+				{
+					LinuxTreeViewItem.root.RefreshChild(path, false);
+					RefreshListView(LinuxTreeViewItem.Last_Refresh);
+				}
+			}
 		}
 
-		private void label_listView_linux_KeyDown(object sender, KeyEventArgs e)
+		private void OnKeyDownLinuxPath(object sender, KeyEventArgs e)
 		{
 			if(e.Key == Key.Enter)
 			{
@@ -667,9 +735,116 @@ namespace CofileUI.UserControls
 
 		public void Clear()
 		{
+			LinuxTreeViewItem.Clear();
 			treeView_linux_directory.Items.Clear();
 			listView_linux_files.Items.Clear();
 			listView_work_files.Items.Clear();
-		} 
+			textBlock_selected_config_file_name.Text = "Not Selected";
+		}
+
+		DateTime LastKeyDonwTime = DateTime.Now;
+		double SecKeyDownInterval = .2;
+		StringBuilder sb_keydown = new StringBuilder();
+		private void OnKeyDownLinuxFiles(object sender, KeyEventArgs e)
+		{
+			LinuxListViewItem llvi;
+			switch(e.Key)
+			{
+				case Key.Enter:
+					llvi = listView_linux_files.SelectedItem as LinuxListViewItem;
+					if(llvi == null)
+						break;
+					OpenDirectory(llvi);
+					break;
+				case Key.Back:
+					if(listView_linux_files.Items.Count > 0)
+					{
+						llvi = listView_linux_files.Items[0] as LinuxListViewItem;
+						if(llvi == null)
+							break;
+
+						OpenDirectory(llvi);
+					}
+					break;
+				default:
+					if((e.Key >= Key.A && e.Key <= Key.Z )
+						|| e.Key == Key.OemPeriod)
+					{
+						if(LastKeyDonwTime.AddSeconds(SecKeyDownInterval) < DateTime.Now)
+						{
+							sb_keydown.Clear();
+						}
+
+						sb_keydown.Append(KeyCodeToChar(e.Key));
+						FocusListView(listView_linux_files, sb_keydown.ToString());
+
+						LastKeyDonwTime = DateTime.Now;
+						Console.WriteLine("str = " + sb_keydown.ToString() + ", key = " + e.Key);
+
+						// 'c' 입력시 넥스트 아이템으로 가게되어서 처리됨을 true로 줌
+						e.Handled = true;
+					}
+					break;
+			}
+			e.Handled = true;
+		}
+		public char KeyCodeToChar(Key keyCode)
+		{
+			char keyChar = ' ';
+			switch(keyCode)
+			{
+				case Key.OemPeriod:
+					keyChar = '.';
+					break;
+				default:
+					keyChar = keyCode.ToString().ToLower()[0];
+					break;
+			}
+			return keyChar;
+		}
+		int FocusListView(ListView lv, string find)
+		{
+			int idx_start = lv.SelectedIndex;
+
+			// find.Length == 1 일때는 lv.SelectedIndex == -1 일때도 포함.
+			// 처음 키보드찾기를 할 때, find.Length 는 1부터 시작할 수 밖에 없음.
+			if(find.Length == 1 || idx_start == -1)
+			{
+				idx_start++;
+				if(idx_start >= lv.Items.Count)
+					idx_start = 0;
+			}
+
+			int idx = idx_start;
+			for(int cnt = 0; cnt < lv.Items.Count; cnt++)
+			{
+				LinuxListViewItem llvi = lv.Items[idx] as LinuxListViewItem;
+				if(llvi == null)
+					continue;
+				string name = llvi.BindingName.ToLower();
+				int j;
+				for(j = 0; j < name.Length && j < find.Length; j++)
+				{
+					if(name[j] != find[j])
+						break;
+				}
+
+				if(j == find.Length)
+				{
+					//lv.SelectedIndex = idx;
+					((UIElement)lv.ItemContainerGenerator.ContainerFromItem(lv.Items[idx])).Focus();
+					//lv.SelectedItem = lv.Items[idx];
+					Console.WriteLine("find = " + find);
+					Console.WriteLine("selected index = " + idx + ", name = " + name);
+					break;
+				}
+
+				idx++;
+				if(idx >= lv.Items.Count)
+					idx = 0;
+			}
+			return 0;
+		}
+
 	}
 }

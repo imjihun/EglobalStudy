@@ -11,9 +11,9 @@ namespace CofileUI.Classes
 {
 	class JsonController
 	{
-		static string error_message = "";
-		public static string Error_message { get { return error_message; } }
-		public static JToken parseJson(string json)
+		//static string error_message = "";
+		//public static string Error_message { get { return error_message; } }
+		public static JToken ParseJson(string json)
 		{
 			if(json == null)
 				return null;
@@ -25,9 +25,9 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				error_message = e.Message;
-				Log.PrintConsole(e.Message);
-				WindowMain.current.ShowMessageDialog("Json Context Error!!", JsonController.Error_message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				//error_message = e.Message;
+				Log.PrintErrorLogFile(e.Message, "Classes.JsonController.ParseJson");
+				WindowMain.current.ShowMessageDialog("Json Context Error!!", e.Message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 			}
 
 			return obj;

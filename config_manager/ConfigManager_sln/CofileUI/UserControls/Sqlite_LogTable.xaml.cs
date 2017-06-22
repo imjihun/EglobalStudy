@@ -36,17 +36,34 @@ namespace CofileUI.UserControls
 
 		static string DIR = @"system\tmp\";
 		static string path_root = AppDomain.CurrentDomain.BaseDirectory + DIR;
+		const int MAX_IDX_DB_NAME = 255;
+		static string prev_db_name = "";
 		static int idx_db_name = 0;
+		static int Idx_db_name {
+			get
+			{
+				return idx_db_name;
+			}
+			set
+			{
+				idx_db_name = value;
+				if(idx_db_name > MAX_IDX_DB_NAME)
+					idx_db_name = 0;
+				else if(idx_db_name < 0)
+					idx_db_name = MAX_IDX_DB_NAME;
+			}
+		}
 		public static void RefreshUi(string db_name = "")
 		{
-			db_name = db_name + (idx_db_name++) + ".db";
+			db_name = db_name + (Idx_db_name++) + ".db";
 			Path = SSHController.GetDataBase(path_root, db_name);
 
 			if(Sqlite_LogTable.current != null)
 				Sqlite_LogTable.current.Refresh();
 			if(Sqlite_StatusTable.current != null)
 				Sqlite_StatusTable.current.Refresh();
-			FileContoller.Delete(path_root + db_name);
+			//FileContoller.FileDelete(path_root + prev_db_name);
+			prev_db_name = db_name;
 		}
 	}
 
@@ -108,7 +125,7 @@ namespace CofileUI.UserControls
 				string strConn = "Data Source=" + DataBaseInfo.Path;
 				using(SQLiteConnection conn = new SQLiteConnection(strConn))
 				{
-					UpdateDataGrid(conn, "SELECT * From log");
+					UpdateDataGrid(conn, "SELECT * From log ORDER BY no DESC");
 					conn.Close();
 				}
 
@@ -130,6 +147,8 @@ namespace CofileUI.UserControls
 			idx_page = 0;
 			cnt_page = arr_cnt_page[0];
 			max_idx_page = 0;
+			label_inform_page.Content = "";
+			label_total_count.Content = "";
 			//dataGrid.Columns.Clear();
 			////dataGrid.Items.Clear();
 			//dataGrid.Items.Refresh();
@@ -149,7 +168,7 @@ namespace CofileUI.UserControls
 
 				DataSet dataSet = new DataSet();
 				dataAdapter.Fill(dataSet);
-				current_table = dataSet.Tables[0];
+				Current_table = dataSet.Tables[0];
 
 				ChangeColumnIntToString(log_type, Current_table, "type");
 				ChangeColumnIntToString(log_action, Current_table, "action");
@@ -185,6 +204,8 @@ namespace CofileUI.UserControls
 				if(typeof(System.Int64).IsAssignableFrom(v[column_name].GetType()))
 				{
 					System.Int64 idx = (System.Int64)v[column_name];
+					if(source.Length <= idx)
+						idx = source.Length - 1;
 					v[add_column_name] = source[idx];
 				}
 			}

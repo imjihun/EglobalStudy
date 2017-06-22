@@ -92,6 +92,19 @@ namespace CofileUI.Windows
 			bUpdateDataBase = val;
 			bUpdateLinuxTree = val;
 			bUpdateConfigFile = val;
+			switch(tabControl.SelectedIndex)
+			{
+				case 1:
+					bUpdateConfigFile = true;
+					break;
+				//case 0:
+				//	bUpdateLinuxTree = true;
+				//	break;
+				//case 2:
+				//case 3:
+				//	bUpdateDataBase = true;
+				//	break;
+			}
 		}
 		string changed_server_name = "";
 		public string Changed_server_name { get { return changed_server_name; }
@@ -101,7 +114,7 @@ namespace CofileUI.Windows
 				if(value == "")
 					label_serverinfo.Content = "";
 				else
-					label_serverinfo.Content = "[" + changed_server_name + "] is Connected from " + ServerList.selected_serverinfo_textblock.serverinfo.id;
+					label_serverinfo.Content = "[ " + changed_server_name + " ] is Connected from [ " + ServerList.selected_serverinfo_textblock.serverinfo.id + " ]";
 			}
 		}
 
@@ -111,67 +124,81 @@ namespace CofileUI.Windows
 		{
 			if(e.Source != tabControl)
 				return;
-
-			if(!bUpdateLinuxTree && UserControls.Cofile.current != null)
-			{
-				UserControls.Cofile.current.Refresh();
-				bUpdateLinuxTree = true;
-			}
-			if(!bUpdateDataBase && idx_tab_before_change != 2 && idx_tab_before_change != 3
-				&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
-			{
-				//UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
-				UserControls.DataBaseInfo.RefreshUi();
-				bUpdateDataBase = true;
-			}
-			if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null)
-			{
-				UserControls.ConfigJsonTree.current.Refresh();
-				bUpdateConfigFile = true;
-			}
+			TabUpdate();
 			idx_tab_before_change = tabControl.SelectedIndex;
+		}
+		private void TabUpdate()
+		{
+			SSHController.ReConnect();
+			if(SSHController.IsConnected)
+			{
+				if(!bUpdateLinuxTree && UserControls.Cofile.current != null && tabControl.SelectedIndex == 0)
+				{
+					UserControls.Cofile.current.Refresh();
+					bUpdateLinuxTree = true;
+				}
+				if(!bUpdateDataBase && (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
+				//&& idx_tab_before_change != 2 && idx_tab_before_change != 3
+				//&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
+				{
+					//UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
+					UserControls.DataBaseInfo.RefreshUi();
+					bUpdateDataBase = true;
+				}
+				if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null && tabControl.SelectedIndex == 1)
+				{
+					UserControls.ConfigJsonTree.current.Refresh();
+					bUpdateConfigFile = true;
+				}
+			}
 		}
 
 		// 서버메뉴리스트에서 서버를 컨넥팅 동작을 할 때 작동
 		public void Refresh(string _changed_server_name)
 		{
-			bUpdateDataBase = false;
-			bUpdateLinuxTree = false;
-			bUpdateConfigFile = false;
-
-			switch(tabControl.SelectedIndex)
-			{
-				case 0:
-					if(UserControls.Cofile.current != null)
-					{
-						UserControls.Cofile.current.Refresh();
-						bUpdateLinuxTree = true;
-					}
-					break;
-				case 1:
-					if(UserControls.ConfigJsonTree.current != null)
-					{
-						UserControls.ConfigJsonTree.current.Refresh();
-						bUpdateConfigFile = true;
-					}
-					break;
-				case 2:
-				case 3:
-					//UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
-					UserControls.DataBaseInfo.RefreshUi();
-					bUpdateDataBase = true;
-					break;
-			}
+			TabUpdate();
+			if(!SSHController.IsConnected)
+				bUpdateInit(true);
+			//switch(tabControl.SelectedIndex)
+			//{
+			//	case 0:
+			//		if(UserControls.Cofile.current != null)
+			//		{
+			//			UserControls.Cofile.current.Refresh();
+			//			//bUpdateLinuxTree = true;
+			//		}
+			//		break;
+			//	case 1:
+			//		if(UserControls.ConfigJsonTree.current != null)
+			//		{
+			//			UserControls.ConfigJsonTree.current.Refresh();
+			//			//bUpdateConfigFile = true;
+			//		}
+			//		break;
+			//	case 2:
+			//	case 3:
+			//		//UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
+			//		UserControls.DataBaseInfo.RefreshUi();
+			//		//bUpdateDataBase = true;
+			//		break;
+			//}
 			//Changed_server_name = _changed_server_name;
 		}
 		public void Clear()
 		{
-			Cofile.current.Clear();
+			if(Cofile.current != null)
+				Cofile.current.Clear();
+			if(ConfigJsonTree.current != null)
+				ConfigJsonTree.current.Clear();
+			if(Sqlite_LogTable.current != null)
+				Sqlite_LogTable.current.Clear();
+			if(Sqlite_StatusTable.current != null)
+				Sqlite_StatusTable.current.Clear();
 		}
 		#endregion
 
 		public delegate void CallBack();
-		public void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack alwayse_callback = null)
+		public void ShowMessageDialog(string title, string message, MessageDialogStyle style = MessageDialogStyle.Affirmative, CallBack affirmative_callback = null, CallBack negative_callback = null, CallBack alwayse_callback = null, MetroDialogSettings settings = null)
 		{
 			//MetroDialogOptions.ColorScheme = MetroDialogColorScheme.Theme;
 			//var mySettings = new MetroDialogSettings()
@@ -182,11 +209,14 @@ namespace CofileUI.Windows
 			//	//ColorScheme = UseAccentForDialogsMenuItem.IsChecked ? MetroDialogColorScheme.Accented : MetroDialogColorScheme.Theme
 			//};
 
-			MessageDialogResult result = this.ShowModalMessageExternal(title, message, style);
+			MessageDialogResult result = this.ShowModalMessageExternal(title, message, style, settings);
 			//MessageDialogResult result = await this.ShowMessageAsync(title, message, style);
 
 			if(affirmative_callback != null && result == MessageDialogResult.Affirmative)
 				affirmative_callback();
+
+			if(negative_callback != null && result == MessageDialogResult.Negative)
+				negative_callback();
 
 			if(alwayse_callback != null)
 				alwayse_callback();

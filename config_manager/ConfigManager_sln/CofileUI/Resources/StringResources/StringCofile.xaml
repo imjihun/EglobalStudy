@@ -3,9 +3,10 @@
 					xmlns:system="clr-namespace:System;assembly=mscorlib" >
 
 	<system:String x:Key="String.MainDialog.Encrypt.Title">Encrypt?</system:String>
-	<system:String x:Key="String.MainDialog.Encrypt.Message">위 항목암호화 하시겠습니까?</system:String>
+	<system:String x:Key="String.MainDialog.Encrypt.Message">위 항목들을 암호화 하시겠습니까?</system:String>
 	<system:String x:Key="String.MainDialog.Decrypt.Title">Decrypt?</system:String>
 	<system:String x:Key="String.MainDialog.Decrypt.Message">위 항목들을 복호화 하시겠습니까?</system:String>
+	<system:String x:Key="String.MainDialog.Encrypt.Message.Tail">위 항목들을 계속 감시하시겠습니까? ( Deamon Mode )</system:String>
 	<!--<system:String x:Key="MainDialog.AllEncrypt.Title">All Encrypt</system:String>
 	<system:String x:Key="MainDialog.AllEncrypt.Message">모두 암호화 하시겠습니까?</system:String>
 	<system:String x:Key="MainDialog.AllDecrypt.Title">All Decrypt</system:String>

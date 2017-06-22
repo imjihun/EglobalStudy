@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,6 +35,7 @@ namespace CofileUI.UserControls
 		{
 			try
 			{
+				Clear();
 				//string path = DataBaseInfo.LoadDataBase("status.db");
 				//if(path == null)
 				//	return;
@@ -65,7 +67,7 @@ namespace CofileUI.UserControls
 
 		}
 
-		string[] status_type = new string[] {"sam", "tail", "file" };
+		string[] status_type = new string[] {"Sam", "Tail", "File" };
 
 		private void UpdateDataGrid(SQLiteConnection con, string sql)
 		{
@@ -77,7 +79,7 @@ namespace CofileUI.UserControls
 
 				DataTable table = dataSet.Tables[0];
 
-				//ChangeColumnIntToString(status_type, table, "type");
+				ChangeColumnIntToString(status_type, table, "type");
 
 				dataGrid.ItemsSource = table.DefaultView;
 			}
@@ -106,6 +108,8 @@ namespace CofileUI.UserControls
 				if(typeof(System.Int64).IsAssignableFrom(v[column_name].GetType()))
 				{
 					System.Int64 idx = (System.Int64)v[column_name];
+					if(source.Length <= idx)
+						idx = source.Length - 1;
 					v[add_column_name] = source[idx];
 				}
 			}
@@ -122,7 +126,8 @@ namespace CofileUI.UserControls
 		{
 			SSHController.RunCofileCommand("cofile_monitor -killall");
 
-			UserControls.DataBaseInfo.RefreshUi();
+			DelayRefresh();
+			//UserControls.DataBaseInfo.RefreshUi();
 		}
 		private void OnClickKillSelected(object sender, RoutedEventArgs e)
 		{
@@ -149,10 +154,17 @@ namespace CofileUI.UserControls
 			command.Remove(command.Length - 1, 1);
 			SSHController.RunCofileCommand(command.ToString());
 
-			UserControls.DataBaseInfo.RefreshUi();
+			DelayRefresh();
+			//UserControls.DataBaseInfo.RefreshUi();
 		}
 		private void OnClickRefresh(object sender, RoutedEventArgs e)
 		{
+			DelayRefresh();
+			//UserControls.DataBaseInfo.RefreshUi();
+		}
+		private void DelayRefresh()
+		{
+			Thread.Sleep(500);
 			UserControls.DataBaseInfo.RefreshUi();
 		}
 	}

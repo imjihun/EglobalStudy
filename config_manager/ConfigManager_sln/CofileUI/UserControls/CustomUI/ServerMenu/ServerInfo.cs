@@ -395,10 +395,6 @@ namespace CofileUI.UserControls
 			SSHController.DisConnect();
 			if(WindowMain.current != null)
 				WindowMain.current.Clear();
-			if(Sqlite_LogTable.current != null)
-				Sqlite_LogTable.current.Clear();
-			if(Sqlite_StatusTable.current != null)
-				Sqlite_StatusTable.current.Clear();
 		}
 		private void OnClickModifyServer(object sender, RoutedEventArgs e)
 		{

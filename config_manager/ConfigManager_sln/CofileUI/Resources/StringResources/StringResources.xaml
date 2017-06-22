@@ -10,4 +10,10 @@
 	<system:String x:Key="MainTab.Config">Config</system:String>
 	<system:String x:Key="MainTab.Log">Log</system:String>
 	<system:String x:Key="MainTab.Monitor">Monitor</system:String>
+
+	<system:String x:Key="String.Path.Add.Log">system\log\</system:String>
+	<system:String x:Key="String.Path.Add.Error">system\err\</system:String>
+	<system:String x:Key="String.Path.Add.Temp">system\tmp\</system:String>
+	<system:String x:Key="String.Path.Add.ServerInfo">system\</system:String>
+	<system:String x:Key="String.Path.Add.ConfigFile">tmp\config\</system:String>
 </ResourceDictionary> 

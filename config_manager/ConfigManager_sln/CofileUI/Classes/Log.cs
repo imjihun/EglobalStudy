@@ -11,8 +11,42 @@ using System.Windows.Media;
 
 namespace CofileUI.Classes
 {
-	class Log
+	static class Log
 	{
+		const string ADD_LOG_DIR = @"system\log\";
+		const string ADD_ERR_DIR = @"system\err\";
+		//// time, namespace, class, function, message
+		//public static void PrintLogFile(string namesp, string cla, string func, string message, string action)
+		//{
+		//	DateTime dt = DateTime.Now;
+		//	string filename = dt.ToString("yyyy.MM.dd.hh") + ".log";
+		//	string log = dt.ToString("[yyyy.MM.dd.hh.mm.ss]");
+		//	log += "[" + namesp + "." + cla + "." + func + "]";
+		//	log += "[" + action + "]";
+		//	log += " " + message + "\r\n";
+		//	FileContoller.Write(AppDomain.CurrentDomain.BaseDirectory + ADD_LOG_DIR + filename, log);
+		//}
+
+		public static void PrintLogFile(string message, string caption)
+		{
+			DateTime dt = DateTime.Now;
+			string filename = dt.ToString("yyyy.MM.dd.hh") + ".log";
+			string log = dt.ToString("[yyyy.MM.dd.hh.mm.ss]");
+			log += "[" + caption + "]";
+			log += " " + message + "\r\n";
+			FileContoller.Write(AppDomain.CurrentDomain.BaseDirectory + ADD_LOG_DIR + filename, log);
+			Console.WriteLine(log);
+		}
+		public static void PrintErrorLogFile(string message, string caption)
+		{
+			DateTime dt = DateTime.Now;
+			string filename = dt.ToString("yyyy.MM.dd.hh") + ".err";
+			string log = dt.ToString("[yyyy.MM.dd.hh.mm.ss]");
+			log += "[" + caption + "]";
+			log += " " + message + "\r\n";
+			FileContoller.Write(AppDomain.CurrentDomain.BaseDirectory + ADD_ERR_DIR + filename, log);
+			Console.WriteLine(log);
+		}
 		private static void CheckNewLine(ref string str)
 		{
 			if(str[str.Length - 1] == '\n')
@@ -33,7 +67,7 @@ namespace CofileUI.Classes
 
 			//str += "\n";
 			CheckNewLine(ref str);
-			Console.WriteLine(str);
+			PrintErrorLogFile(message, caption);
 
 			if(output_ui != null)
 			{
@@ -61,6 +95,7 @@ namespace CofileUI.Classes
 
 			str += message;
 
+			//PrintLogFile(message, caption);
 			Console.WriteLine(str);
 		}
 
@@ -69,7 +104,7 @@ namespace CofileUI.Classes
 			//string str = System.Environment.NewLine;
 			string str = "";
 
-			if(caption != null)
+			if(caption != null && caption != "")
 				str += "[" + caption + "] ";
 
 			str += message;
@@ -129,6 +164,7 @@ namespace CofileUI.Classes
 					//rtb.Document.Blocks.Add(new Paragraph(new Inline()))
 				}
 			}
+			PrintLogFile(message, caption);
 		}
 
 		public static void ViewUndefine(string message, string caption, TextBoxBase output_ui)

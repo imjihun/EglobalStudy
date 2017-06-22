@@ -81,6 +81,7 @@ namespace CofileUI.UserControls
 
 			if(Root != null)
 				Root.Items.Clear();
+			Root = null;
 		}
 		public static string Filename
 		{

@@ -91,8 +91,10 @@
 				<TextBlock Text="{Binding Size}" TextAlignment="Right"/>
 			</DataTemplate>
 			<GridView x:Key="GridView_ListViewLinux_Detail" AllowsColumnReorder="True">
-				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Name}" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
-				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+				<GridViewColumn Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}">
+					<GridViewColumnHeader Content="{DynamicResource String.GridViewColumn.Name}"/>
+				</GridViewColumn>
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LastWriteTime}"/>
 				<!--<GridViewColumn Header="Type" Width="75" DisplayMemberBinding="{Binding Type}"/>-->
 				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Size}" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
 				<!--<GridViewColumn Header="UserId" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.UserId}"/>
@@ -100,7 +102,7 @@
 			</GridView>
 			<GridView x:Key="GridView_ListViewWork_Detail" AllowsColumnReorder="True">
 				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Name}" Width="100" CellTemplate="{StaticResource DataTemplate_GridView_Name}"/>
-				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LinuxTVI.FileInfo.LastWriteTime}"/>
+				<GridViewColumn Header="{DynamicResource String.GridViewColumn.WriteTime}" Width="150" DisplayMemberBinding="{Binding LastWriteTime}"/>
 				<GridViewColumn Header="{DynamicResource String.GridViewColumn.Size}" Width="75" CellTemplate="{StaticResource DataTemplate_GridView_Size}"/>
 			</GridView>
 
@@ -151,7 +153,7 @@
 				<Grid Grid.Row="0" Margin="0,0,0,0">
 					<Border Style="{StaticResource StyleBolderSplitter}"/>
 					<ComboBox x:Name="comboBox_listView_linuxpath" Text="{DynamicResource String.ComboBox.LinuxPath.Init}"
-							  Height="25" Margin="0,0,120,0" HorizontalAlignment="Stretch" IsEditable="True" KeyDown="label_listView_linux_KeyDown">
+							  Height="25" Margin="0,0,120,0" HorizontalAlignment="Stretch" IsEditable="True" KeyDown="OnKeyDownLinuxPath">
 					</ComboBox>
 					<Button Content="{DynamicResource String.Button.Refresh}" Background="White" Click="OnButtonClickRefresh"
 							Height="25" Width="55" Margin="0,0,65,0" HorizontalAlignment="Right"/>
@@ -164,7 +166,8 @@
 				<Grid Grid.Row="2" Margin="2">
 					<ListView x:Name="listView_linux_files" Style="{StaticResource StyleListView}"
 							  MouseDoubleClick="OnMouseDoubleClickLinuxFile"
-							  MouseMove="OnMouseMoveLinuxFile">
+							  MouseMove="OnMouseMoveLinuxFile"
+							  KeyDown="OnKeyDownLinuxFiles">
 
 						<ListView.ContextMenu>
 							<ContextMenu>
@@ -192,7 +195,8 @@
 				<Grid Grid.Row="1">
 					<ListView x:Name="listView_work_files" Style="{StaticResource StyleListView}"
 							  AllowDrop="true"
-							  Drop="OnDropWorkFile">
+							  Drop="OnDropWorkFile"
+							  KeyDown="OnKeyDownWorkFiles">
 
 						<ListView.ContextMenu>
 							<ContextMenu>
