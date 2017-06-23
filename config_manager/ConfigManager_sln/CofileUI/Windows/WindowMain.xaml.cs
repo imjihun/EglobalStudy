@@ -112,9 +112,14 @@ namespace CofileUI.Windows
 			{
 				changed_server_name = value;
 				if(value == "")
+				{
 					label_serverinfo.Content = "";
+
+				}
 				else
+				{
 					label_serverinfo.Content = "[ " + changed_server_name + " ] is Connected from [ " + ServerList.selected_serverinfo_textblock.serverinfo.id + " ]";
+				}
 			}
 		}
 

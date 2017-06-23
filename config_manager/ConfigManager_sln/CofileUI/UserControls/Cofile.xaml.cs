@@ -427,7 +427,7 @@ namespace CofileUI.UserControls
 
 			// 초기경로 지정
 			ConfigJsonTree.current.InitOpenFile();
-			ofd.InitialDirectory = ConfigJsonTree.CurRootPath;
+			ofd.InitialDirectory = ConfigJsonTree.CurRootPathLocal;
 
 			if(JsonTreeViewItem.Path != null)
 			{

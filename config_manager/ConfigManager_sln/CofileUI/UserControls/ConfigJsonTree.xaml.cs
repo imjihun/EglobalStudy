@@ -40,30 +40,30 @@ namespace CofileUI.UserControls
 		}
 		#region Json Tree Area
 		static string DIR = @"config\";
-		public static string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
-		public static string curRootPath = root_path;
-		public static string CurRootPath {
+		private static string root_path_local = AppDomain.CurrentDomain.BaseDirectory + DIR;
+		public static string curRootPathLocal = root_path_local;
+		public static string CurRootPathLocal {
 			get
 			{
-				curRootPath = root_path;
+				curRootPathLocal = root_path_local;
 				if(ServerList.selected_serverinfo_textblock == null
 					|| ServerList.selected_serverinfo_textblock.serverinfo == null)
 				{ }
 				else
 				{
 					if(ServerList.selected_serverinfo_textblock.serverinfo.name != null && ServerList.selected_serverinfo_textblock.serverinfo.name != "")
-						curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
+						curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
 					if(ServerList.selected_serverinfo_textblock.serverinfo.id != null && ServerList.selected_serverinfo_textblock.serverinfo.id != "")
-						curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
+						curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
 				}
 
-				return curRootPath;
+				return curRootPathLocal;
 			}
 		}
 
-		void InitJsonFileView()
+		bool InitJsonFileView()
 		{
-			FileContoller.CreateDirectory(CurRootPath);
+			return FileContoller.CreateDirectory(CurRootPathLocal);
 		}
 		int RemoveConfigFile(string path)
 		{
@@ -72,15 +72,15 @@ namespace CofileUI.UserControls
 		}
 		public void InitOpenFile()
 		{
-			curRootPath = root_path;
+			curRootPathLocal = root_path_local;
 			if(ServerList.selected_serverinfo_textblock == null
 				|| ServerList.selected_serverinfo_textblock.serverinfo == null)
 			{ }
 			else
-				curRootPath += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
+				curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
 
-			RemoveConfigFile(CurRootPath);
-			SSHController.GetConfig(CurRootPath);
+			RemoveConfigFile(CurRootPathLocal);
+			SSHController.GetConfig(CurRootPathLocal);
 		}
 		public void Refresh()
 		{
@@ -177,7 +177,7 @@ namespace CofileUI.UserControls
 
 			OpenFileDialog ofd = new OpenFileDialog();
 
-			ofd.InitialDirectory = CurRootPath;
+			ofd.InitialDirectory = CurRootPathLocal;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -238,7 +238,7 @@ namespace CofileUI.UserControls
 		{
 			SaveFileDialog sfd = new SaveFileDialog();
 
-			sfd.InitialDirectory = CurRootPath;
+			sfd.InitialDirectory = CurRootPathLocal;
 
 			if(JsonTreeViewItem.Path != null)
 			{
@@ -266,25 +266,34 @@ namespace CofileUI.UserControls
 
 			return true;
 		}
-		private void SaveFile(string path)
+		private void SaveFile(string path_local)
 		{
 			if(!CheckJson())
 				return;
 
 			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
-			if(Jtok_root != null && FileContoller.Write(path, Jtok_root.ToString()))
+			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
 			{
-				if(SSHController.SetConfig(path, CurRootPath) == null)
-					WindowMain.current.ShowMessageDialog("Save", "서버 연결 에러");
+				string path_remote;
+				if((path_remote = SSHController.SetConfig(path_local, CurRootPathLocal)) == null)
+				{
+					string message = "서버 연결 에러";
+					WindowMain.current.ShowMessageDialog("Save", message);
+					Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
+				}
 				else
-					WindowMain.current.ShowMessageDialog("Save", path + " 파일이 저장되었습니다.");
+				{
+					string message = path_remote + " 파일이 저장되었습니다.";
+					WindowMain.current.ShowMessageDialog("Save", message);
+					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
+				}
 			}
 			else
 			{
 				string caption = "Save Error";
-				string message = path + " 파일을 저장하는데 문제가 생겼습니다.";
+				string message = path_local + " 파일을 저장하는데 문제가 생겼습니다.";
 				WindowMain.current.ShowMessageDialog(caption, message);
-				Log.PrintConsole(message, "UserControls.ConfigJsonTree.SaveFile");
+				Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
 			}
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)

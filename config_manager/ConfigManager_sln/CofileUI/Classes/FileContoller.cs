@@ -19,6 +19,7 @@ namespace CofileUI.Classes
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "Classes.FileContoller.CreateDirectory");
+				return false;
 			}
 			return true;
 		}
@@ -80,7 +81,8 @@ namespace CofileUI.Classes
 				string dir = path;
 				if(path[path.Length - 1] != '\\')
 					dir = path.Substring(0, path.LastIndexOf('\\') + 1);
-				FileContoller.CreateDirectory(dir);
+				if(!FileContoller.CreateDirectory(dir))
+					return false;
 
 				// 경로에 파일 쓰기.
 				FileStream fs = new FileStream(path, FileMode.Create);

@@ -147,34 +147,40 @@ namespace CofileUI.Classes
 					//	sftp.UploadFile(fs, remote_file_path);
 					//	Log.PrintConsole(fi.Name + " => " + remote_file_path, "upload file"/*, test4.m_wnd.richTextBox_status*/);
 					//}
-					if(remote_backup_dir != null && sftp.Exists(remote_file_path))
-					{
-						if(CreateRemoteDirectory(remote_backup_dir))
-						{
-							DateTime dt;
-							//dt = DateTime.Now;
 
-							// 원래는 서버시간으로 생성해야함.
-							// 서버마다 시간을 알수있는 함수가 다를수 있으므로 sftp를 사용
-							// 위 if 문의 sftp.Exists(remote_file_path) 에서 엑세스한 시간을 가져옴.
-							dt = sftp.GetLastAccessTime(remote_file_path);
-
-							// '파일 명'.'연도'.'달'.'날짜'.'시간'.'분'.'초'.backup 형식으로 백업파일 생성
-							string remote_backup_file = remote_backup_dir + fi.Name + dt.ToString(".yyyy.MM.dd.hh.mm.ss") + ".backup";
-							ssh.RunCommand(@"cp " + remote_file_path + " " + remote_backup_file);
-						}
-						else
-						{
-							fs.Close();
-							Log.PrintError("Create Directory Error", "Classes.SSHController.UploadFile");
-							return null;
-						}
-
-					}
 					if(CreateRemoteDirectory(remote_directory))
 					{
+						if(remote_backup_dir != null && sftp.Exists(remote_file_path))
+						{
+							if(CreateRemoteDirectory(remote_backup_dir))
+							{
+								DateTime dt;
+								//dt = DateTime.Now;
+
+								// 원래는 서버시간으로 생성해야함.
+								// 서버마다 시간을 알수있는 함수가 다를수 있으므로 sftp를 사용
+								// 위 if 문의 sftp.Exists(remote_file_path) 에서 엑세스한 시간을 가져옴.
+								dt = sftp.GetLastAccessTime(remote_file_path);
+
+								// '파일 명'.'연도'.'달'.'날짜'.'시간'.'분'.'초'.backup 형식으로 백업파일 생성
+								string remote_backup_file = remote_backup_dir + fi.Name + dt.ToString(".yyyy.MM.dd.hh.mm.ss") + ".backup";
+								ssh.RunCommand(@"cp " + remote_file_path + " " + remote_backup_file);
+							}
+							else
+							{
+								fs.Close();
+								Log.PrintError("Create Directory Error", "Classes.SSHController.UploadFile");
+								return null;
+							}
+
+						}
+
 						sftp.UploadFile(fs, remote_file_path, true);
 						Log.PrintLog(fi.Name + " => " + remote_file_path, "Classes.SSHController.UploadFile");
+					}
+					else
+					{
+						remote_file_path = null;
 					}
 					fs.Close();
 				}
@@ -215,17 +221,18 @@ namespace CofileUI.Classes
 					local = local_path_folder + remote_filename;
 				}
 
-				FileContoller.CreateDirectory(local_path_folder);
+				if(!FileContoller.CreateDirectory(local_path_folder))
+					return false;
 
 				FileStream fs = new FileStream(local, FileMode.Create);
 				sftp.DownloadFile(remote_path_file, fs);
-				Log.PrintLog(remote_path_file + " => " + local, "Classes.SSHController.downloadFile");
+				Log.PrintLog(remote_path_file + " => " + local, "Classes.SSHController.DownloadFile");
 				fs.Close();
 			}
 			catch(Exception e)
 			{
 				Log.ErrorIntoUI(e.Message, "downloadFile", Status.current.richTextBox_status);
-				Log.PrintError(e.Message, "Classes.SSHController.downloadFile");
+				Log.PrintError(e.Message, "Classes.SSHController.DownloadFile");
 				return false;
 			}
 			return true;
@@ -248,9 +255,12 @@ namespace CofileUI.Classes
 
 			try
 			{
-				FileContoller.CreateDirectory(local_folder_path);
+				if(!FileContoller.CreateDirectory(local_folder_path))
+					return false;
 
 				SftpFile[] files = PullListInDirectory(remote_directory_path);
+				if(files == null)
+					return false;
 				for(int i = 0; i < files.Length; i++)
 				{
 					if(files[i].Name == "." || files[i].Name == "..")
@@ -272,8 +282,8 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.ErrorIntoUI(e.Message, "downloadDirectory", Status.current.richTextBox_status);
-				Log.PrintError(e.Message, "Classes.SSHController.downloadDirectory");
+				Log.ErrorIntoUI(e.Message, "DownloadDirectory", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "Classes.SSHController.DownloadDirectory");
 				return false;
 			}
 			return true;
@@ -751,7 +761,7 @@ namespace CofileUI.Classes
 				Log.PrintError(e.Message, "Classes.SSHController._PullListInDirectory");
 			}
 
-			Log.PrintLog(Path, "Classes.SSHController._PullListInDirectory");
+			Log.PrintLog("Path = " + Path, "Classes.SSHController._PullListInDirectory");
 			if(files == null)
 				return null;
 
@@ -840,7 +850,7 @@ namespace CofileUI.Classes
 			return str;
 		}
 
-		public static string ConvertPathLocalToRemote(string local_path_configfile)
+		public static string ConvertPathLocalToRemote(string local_path_configfile, string cur_local_root_path)
 		{
 			if(local_path_configfile == null)
 				return null;
@@ -848,10 +858,10 @@ namespace CofileUI.Classes
 			string env_co_home = EnvCoHome;
 			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
 			
-			string path_root = ConfigJsonTree.CurRootPath;
+			string path_root = cur_local_root_path;
 			string remote_path_configfile = remote_path_configfile_dir;
 			if(local_path_configfile.Length > path_root.Length
-				&& local_path_configfile.Substring(0, path_root.Length) == ConfigJsonTree.CurRootPath)
+				&& local_path_configfile.Substring(0, path_root.Length) == cur_local_root_path)
 			{
 				remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
 				if(!sftp.Exists(remote_path_configfile))
@@ -870,7 +880,7 @@ namespace CofileUI.Classes
 		{
 			Status.current.Clear();
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path);
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path, ConfigJsonTree.CurRootPathLocal);
 			if(remote_configfile_path == null)
 			{
 				Log.ErrorIntoUI("Check Config File", isEncrypt ? "Encrypt" : "Decrypt", output_ui: Status.current.richTextBox_status);
@@ -924,7 +934,7 @@ namespace CofileUI.Classes
 		{
 			Status.current.Clear();
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path);
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path, ConfigJsonTree.CurRootPathLocal);
 			if(remote_configfile_path == null)
 			{
 				Log.ErrorIntoUI("Check Config File", isEncrypt ? "Encrypt" : "Decrypt", Status.current.richTextBox_status);
@@ -1037,7 +1047,7 @@ namespace CofileUI.Classes
 
 				remote_path_dir += added_path;
 			}
-
+			//string remote_path = ConvertPathLocalToRemote(local_file_path, cur_local_root_path);
 			string remote_backup_path_dir = remote_directory + add_path_config_dir + @".backup/" + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
 			return UploadFile(local_file_path, remote_path_dir, remote_backup_path_dir);
 		}
