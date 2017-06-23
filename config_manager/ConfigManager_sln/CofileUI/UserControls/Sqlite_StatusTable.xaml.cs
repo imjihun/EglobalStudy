@@ -48,14 +48,14 @@ namespace CofileUI.UserControls
 					UpdateDataGrid(conn, "SELECT * From status");
 				}
 				//Log.ViewMessage("Loaded", "Status File", Status.current.richTextBox_status);
-				Log.PrintConsole("Loaded", "Sqlite_StatusTable");
+				Log.PrintLog("Loaded", "UserControls.Sqlite_LogTable.Refresh");
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Sqlite_StatusTable][Refresh", Status.current.richTextBox_status);
+				Log.ErrorIntoUI(e.Message, "Sqlite_StatusTable][Refresh", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "UserControls.Sqlite_StatusTable.Refresh");
 			}
-
-			//Console.WriteLine(this.);
+			
 		}
 
 		public void Clear()
@@ -85,7 +85,8 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UpdateDataGrid", Status.current.richTextBox_status);
+				Log.ErrorIntoUI(e.Message, "UpdateDataGrid", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "UserControls.Sqlite_StatusTable.UpdateDataGrid");
 			}
 		}
 		void ChangeColumnIntToString(string[] source, DataTable table, string column_name)
@@ -120,7 +121,7 @@ namespace CofileUI.UserControls
 		private void OnClickKillAll(object sender, RoutedEventArgs e)
 		{
 			if(dataGrid.Items.Count > 0)
-				WindowMain.current.ShowMessageDialog("Kill All", "모든 프로세스를 죽이시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillAll);
+				WindowMain.current.ShowMessageDialog("Kill All", "모든 프로세스를 종료하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillAll);
 		}
 		private void KillAll()
 		{
@@ -132,7 +133,7 @@ namespace CofileUI.UserControls
 		private void OnClickKillSelected(object sender, RoutedEventArgs e)
 		{
 			if(dataGrid.SelectedItems.Count > 0)
-				WindowMain.current.ShowMessageDialog("Kill Selected", "선택된 프로세스를 죽이시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillSelected);
+				WindowMain.current.ShowMessageDialog("Kill Selected", "선택된 프로세스를 종료하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, KillSelected);
 		}
 		private void KillSelected()
 		{

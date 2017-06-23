@@ -56,7 +56,7 @@ namespace CofileUI.UserControls
 			{
 				string caption = "save error";
 				string message = "serverinfo.json 파일을 저장하는데 문제가 생겼습니다.";
-				Log.PrintConsole(message, caption);
+				Log.PrintLog(message, "UserControls.ServerInfo.save");
 				WindowMain.current.ShowMessageDialog(caption, message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 				return false;
 			}
@@ -102,7 +102,7 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintError(e.Message, "UserControls.ServerInfo.ConvertToJson");
 			}
 
 			return null;
@@ -134,7 +134,7 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintError(e.Message, "UserControls.ServerInfo.ConvertToJson");
 			}
 			return null;
 			//string json = "{\n";
@@ -182,7 +182,7 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintError(e.Message, "UserControls.ServerInfo.ConvertFromJson");
 			}
 			return null;
 		}
@@ -366,8 +366,8 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception ex)
 				{
-					Log.PrintError(ex.Message, "Add Server");
-					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
+					Log.PrintError(ex.Message, "UserControls.ServerList.OnClickAddServer");
 				}
 			}
 
@@ -452,7 +452,8 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Del Server", Status.current.richTextBox_status);
+				Log.ErrorIntoUI(ex.Message, "Del Server", Status.current.richTextBox_status);
+				Log.PrintError(ex.Message, "UserControls.ServerList.DeleteServerInfoUI");
 			}
 		}
 
@@ -475,18 +476,6 @@ namespace CofileUI.UserControls
 			base.OnSelectionChanged(e);
 
 			selected_serverinfo_textblock = this.SelectedItem as ServerInfoTextBlock;
-			if(selected_serverinfo_textblock == null)
-			{
-				if(CommandView.current != null)
-					CommandView.current.Visibility = Visibility.Hidden;
-				return;
-			}
-
-			if(ServerCommand.current != null)
-			{
-				ServerCommand.current.Visibility = Visibility.Visible;
-				ServerCommand.current.Refresh(selected_serverinfo_textblock.serverinfo);
-			}
 
 			//if(WindowMain.current != null)
 			//	WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
@@ -617,8 +606,8 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception ex)
 				{
-					Log.PrintError(ex.Message, "Add Server");
-					Log.PrintError("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("서버 이름이 중복됩니다.\r", "Add Server", Status.current.richTextBox_status);
+					Log.PrintError(ex.Message, "UserControls.ServerMenuButton.BtnAddServer_Click");
 				}
 			}
 		}
@@ -648,8 +637,8 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception ex)
 				{
-					Log.PrintError(ex.Message, "Add Server Menu");
-					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
+					Log.PrintError(ex.Message, "UserControls.ServerMenuButton.BtnAddServerMenu_Click");
 				}
 			}
 		}
@@ -680,7 +669,8 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Del Server Menu", Status.current.richTextBox_status);
+				Log.ErrorIntoUI(ex.Message, "Del Server Menu", Status.current.richTextBox_status);
+				Log.PrintError(ex.Message, "UserControls.ServerMenuButton.DeleteServerMenuUI");
 			}
 		}
 

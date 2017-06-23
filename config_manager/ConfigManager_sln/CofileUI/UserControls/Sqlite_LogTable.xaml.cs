@@ -130,12 +130,12 @@ namespace CofileUI.UserControls
 				}
 
 				//Log.ViewMessage("Loaded", "Log File", Status.current.richTextBox_status);
-				Log.PrintConsole("Loaded", "Sqlite_LogTable");
+				Log.PrintLog("Loaded", "UserControls.Sqlite_LogTable.Refresh");
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Sqlite_LogTable][Refresh", Status.current.richTextBox_status);
-				//Console.WriteLine("[Sqlite_LogTable] " + e.Message);
+				Log.ErrorIntoUI(e.Message, "Sqlite_LogTable][Refresh", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.Refresh");
 				//MessageBox.Show(e.Message, "Sqlite_LogTable");
 			}
 
@@ -178,8 +178,8 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UpdateDataGrid", Status.current.richTextBox_status);
-				//Console.WriteLine("[Sqlite_LogTable] " + e.Message);
+				Log.ErrorIntoUI(e.Message, "UpdateDataGrid", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.UpdateDataGrid");
 				//MessageBox.Show(e.Message, "Sqlite_LogTable");
 			}
 		}
@@ -362,7 +362,7 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "RefreshDataView");
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.RefreshDataView");
 			}
 
 			if(Filtering_row == null)
@@ -475,7 +475,6 @@ namespace CofileUI.UserControls
 				}
 			}
 			command.Remove(command.Length - 1, 1);
-			Console.WriteLine(command.ToString());
 		}
 	}
 }

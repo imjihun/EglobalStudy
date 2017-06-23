@@ -194,6 +194,10 @@ namespace CofileUI.Windows
 				Sqlite_LogTable.current.Clear();
 			if(Sqlite_StatusTable.current != null)
 				Sqlite_StatusTable.current.Clear();
+			if(Status.current != null)
+				Status.current.Clear();
+
+			Changed_server_name = "";
 		}
 		#endregion
 
@@ -221,38 +225,5 @@ namespace CofileUI.Windows
 			if(alwayse_callback != null)
 				alwayse_callback();
 		}
-
-		
-
-
-
-
-
-
-
-
-
-		//public void initTest()
-		//{
-		//	SftpFile[] files = SSHController.PullListInDirectory(@"/home/cofile/");
-		//	for(int i = 0; i < files.Length; i++)
-		//	{
-		//		if(files[i].Name == "var")
-		//		{
-		//			LinuxTree lt = new LinuxTree(files[i]);
-		//			trv_test.Items.Add(lt);
-		//			lt.LoadChild();
-		//			Console.WriteLine("lt.Childs.Count = " + lt.Childs.Count);
-		//		}
-		//	}
-		//}
-
-		//private void trv_test_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-		//{
-		//	TreeView tv = sender as TreeView;
-		//	LinuxTree lt = tv.SelectedItem as LinuxTree;
-		//	lt.LoadChild();
-		//	//Console.WriteLine();
-		//}
 	}
 }

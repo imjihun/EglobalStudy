@@ -293,7 +293,6 @@ namespace CofileUI.UserControls
 					// 삭제
 					this.Items.Remove(button_more);
 					button_more = null;
-					Log.PrintConsole(ischecked.ToString());
 				}
 
 				// 추가
@@ -313,7 +312,6 @@ namespace CofileUI.UserControls
 
 		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
 		{
-			Log.PrintConsole("OnMouseLeftButtonDown()");
 			PublicMouseLeftButtonDown(e);
 		}
 		public void PublicMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -333,11 +331,9 @@ namespace CofileUI.UserControls
 			if(e.LeftButton == MouseButtonState.Pressed
 				&& JsonTreeViewItem.selected_tvi != null)
 			{
-				Log.PrintConsole(this.Name + ", called DoDragDrop(" + JsonTreeViewItem.selected_tvi.Name + ")");
 				DataObject data = new DataObject();
 				data.SetData("Object", JsonTreeViewItem.selected_tvi);
 				JsonTreeViewItem.selected_tvi = null;
-				Log.PrintConsole(this.GetType().ToString());
 				DragDrop.DoDragDrop(this, data, DragDropEffects.Copy);
 			}
 
@@ -516,7 +512,7 @@ namespace CofileUI.UserControls
 			}
 			else
 			{
-				Log.PrintConsole("[error] undefined type = " + jtok.GetType());
+				Log.PrintLog("undefined json type = " + jtok.GetType(), "UserControls.JsonTreeViewItem.addUIToJsonTreeItem");
 				return parent_tvi;
 			}
 		}
@@ -827,12 +823,10 @@ namespace CofileUI.UserControls
 				return;
 
 			tvi_parent.PublicDragOver(e);
-			Log.PrintConsole("KeyTextBox.OnDragOver()");
 			base.OnDragOver(e);
 		}
 		protected override void OnDrop(DragEventArgs e)
 		{
-			Log.PrintConsole("KeyTextBox.OnDrop()");
 			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
 			if(tvi_parent == null)
 				return;
@@ -961,7 +955,7 @@ namespace CofileUI.UserControls
 
 					NumericUpDown tb_integer = new NumericUpDown();
 					tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-					//Console.WriteLine("\t\tval = " + this.value.GetType());
+
 					tb_integer.Value = (System.Int64)this.value;
 					tb_integer.HorizontalContentAlignment = HorizontalAlignment.Left;
 					tb_integer.ValueChanged += delegate { this.value = (int)tb_integer.Value; };
@@ -1011,12 +1005,8 @@ namespace CofileUI.UserControls
 			string str = tb.Text;
 			if(str.Length > 1 && str[0] == str[str.Length - 1])
 			{
-				if(str[0] == '\'')
-					this.value = str.Trim('\'');
-				else if(str[0] == '\"')
-					this.value = str.Trim('\"');
-				else
-					Log.PrintConsole("[TextBox_TextChanged] error");
+				char[] trim = new char[] {'\'', '\"' };
+				this.value = str.Trim(trim);
 			}
 			else
 			{
@@ -1026,7 +1016,7 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception ex)
 				{
-					Log.PrintConsole("[TextBox_TextChanged] " + ex.Message);
+					Log.PrintError(ex.Message, "UserControls.ValuePanel.TextBox_TextChanged");
 				}
 			}
 		}
@@ -1040,12 +1030,10 @@ namespace CofileUI.UserControls
 				return;
 
 			tvi_parent.PublicDragOver(e);
-			Log.PrintConsole("KeyTextBox.OnDragOver()");
 			base.OnDragOver(e);
 		}
 		protected override void OnDrop(DragEventArgs e)
 		{
-			Log.PrintConsole("KeyTextBox.OnDrop()");
 			JsonTreeViewItem tvi_parent = this.Parent as JsonTreeViewItem;
 			if(tvi_parent == null)
 				return;

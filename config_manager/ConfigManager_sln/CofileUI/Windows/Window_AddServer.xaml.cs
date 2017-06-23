@@ -70,7 +70,7 @@ namespace CofileUI.Windows
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Convert Port][string->int");
+				Log.PrintError(ex.Message, "Windows.Window_AddServer.SaveValue");
 				return false;
 			}
 			return true;

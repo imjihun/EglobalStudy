@@ -81,7 +81,6 @@ namespace CofileUI.UserControls
 			checkBox_hidden.Checked += delegate { Bool_show_hidden = true; RefreshListView(cur_LinuxTreeViewItem); };
 			checkBox_hidden.Unchecked += delegate { Bool_show_hidden = false; RefreshListView(cur_LinuxTreeViewItem); };
 			checkBox_hidden.IsChecked = false;
-			//Console.WriteLine("ItemContainerStyle = " + listView_linux_files.ItemContainerStyle);
 
 			checkBox_linux_detail.IsChecked = true;
 			checkBox_work_detail.IsChecked = true;
@@ -203,7 +202,7 @@ namespace CofileUI.UserControls
 
 				string local_filename = "temp" + Idx_Encrypt_File_Open++;
 				string remote_path_dec_file  = FindDecryptFile(remote_path);
-				if(SSHController.moveFileToLocal(root_path, remote_path_dec_file, local_filename))
+				if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename))
 				{
 					llvi.LinuxTVI.RefreshChildFromParent();
 					Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
@@ -240,7 +239,8 @@ namespace CofileUI.UserControls
 				}
 				else
 				{
-					Log.PrintError("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
+					Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
 				}
 			}
 
@@ -257,10 +257,8 @@ namespace CofileUI.UserControls
 			//// 위의 커맨드를 실행시키니 output_dir 경로가 중복된다.
 			//string command = "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_configfile + " -id / -od /";
 			//SSHController.RunCofileCommand(command);
-			//Console.WriteLine("command = " + command);
 
 			//string remote_path_dec_file  = FindDecryptFile(remote_path_enc_file);
-			//Console.WriteLine("remote_path_dec_file  = " + remote_path_dec_file);
 
 			//string local_filename = "tmp" + Idx_Encrypt_File_Open++;
 			//if(SSHController.moveFileToLocal(root_path, remote_path_dec_file, local_filename))
@@ -399,7 +397,7 @@ namespace CofileUI.UserControls
 			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
 			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
 			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
-			Log.PrintConsole("[refresh]");
+			Log.PrintLog("[refresh]", "UserControls.Cofile.Refresh");
 
 			return 0;
 			//LinuxTreeViewItem.ReconnectServer();
@@ -440,7 +438,7 @@ namespace CofileUI.UserControls
 			}
 
 			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json";
+			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
 			if(ofd.ShowDialog() == true)
 				Selected_config_file_path = ofd.FileName;
 		}
@@ -779,7 +777,6 @@ namespace CofileUI.UserControls
 						FocusListView(listView_linux_files, sb_keydown.ToString());
 
 						LastKeyDonwTime = DateTime.Now;
-						Console.WriteLine("str = " + sb_keydown.ToString() + ", key = " + e.Key);
 
 						// 'c' 입력시 넥스트 아이템으로 가게되어서 처리됨을 true로 줌
 						e.Handled = true;
@@ -831,11 +828,7 @@ namespace CofileUI.UserControls
 
 				if(j == find.Length)
 				{
-					//lv.SelectedIndex = idx;
 					((UIElement)lv.ItemContainerGenerator.ContainerFromItem(lv.Items[idx])).Focus();
-					//lv.SelectedItem = lv.Items[idx];
-					Console.WriteLine("find = " + find);
-					Console.WriteLine("selected index = " + idx + ", name = " + name);
 					break;
 				}
 

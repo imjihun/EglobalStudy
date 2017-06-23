@@ -63,14 +63,7 @@ namespace CofileUI.UserControls
 
 		void InitJsonFileView()
 		{
-			try
-			{
-				FileContoller.CreateDirectory(CurRootPath);
-			}
-			catch(Exception e)
-			{
-				Log.PrintError(e.Message, "CreateDirectory", Status.current.richTextBox_status);
-			}
+			FileContoller.CreateDirectory(CurRootPath);
 		}
 		int RemoveConfigFile(string path)
 		{
@@ -195,11 +188,10 @@ namespace CofileUI.UserControls
 			}
 
 			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json";
+			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
 			if(ofd.ShowDialog() == true)
 			{
-				Console.WriteLine(ofd.FileName);
-
+				Log.PrintConsole(ofd.FileName, "UserControls.ConfigJsonTree.OnClickButtonOpenJsonFile");
 				string json = FileContoller.Read(ofd.FileName);
 				JToken jtok = JsonController.ParseJson(json);
 				if(jtok != null)
@@ -292,7 +284,7 @@ namespace CofileUI.UserControls
 				string caption = "Save Error";
 				string message = path + " 파일을 저장하는데 문제가 생겼습니다.";
 				WindowMain.current.ShowMessageDialog(caption, message);
-				Console.WriteLine("[" + caption + "] " + message);
+				Log.PrintConsole(message, "UserControls.ConfigJsonTree.SaveFile");
 			}
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)

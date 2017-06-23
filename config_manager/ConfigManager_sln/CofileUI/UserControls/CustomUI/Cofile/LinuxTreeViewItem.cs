@@ -540,7 +540,7 @@ namespace CofileUI.UserControls
 			}
 			catch(Exception e)
 			{
-				Console.WriteLine(e.Message);
+				Log.PrintError(e.Message, "UserControls.LinuxTreeViewItem.Filter");
 			}
 		}
 		static void filter_recursive(LinuxTreeViewItem cur, Regex filter_string, bool bShow_hidden)

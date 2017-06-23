@@ -26,7 +26,7 @@ namespace CofileUI.Classes
 			catch(Exception e)
 			{
 				//error_message = e.Message;
-				Log.PrintErrorLogFile(e.Message, "Classes.JsonController.ParseJson");
+				Log.PrintError(e.Message, "Classes.JsonController.ParseJson");
 				WindowMain.current.ShowMessageDialog("Json Context Error!!", e.Message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 			}
 

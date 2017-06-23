@@ -48,7 +48,7 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception e)
 				{
-					Console.WriteLine(e.Message);
+					Log.PrintError(e.Message, "UserControls.ServerMenu.InitServertab");
 				}
 			}
 			else
@@ -62,7 +62,8 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception e)
 				{
-					Console.WriteLine(e.Message);
+					Log.PrintError(e.Message, "UserControls.ServerMenu.InitServertab");
+
 				}
 			}
 
@@ -114,8 +115,8 @@ namespace CofileUI.UserControls
 				}
 				catch(Exception ex)
 				{
-					Log.PrintError(ex.Message, "Add Server Menu");
-					Log.PrintError("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("서버 메뉴 이름이 중복됩니다.\r", "Add Server Menu", Status.current.richTextBox_status);
+					Log.PrintError(ex.Message, "UserControls.ServerMenu.BtnAddServerMenu_Click");
 				}
 			}
 		}
