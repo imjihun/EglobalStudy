@@ -30,7 +30,7 @@
 			<!--Style-->
 			<Style TargetType="UserControls:LinuxTreeViewItem" BasedOn="{StaticResource MetroTreeViewItem}" />
 
-			<Style TargetType="UserControls:ServerInfoTextBlock" BasedOn="{StaticResource MetroTextBlock}" />
+			<!--<Style TargetType="UserControls:ServerInfoPanel" BasedOn="{StaticResource MetroTextBlock}" />-->
 			<Style TargetType="UserControls:ServerList" BasedOn="{StaticResource MetroListBox}" />
 			<Style TargetType="UserControls:ServerMenuButton" BasedOn="{StaticResource MetroToggleButton}" />
 

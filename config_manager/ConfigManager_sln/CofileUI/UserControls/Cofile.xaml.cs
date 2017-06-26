@@ -170,10 +170,16 @@ namespace CofileUI.UserControls
 		{
 			JToken jtok = JsonController.ParseJson(FileContoller.Read(current.Selected_config_file_path));
 			if(jtok == null)
+			{
+				Log.ErrorIntoUI("Check Config File", "Decrypt", Status.current.richTextBox_status);
 				return null;
+			}
 
 			if(jtok["dec_option"] == null || jtok["dec_option"]["input_extension"] == null)
+			{
+				Log.ErrorIntoUI("Check the dec_option.input_extension in Cofile Config file", "Decrypt Failed", Status.current.richTextBox_status);
 				return null;
+			}
 
 			JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
 			string output_extension = PreviewExtension;
@@ -196,12 +202,15 @@ namespace CofileUI.UserControls
 			if(llvi == null)
 				return;
 
+			string remote_path = llvi.LinuxTVI.Path;
+
+			string local_filename = "temp" + Idx_Encrypt_File_Open++;
+			string remote_path_dec_file  = FindDecryptFile(remote_path);
+			if(remote_path_dec_file == null)
+				return;
+
 			if(SSHController.SendNRecvCofileCommandPreview(listView_linux_files.SelectedItems.Cast<Object>(), false))
 			{
-				string remote_path = llvi.LinuxTVI.Path;
-
-				string local_filename = "temp" + Idx_Encrypt_File_Open++;
-				string remote_path_dec_file  = FindDecryptFile(remote_path);
 				if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename))
 				{
 					llvi.LinuxTVI.RefreshChildFromParent();
@@ -223,7 +232,7 @@ namespace CofileUI.UserControls
 						)
 					{
 						Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-						FileContoller.FileDelete(url_localfile);
+						FileContoller.DeleteFile(url_localfile);
 
 						wvi.ShowDialog();
 					}
@@ -231,7 +240,7 @@ namespace CofileUI.UserControls
 					{
 
 						string str = FileContoller.Read(url_localfile);
-						FileContoller.FileDelete(url_localfile);
+						FileContoller.DeleteFile(url_localfile);
 
 						Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
 						wvf.ShowDialog();
@@ -239,63 +248,10 @@ namespace CofileUI.UserControls
 				}
 				else
 				{
-					Log.ErrorIntoUI("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
+					Log.ErrorIntoUI("Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed", Status.current.richTextBox_status);
 					Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
 				}
 			}
-
-
-			//string remote_path_enc_file = llvi.LinuxTVI.Path;
-			//string[] split = remote_path_enc_file.Split('/');
-			//if(remote_path_enc_file.Length <= split[split.Length - 1].Length)
-			//	return;
-
-			//string remote_path_configfile = SSHController.GetRemoteConfigFilePath(Selected_config_file_path);
-			//string remote_path_enc_file_base_dir = remote_path_enc_file.Substring(0, remote_path_enc_file.Length - split[split.Length - 1].Length);
-			////string command = "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_configfile + " -id / -od " + remote_path_enc_file_base_dir;
-			//// # cofile file -d -f /home/cofile/TestOutput/tail_config_default.json.coenc -c /home/cofile/var/conf/cofile/file_config_default1.json -id / -od /home/cofile/TestOutput/
-			//// 위의 커맨드를 실행시키니 output_dir 경로가 중복된다.
-			//string command = "cofile file -d -f " + remote_path_enc_file + " -c " + remote_path_configfile + " -id / -od /";
-			//SSHController.RunCofileCommand(command);
-
-			//string remote_path_dec_file  = FindDecryptFile(remote_path_enc_file);
-
-			//string local_filename = "tmp" + Idx_Encrypt_File_Open++;
-			//if(SSHController.moveFileToLocal(root_path, remote_path_dec_file, local_filename))
-			//{
-			//	llvi.LinuxTVI.RefreshChildFromParent();
-			//	Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
-
-			//	string url_localfile = root_path + local_filename;
-			//	string[] split_expansion = remote_path_dec_file.Split('.');
-			//	string expansion = split_expansion[split_expansion.Length - 2];
-			//	if(expansion == "gif"
-			//		|| expansion == "bmp"
-			//		|| expansion == "jpg"
-			//		|| expansion == "png"
-			//		)
-			//	{
-			//		Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-			//		File.Delete(url_localfile);
-
-			//		wvi.ShowDialog();
-			//	}
-			//	else
-			//	{
-
-			//		string str = FileContoller.Read(url_localfile);
-			//		File.Delete(url_localfile);
-
-			//		Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
-			//		wvf.ShowDialog();
-			//	}
-			//}
-			//else
-			//{
-			//	Log.PrintError("Decryption Failed\r\tCheck the config file", "ListView_linux_files_MouseDoubleClick", Status.current.richTextBox_status);
-			//}
-
-
 		}
 		private BitmapImage LoadImage(string uri_ImageFile)
 		{
@@ -402,7 +358,7 @@ namespace CofileUI.UserControls
 			return 0;
 			//LinuxTreeViewItem.ReconnectServer();
 		}
-		private string selected_config_file_path = "Not Selected";
+		private string selected_config_file_path = null;
 		public string Selected_config_file_path
 		{
 			get { return selected_config_file_path; }
@@ -423,10 +379,11 @@ namespace CofileUI.UserControls
 			//if(ws.ShowDialog() == true)
 			//	Selected_config_file_path = ws.FilePathRemote;
 
-			OpenFileDialog ofd = new OpenFileDialog();
+			if(ConfigJsonTree.current.InitOpenFile() != 0)
+				return;
 
+			OpenFileDialog ofd = new OpenFileDialog();
 			// 초기경로 지정
-			ConfigJsonTree.current.InitOpenFile();
 			ofd.InitialDirectory = ConfigJsonTree.CurRootPathLocal;
 
 			if(JsonTreeViewItem.Path != null)

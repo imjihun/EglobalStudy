@@ -15,6 +15,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using CofileUI.Windows;
+using System.Windows.Data;
 
 namespace CofileUI.UserControls
 {
@@ -35,6 +36,7 @@ namespace CofileUI.UserControls
 		public int port;
 		public string id = "";
 		//public string password;
+
 		//public ServerInfo(string _name, string _ip, string _id, string _password)
 		//{
 		//	name = _name;
@@ -48,7 +50,9 @@ namespace CofileUI.UserControls
 			ip = _ip;
 			port = _port;
 		}
-		private ServerInfo() { }
+		private ServerInfo()
+		{
+		}
 
 		public static bool save()
 		{
@@ -175,7 +179,7 @@ namespace CofileUI.UserControls
 					foreach(var jprop_server_info in jobj_server_menu.Properties())
 					{
 						ServerInfo serverinfo = ServerInfo.ConvertFromJson(jprop_server_info);
-						smbtn.child.Items.Add(new ServerInfoTextBlock(serverinfo));
+						smbtn.child.Items.Add(new ServerInfoPanel(serverinfo));
 					}
 				}
 				return servergrid;
@@ -212,24 +216,80 @@ namespace CofileUI.UserControls
 		#endregion
 	}
 
-	public class ServerInfoTextBlock : TextBlock
+	public class ServerInfoPanel : StackPanel
 	{
-		public ServerInfo serverinfo;
+		private ServerInfo serverinfo;
+		public ServerInfo Serverinfo { get { return serverinfo; } set { serverinfo = value; } }
+		public TextBlock tb;
+		public PackIconModern icon;
 		//public ServerInfoTextBlock(string _name, string _ip, string _id, string _pass)
 		//{
 		//	serverinfo = new ServerInfo(_name, _ip, _id, _pass);
 		//	this.HorizontalAlignment = HorizontalAlignment.Stretch;
 		//	this.Text = _name;
 		//}
-		public ServerInfoTextBlock(string _name, string _ip, int _port)
+		public string Text { get { return tb.Text; } set { tb.Text = value; } }
+
+		private List<ServerInfoPanel> list_total_serverinfo = new List<ServerInfoPanel>();
+		private bool isConnected = false;
+		public bool IsConnected
 		{
-			serverinfo = new ServerInfo(_name, _ip, _port);
+			get { return isConnected; }
+			set
+			{
+				if(value)
+				{
+					for(int i = 0; i < list_total_serverinfo.Count; i++)
+					{
+						list_total_serverinfo[i].isConnected = false;
+					}
+				}
+
+				isConnected = value;
+				if(value)
+					icon.Visibility = Visibility.Visible;
+				else
+					icon.Visibility = Visibility.Hidden;
+			}
+		}
+		//public bool IsConnected { get { return SSHController.CheckConnection(serverinfo.ip, serverinfo.port); } }
+		private void CreateMember()
+		{
+			list_total_serverinfo.Add(this);
+
+			this.Orientation = Orientation.Horizontal;
+			icon = new PackIconModern()
+			{
+				Kind = PackIconModernKind.Connect,
+				VerticalAlignment = VerticalAlignment.Center,
+				HorizontalAlignment = HorizontalAlignment.Center
+			};
+			icon.Margin = new Thickness(2, 0, 3, 0);
+			this.Children.Add(icon);
+
+			//Binding binding = new Binding("IsConnected");
+			//binding.Mode = BindingMode.OneWay;
+			//binding.Source = this;
+			//binding.Converter = new BooleanToVisibilityConverter();
+			//BindingOperations.SetBinding(icon,PackIconModern.VisibilityProperty, binding);
+			icon.Visibility = Visibility.Hidden;
+
+			tb = new TextBlock();
+			this.Children.Add(tb);
+		}
+		public ServerInfoPanel(string _name, string _ip, int _port)
+		{
+			CreateMember();
+
+			Serverinfo = new ServerInfo(_name, _ip, _port);
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			this.Text = _name;
 		}
-		public ServerInfoTextBlock(ServerInfo si)
+		public ServerInfoPanel(ServerInfo si)
 		{
-			serverinfo = si;
+			CreateMember();
+
+			Serverinfo = si;
 			this.HorizontalAlignment = HorizontalAlignment.Stretch;
 			this.Text = si.name;
 		}
@@ -238,7 +298,7 @@ namespace CofileUI.UserControls
 	public class ServerList : ListBox
 	{
 		public ServerMenuButton parent;
-		public static ServerInfoTextBlock selected_serverinfo_textblock;
+		public static ServerInfoPanel selected_serverinfo_panel;
 
 		MenuItem Disconnect;
 		private void InitContextMenu()
@@ -307,9 +367,7 @@ namespace CofileUI.UserControls
 		{
 			if(Disconnect != null)
 			{
-				string ip = selected_serverinfo_textblock.serverinfo.ip;
-				int port = selected_serverinfo_textblock.serverinfo.port;
-				if(SSHController.CheckConnection(ip, port))
+				if(selected_serverinfo_panel.IsConnected)
 					Disconnect.IsEnabled = true;
 				else
 					Disconnect.IsEnabled = false;
@@ -356,8 +414,8 @@ namespace CofileUI.UserControls
 						return;
 
 					//ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, id, password);
-					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, port);
-					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
+					ServerInfoPanel si = new ServerInfoPanel(name, ip, port);
+					jobj.Add(ServerInfo.ConvertToJson(si.Serverinfo));
 
 					if(!ServerInfo.save())
 						return;
@@ -374,7 +432,7 @@ namespace CofileUI.UserControls
 		}
 		private void OnClickDeleteServer(object sender, RoutedEventArgs e)
 		{
-			if(ServerList.selected_serverinfo_textblock == null)
+			if(ServerList.selected_serverinfo_panel == null)
 				return;
 
 			WindowMain.current.ShowMessageDialog("Delete Server", "해당 서버 정보를 정말 삭제하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, DeleteServerInfoUI);
@@ -383,12 +441,12 @@ namespace CofileUI.UserControls
 		{
 			//if(ServerList.selected_serverinfo_textblock == null)
 			//	return;
-			ServerInfoTextBlock sitb = this.SelectedItem as ServerInfoTextBlock;
+			ServerInfoPanel sitb = this.SelectedItem as ServerInfoPanel;
 			if(sitb == null)
 				return;
 
 			//SSHController.ReConnect();
-			WindowMain.current.Refresh(sitb.serverinfo.name);
+			WindowMain.current.Refresh(sitb.Serverinfo.name);
 		}
 		private void OnClickDisConnectServer(object sender, RoutedEventArgs e)
 		{
@@ -400,11 +458,11 @@ namespace CofileUI.UserControls
 		{
 			//if(ServerList.selected_serverinfo_textblock == null)
 			//	return;
-			ServerInfoTextBlock sitb = this.SelectedItem as ServerInfoTextBlock;
+			ServerInfoPanel sitb = this.SelectedItem as ServerInfoPanel;
 			if(sitb == null)
 				return;
 
-			Window_AddServer wms = new Window_AddServer(sitb.serverinfo);
+			Window_AddServer wms = new Window_AddServer(sitb.Serverinfo);
 			//wms.textBox_password.Password = sitb.serverinfo.password;
 
 			Point pt = this.PointToScreen(new Point(0, 0));
@@ -422,14 +480,14 @@ namespace CofileUI.UserControls
 
 				// JProperty 바꾸기
 				JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(name, ip, port));
-				jobj[ServerList.selected_serverinfo_textblock.serverinfo.name].Parent.Replace(newprop);
+				jobj[ServerList.selected_serverinfo_panel.Serverinfo.name].Parent.Replace(newprop);
 
 				if(!ServerInfo.save())
 					return;
 
-				sitb.Text = sitb.serverinfo.name = name;
-				sitb.serverinfo.ip = ip;
-				sitb.serverinfo.port = port;
+				sitb.Text = sitb.Serverinfo.name = name;
+				sitb.Serverinfo.ip = ip;
+				sitb.Serverinfo.port = port;
 				//sitb.serverinfo.id = wms.textBox_id.Text;
 				//sitb.serverinfo.password = wms.textBox_password.Password;
 			}
@@ -442,12 +500,12 @@ namespace CofileUI.UserControls
 				if(jobj == null)
 					return;
 
-				jobj.Remove(ServerList.selected_serverinfo_textblock.serverinfo.name);
+				jobj.Remove(ServerList.selected_serverinfo_panel.Serverinfo.name);
 
 				if(!ServerInfo.save())
 					return;
 
-				this.Items.Remove(ServerList.selected_serverinfo_textblock);
+				this.Items.Remove(ServerList.selected_serverinfo_panel);
 				//ServerButtonChildren.selected_server_info.Remove();
 			}
 			catch(Exception ex)
@@ -466,7 +524,7 @@ namespace CofileUI.UserControls
 				//((LinuxTreeViewItem)Cofile.current.treeView_linux_directory.Items[0]).RefreshChild();
 				//Cofile.current.Refresh();
 				if(WindowMain.current != null)
-					WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
+					WindowMain.current.Refresh(selected_serverinfo_panel.Serverinfo.name);
 
 				//WindowMain.current.initTest();
 			}
@@ -475,7 +533,7 @@ namespace CofileUI.UserControls
 		{
 			base.OnSelectionChanged(e);
 
-			selected_serverinfo_textblock = this.SelectedItem as ServerInfoTextBlock;
+			selected_serverinfo_panel = this.SelectedItem as ServerInfoPanel;
 
 			//if(WindowMain.current != null)
 			//	WindowMain.current.Refresh(selected_serverinfo_textblock.serverinfo.name);
@@ -596,8 +654,8 @@ namespace CofileUI.UserControls
 					if(jobj == null)
 						return;
 
-					ServerInfoTextBlock si = new ServerInfoTextBlock(name, ip, port);
-					jobj.Add(ServerInfo.ConvertToJson(si.serverinfo));
+					ServerInfoPanel si = new ServerInfoPanel(name, ip, port);
+					jobj.Add(ServerInfo.ConvertToJson(si.Serverinfo));
 
 					if(!ServerInfo.save())
 						return;

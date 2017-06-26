@@ -23,7 +23,7 @@ namespace CofileUI.Classes
 			}
 			return true;
 		}
-		public static void FileDelete(string path)
+		public static int DeleteFile(string path)
 		{
 			try
 			{
@@ -31,10 +31,11 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.Delete");
+				Log.PrintError(e.Message, "Classes.FileContoller.DeleteFile");
 			}
+			return 0;
 		}
-		public static void DirectoryDelete(string path)
+		public static int DeleteDirectory(string path)
 		{
 			try
 			{
@@ -42,8 +43,9 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.Delete");
+				Log.PrintError(e.Message, "Classes.FileContoller.DeleteDirectory");
 			}
+			return 0;
 		}
 		public static string Read(string path)
 		{

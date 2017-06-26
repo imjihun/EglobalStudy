@@ -46,15 +46,15 @@ namespace CofileUI.UserControls
 			get
 			{
 				curRootPathLocal = root_path_local;
-				if(ServerList.selected_serverinfo_textblock == null
-					|| ServerList.selected_serverinfo_textblock.serverinfo == null)
+				if(ServerList.selected_serverinfo_panel == null
+					|| ServerList.selected_serverinfo_panel.Serverinfo == null)
 				{ }
 				else
 				{
-					if(ServerList.selected_serverinfo_textblock.serverinfo.name != null && ServerList.selected_serverinfo_textblock.serverinfo.name != "")
-						curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\";
-					if(ServerList.selected_serverinfo_textblock.serverinfo.id != null && ServerList.selected_serverinfo_textblock.serverinfo.id != "")
-						curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
+					if(ServerList.selected_serverinfo_panel.Serverinfo.name != null && ServerList.selected_serverinfo_panel.Serverinfo.name != "")
+						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.name + @"\";
+					if(ServerList.selected_serverinfo_panel.Serverinfo.id != null && ServerList.selected_serverinfo_panel.Serverinfo.id != "")
+						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
 				return curRootPathLocal;
@@ -67,20 +67,21 @@ namespace CofileUI.UserControls
 		}
 		int RemoveConfigFile(string path)
 		{
-			FileContoller.DirectoryDelete(path);
-			return 0;
+			return FileContoller.DeleteDirectory(path);
 		}
-		public void InitOpenFile()
+		public int InitOpenFile()
 		{
-			curRootPathLocal = root_path_local;
-			if(ServerList.selected_serverinfo_textblock == null
-				|| ServerList.selected_serverinfo_textblock.serverinfo == null)
-			{ }
-			else
-				curRootPathLocal += ServerList.selected_serverinfo_textblock.serverinfo.name + @"\" + ServerList.selected_serverinfo_textblock.serverinfo.id + @"\";
+			if(SSHController.ReConnect())
+			{
+				if(RemoveConfigFile(CurRootPathLocal) != 0)
+					return -2;
 
-			RemoveConfigFile(CurRootPathLocal);
-			SSHController.GetConfig(CurRootPathLocal);
+				if(SSHController.GetConfig(CurRootPathLocal) == null)
+					return -1;
+
+				return 0;
+			}
+			return -3;
 		}
 		public void Refresh()
 		{
@@ -89,8 +90,11 @@ namespace CofileUI.UserControls
 		}
 		public void Clear()
 		{
-			JsonTreeViewItem.Clear();
-			json_tree_view.Items.Clear();
+			if(JsonTreeViewItem.Path != null)
+			{
+				JsonTreeViewItem.Clear();
+				json_tree_view.Items.Clear();
+			}
 		}
 		public void refreshJsonTree(JToken jtok_root)
 		{
@@ -173,7 +177,8 @@ namespace CofileUI.UserControls
 			//	LinuxDirectoryViewer l = new LinuxDirectoryViewer(files);
 			//	l.ShowDialog();
 			//}
-			InitOpenFile();
+			if(InitOpenFile() != 0)
+				return;
 
 			OpenFileDialog ofd = new OpenFileDialog();
 
@@ -225,7 +230,8 @@ namespace CofileUI.UserControls
 		}
 		private void SaveJsonFile()
 		{
-			SaveFile(JsonTreeViewItem.Path);
+			if(SaveFile(JsonTreeViewItem.Path) == 0)
+			{ }
 		}
 		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
 		{
@@ -236,6 +242,9 @@ namespace CofileUI.UserControls
 		}
 		private void OtherSaveJsonFile()
 		{
+			if(InitOpenFile() != 0)
+				return;
+
 			SaveFileDialog sfd = new SaveFileDialog();
 
 			sfd.InitialDirectory = CurRootPathLocal;
@@ -251,8 +260,8 @@ namespace CofileUI.UserControls
 			sfd.Filter = "JSon Files (.json)|*.json";
 			if(sfd.ShowDialog() == true)
 			{
-				SaveFile(sfd.FileName);
-				JsonTreeViewItem.Path = sfd.FileName;
+				if(SaveFile(sfd.FileName) == 0)
+					JsonTreeViewItem.Path = sfd.FileName;
 			}
 		}
 		private bool CheckJson()
@@ -266,10 +275,10 @@ namespace CofileUI.UserControls
 
 			return true;
 		}
-		private void SaveFile(string path_local)
+		private int SaveFile(string path_local)
 		{
 			if(!CheckJson())
-				return;
+				return -1;
 
 			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
 			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
@@ -277,15 +286,21 @@ namespace CofileUI.UserControls
 				string path_remote;
 				if((path_remote = SSHController.SetConfig(path_local, CurRootPathLocal)) == null)
 				{
+					//FileContoller.FileDelete(path_local);
+
+					string caption = "Save Error";
 					string message = "서버 연결 에러";
-					WindowMain.current.ShowMessageDialog("Save", message);
+					WindowMain.current.ShowMessageDialog(caption, message);
 					Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
+					return -3;
 				}
 				else
 				{
 					string message = path_remote + " 파일이 저장되었습니다.";
 					WindowMain.current.ShowMessageDialog("Save", message);
 					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
+
+					return 0;
 				}
 			}
 			else
@@ -294,6 +309,7 @@ namespace CofileUI.UserControls
 				string message = path_local + " 파일을 저장하는데 문제가 생겼습니다.";
 				WindowMain.current.ShowMessageDialog(caption, message);
 				Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
+				return -2;
 			}
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)

@@ -67,17 +67,17 @@ namespace CofileUI.Classes
 
 		private const int NO_TIMEOUT = -1;
 		private static int timeout_connect_ms = NO_TIMEOUT;
-		private static bool Connect(string ip, int port, string id, string password, int timeout_ms = NO_TIMEOUT)
+		private static bool Connect(string ip, int port, string id, string password)
 		{
 			try
 			{
 				ssh = new SshClient(ip, port, id, password);
-				if(timeout_ms != NO_TIMEOUT)
-					ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
+				if(timeout_connect_ms != NO_TIMEOUT)
+					ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
 				ssh.Connect();
 				sftp = new SftpClient(ip, port, id, password);
-				if(timeout_ms != NO_TIMEOUT)
-					sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_ms);
+				if(timeout_connect_ms != NO_TIMEOUT)
+					sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
 				sftp.Connect();
 
 				if(ssh.IsConnected)
@@ -99,6 +99,7 @@ namespace CofileUI.Classes
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "Classes.SSHController.Connect");
+				Log.ErrorIntoUI(e.Message, "Connect", Status.current.richTextBox_status);
 				return false;
 			}
 			return true;
@@ -122,7 +123,8 @@ namespace CofileUI.Classes
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Classes.SSHController.CreateDirectory");
+				Log.PrintError(ex.Message, "Classes.SSHController.CreateRemoteDirectory");
+				Log.ErrorIntoUI(ex.Message, "CreateRemoteDirectory", Status.current.richTextBox_status);
 				return false;
 			}
 		}
@@ -360,7 +362,13 @@ namespace CofileUI.Classes
 					str_read += _read;
 				}
 				if(timeout < now)
-					return null;
+				{
+					string[] _split = str_read.Split('\n');
+					if(_split.Length >= 2)
+						return _split[_split.Length - 2];
+					else 
+						return null;
+				}
 
 				string[] split = str_read.Split('\n');
 
@@ -389,6 +397,7 @@ namespace CofileUI.Classes
 			if(shell_stream_read_timer != null)
 				shell_stream_read_timer.Stop();
 
+			envCoHome = null;
 			return true;
 		}
 		private static bool InitConnected()
@@ -400,7 +409,7 @@ namespace CofileUI.Classes
 
 			if(WindowMain.current != null)
 			{
-				WindowMain.current.Changed_server_name = ServerList.selected_serverinfo_textblock.serverinfo.name;
+				WindowMain.current.Changed_server_name = ServerList.selected_serverinfo_panel.Serverinfo.name;
 				WindowMain.current.bUpdateInit(false);
 			}
 
@@ -411,54 +420,54 @@ namespace CofileUI.Classes
 		}
 		public static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
-			if(ServerList.selected_serverinfo_textblock == null)
+			if(ServerList.selected_serverinfo_panel == null)
 				return false;
 
-			string ip = ServerList.selected_serverinfo_textblock.serverinfo.ip;
+			string ip = ServerList.selected_serverinfo_panel.Serverinfo.ip;
 			//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
 			//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
-			int port = ServerList.selected_serverinfo_textblock.serverinfo.port;
+			int port = ServerList.selected_serverinfo_panel.Serverinfo.port;
 
 			if(!CheckConnection(ip, port))
 			{
-				if(InitConnecting())
-				{ }
-
-				try
-				{
-					Window_LogIn wl = new Window_LogIn();
-					Point pt = ServerList.selected_serverinfo_textblock.PointToScreen(new Point(0, 0));
-					wl.Left = pt.X;
-					wl.Top = pt.Y;
-					if(wl.ShowDialog() != true)
-						return false;
-
-					string id = wl.Id;
-					string password = wl.Password;
-					ServerList.selected_serverinfo_textblock.serverinfo.id = id;
-					if(!Connect(ip, port, id, password, timeout_ms))
-						return false;
-				}
-				catch(Exception e)
-				{
-					Log.PrintError(e.Message, "Classes.SSHController.ReConnect");
-					Log.ErrorIntoUI(e.Message, "ReConnect", Status.current.richTextBox_status);
+				if(!InitConnecting())
 					return false;
-				}
+				
+				Window_LogIn wl = new Window_LogIn();
+				Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
+				wl.Left = pt.X;
+				wl.Top = pt.Y;
+				if(wl.ShowDialog() != true)
+					return false;
 
-				if(InitConnected())
-				{ }
+				string id = wl.Id;
+				string password = wl.Password;
+				ServerList.selected_serverinfo_panel.Serverinfo.id = id;
+				timeout_connect_ms = timeout_ms;
+				if(!Connect(ip, port, id, password))
+					return false;
+
+				if(!InitConnected())
+					return false;
+				
+				if(ServerList.selected_serverinfo_panel != null
+					&& ServerList.selected_serverinfo_panel.Serverinfo != null)
+					ServerList.selected_serverinfo_panel.IsConnected = true;
 			}
 			return true;
 		}
 		public static bool DisConnect()
 		{
+			envCoHome = null;
 			if(ssh != null)
 				ssh.Disconnect();
 			if(sftp != null)
 				sftp.Disconnect();
 			if(WindowMain.current != null)
 				WindowMain.current.Clear();
+			if(ServerList.selected_serverinfo_panel != null 
+				&& ServerList.selected_serverinfo_panel.Serverinfo != null)
+				ServerList.selected_serverinfo_panel.IsConnected = false;
 			return true;
 		}
 		#endregion
@@ -757,7 +766,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.ErrorIntoUI(e.Message, "_PollListInDirectory", Status.current.richTextBox_status);
+				Log.ErrorIntoUI(e.Message, "Pull Directory", Status.current.richTextBox_status);
 				Log.PrintError(e.Message, "Classes.SSHController._PullListInDirectory");
 			}
 
@@ -788,7 +797,14 @@ namespace CofileUI.Classes
 
 		#region Excute Cofile Command
 		private static string envCoHome = null;
-		public static string EnvCoHome { get { return envCoHome; } }
+		public static string EnvCoHome {
+			get
+			{
+				if(ReConnect(timeout_connect_ms) && envCoHome == null)
+					LoadEnvCoHome();
+				return envCoHome;
+			}
+		}
 		private static int LoadEnvCoHome()
 		{
 			string command = "echo $CO_HOME";
@@ -856,25 +872,35 @@ namespace CofileUI.Classes
 				return null;
 
 			string env_co_home = EnvCoHome;
-			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
+			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
 			
 			string path_root = cur_local_root_path;
 			string remote_path_configfile = remote_path_configfile_dir;
-			if(local_path_configfile.Length > path_root.Length
-				&& local_path_configfile.Substring(0, path_root.Length) == cur_local_root_path)
+
+			try
 			{
-				remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
-				if(!sftp.Exists(remote_path_configfile))
-					return null;
+				if(local_path_configfile.Length > path_root.Length
+					&& local_path_configfile.Substring(0, path_root.Length) == cur_local_root_path)
+				{
+					remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
+					if(!sftp.Exists(remote_path_configfile))
+						return null;
+				}
+				else
+				{
+					string[] split = local_path_configfile.Split('\\');
+					remote_path_configfile = remote_path_configfile_dir + split[split.Length - 1];
+					if(!sftp.Exists(remote_path_configfile))
+						return null;
+				}
+				return remote_path_configfile;
 			}
-			else
+			catch(Exception e)
 			{
-				string[] split = local_path_configfile.Split('\\');
-				remote_path_configfile = remote_path_configfile_dir + split[split.Length - 1];
-				if(!sftp.Exists(remote_path_configfile))
-					return null;
+				Log.ErrorIntoUI(e.Message, "Config File Check", Status.current.richTextBox_status);
+				Log.PrintError(e.Message, "Classes.SSHController.ConvertPathLocalToRemote");
 			}
-			return remote_path_configfile;
+			return null;
 		}
 		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt, bool is_tail_deamon)
 		{
@@ -1021,8 +1047,10 @@ namespace CofileUI.Classes
 				return null;
 
 			string remote_path_dir = remote_directory + add_path_config_dir;
-			remote_path_dir += ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
-			CreateRemoteDirectory(remote_path_dir);
+			remote_path_dir += ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
+			if(!CreateRemoteDirectory(remote_path_dir))
+				return null;
+
 			//if(downloadDirectory(local_folder, remote_path_dir, new Regex(@"\.json$"), new Regex(@"^\.backup")))
 			if(DownloadDirectory(local_folder, remote_path_dir, new Regex(@"\.json$")))
 			{
@@ -1037,7 +1065,7 @@ namespace CofileUI.Classes
 			if(remote_directory == null)
 				return null;
 
-			string remote_path_dir = remote_directory + add_path_config_dir + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
+			string remote_path_dir = remote_directory + add_path_config_dir + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
 			if(local_file_path.Length > cur_local_root_path.Length
 				&& local_file_path.Substring(0, cur_local_root_path.Length) == cur_local_root_path)
 			{
@@ -1048,7 +1076,7 @@ namespace CofileUI.Classes
 				remote_path_dir += added_path;
 			}
 			//string remote_path = ConvertPathLocalToRemote(local_file_path, cur_local_root_path);
-			string remote_backup_path_dir = remote_directory + add_path_config_dir + @".backup/" + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
+			string remote_backup_path_dir = remote_directory + add_path_config_dir + @".backup/" + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
 			return UploadFile(local_file_path, remote_path_dir, remote_backup_path_dir);
 		}
 		#endregion
@@ -1060,7 +1088,7 @@ namespace CofileUI.Classes
 			if(remote_directory == null)
 				return null;
 
-			string remote_path_dir = remote_directory + add_path_config_dir + ServerList.selected_serverinfo_textblock.serverinfo.id + "/";
+			string remote_path_dir = remote_directory + add_path_config_dir + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
 
 			SftpFileTree.MakeTree(SftpFileTree.root, remote_path_dir);
 			return SftpFileTree.root;
