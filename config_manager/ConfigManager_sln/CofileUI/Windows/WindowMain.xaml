@@ -84,8 +84,8 @@
 				</TabItem>
 				<TabItem Header="{StaticResource MainTab.Config}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
-						<!--<UserControls:ConfigJsonTree DataContext="{Binding}"/>-->
-						<UserControls:EditConfig DataContext="{Binding}"/>
+						<UserControls:ConfigJsonTree DataContext="{Binding}"/>
+						<!--<UserControls:EditConfig DataContext="{Binding}"/>-->
 					</Grid>
 				</TabItem>
 				<TabItem Header="{StaticResource MainTab.Log}">

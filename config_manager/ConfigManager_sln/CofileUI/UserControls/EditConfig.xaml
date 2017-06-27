@@ -10,30 +10,43 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="800">
 	<UserControl.Resources>
-		<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
-		<local:MethodToValueConverter2 x:Key="MethodToValueConverter2"/>
-		<!--<HierarchicalDataTemplate DataType="{x:Type jlinq:JArray}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Array">
-			</TextBlock>
-		</HierarchicalDataTemplate>-->
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JProperty}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
+		<DataTemplate DataType="{x:Type jlinq:JProperty}">
 			<StackPanel Orientation="Horizontal">
 				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"/>
 			</StackPanel>
-		</HierarchicalDataTemplate>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter2}, ConverterParameter='Children'}">
+		</DataTemplate>
+		
+		<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
+		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
 			<TextBlock Text="Object">
 			</TextBlock>
 		</HierarchicalDataTemplate>
-		<!--<HierarchicalDataTemplate DataType="{x:Type jlinq:JConstructor}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
+
+		<!--<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
+		<local:MethodToValueConverter2 x:Key="MethodToValueConverter2"/>
+		<HierarchicalDataTemplate DataType="{x:Type jlinq:JArray}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
+			<TextBlock Text="Array">
+			</TextBlock>
+		</HierarchicalDataTemplate>
+		<HierarchicalDataTemplate DataType="{x:Type jlinq:JProperty}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter2}, ConverterParameter='Children'}">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Text="Property: "/>
+				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"/>
+			</StackPanel>
+		</HierarchicalDataTemplate>
+		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
+			<TextBlock Text="Object">
+			</TextBlock>
+		</HierarchicalDataTemplate>
+		<HierarchicalDataTemplate DataType="{x:Type jlinq:JConstructor}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
 			<TextBlock Text="Constructor">
 			</TextBlock>
 		</HierarchicalDataTemplate>
 		<HierarchicalDataTemplate DataType="{x:Type jlinq:JRaw}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
 			<TextBlock Text="Raw">
 			</TextBlock>
-		</HierarchicalDataTemplate>-->
-		<!--<DataTemplate DataType="{x:Type jlinq:JValue}">
+		</HierarchicalDataTemplate>
+		<DataTemplate DataType="{x:Type jlinq:JValue}">
 			<StackPanel Orientation="Horizontal">
 				<TextBlock Text="Value: "/>
 				<TextBox Text="{Binding Path=Value, Mode=TwoWay}"/>

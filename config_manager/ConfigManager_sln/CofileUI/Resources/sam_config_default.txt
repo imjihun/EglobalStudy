@@ -1,4 +1,4 @@
-{
+"test":{
   "type": "sam",
   "comm_option": {
 	"#sam_type":"0:var 1:fixed",

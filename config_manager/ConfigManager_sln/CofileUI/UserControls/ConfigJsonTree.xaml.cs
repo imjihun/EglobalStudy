@@ -90,11 +90,13 @@ namespace CofileUI.UserControls
 		}
 		public void Clear()
 		{
-			if(JsonTreeViewItem.Path != null)
-			{
-				JsonTreeViewItem.Clear();
-				json_tree_view.Items.Clear();
-			}
+			//if(JsonTreeViewItem.Path != null)
+			//{
+			//	JsonTreeViewItem.Clear();
+			//	json_tree_view.Items.Clear();
+			//}
+			JsonTreeViewItem.Clear();
+			json_tree_view.Items.Clear();
 		}
 		public void refreshJsonTree(JToken jtok_root)
 		{
