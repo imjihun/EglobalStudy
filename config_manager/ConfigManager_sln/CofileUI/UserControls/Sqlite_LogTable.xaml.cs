@@ -196,7 +196,7 @@ namespace CofileUI.UserControls
 			_table.Columns.Add(new_type);
 			int new_idx = _table.Columns.IndexOf(column_name);
 			new_type.SetOrdinal(new_idx);
-
+			//System.Int64 idx;
 			foreach(DataRow v in _table.Rows)
 			{
 				// integer 중 가장 큰 64비트로 캐스팅이 되는지 확인후 캐스팅진행.
@@ -204,8 +204,9 @@ namespace CofileUI.UserControls
 				if(typeof(System.Int64).IsAssignableFrom(v[column_name].GetType()))
 				{
 					System.Int64 idx = (System.Int64)v[column_name];
-					if(source.Length <= idx)
+					if(source.Length <= idx || idx < 0)
 						idx = source.Length - 1;
+					
 					v[add_column_name] = source[idx];
 				}
 			}

@@ -56,6 +56,45 @@ namespace CofileUI.Windows
 			current = this;
 			InitializeComponent();
 			this.Closed += test4_Closed;
+
+			this.PreviewKeyDown += WindowMain_PreviewKeyDown;
+			this.PreviewMouseDown += WindowMain_PreviewMouseDown;
+			this.PreviewMouseWheel += WindowMain_PreviewMouseWheel;
+			DispatcherTimer DisconnectTimeout = new DispatcherTimer();
+			DisconnectTimeout.Interval = new TimeSpan(0, 0, 0, 5);
+			DisconnectTimeout.Tick += DisconnectTimeout_Tick;
+			DisconnectTimeout.Start();
+		}
+
+
+		static DateTime LastInputTime = DateTime.Now;
+		private void WindowMain_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			LastInputTime = DateTime.Now;
+		}
+		private void WindowMain_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			LastInputTime = DateTime.Now;
+		}
+		private void WindowMain_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			LastInputTime = DateTime.Now;
+		}
+
+		int TimeoutDisconnect_Min = 5;
+		private void DisconnectTimeout_Tick(object sender, EventArgs e)
+		{
+			if(SSHController.IsConnected
+				&& LastInputTime.AddMinutes(TimeoutDisconnect_Min) < DateTime.Now)
+			//&& LastInputTime.AddSeconds(5) < DateTime.Now)
+			{
+				WindowMain.current.ShowMessageDialog("Session Timeout", TimeoutDisconnect_Min + "분 간 입력이 없어 연결이 종료됩니다.", MessageDialogStyle.Affirmative, DisconnectTimeout);
+			}
+			//Console.WriteLine("LastInputTime = " + LastInputTime);
+		}
+		private void DisconnectTimeout()
+		{
+			SSHController.DisConnect();
 		}
 
 		public static bool bCtrl = false;

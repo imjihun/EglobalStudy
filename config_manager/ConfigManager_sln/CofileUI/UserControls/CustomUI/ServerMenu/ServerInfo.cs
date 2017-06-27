@@ -230,7 +230,7 @@ namespace CofileUI.UserControls
 		//}
 		public string Text { get { return tb.Text; } set { tb.Text = value; } }
 
-		private List<ServerInfoPanel> list_total_serverinfo = new List<ServerInfoPanel>();
+		private static List<ServerInfoPanel> list_total_serverinfo = new List<ServerInfoPanel>();
 		private bool isConnected = false;
 		public bool IsConnected
 		{
@@ -242,6 +242,7 @@ namespace CofileUI.UserControls
 					for(int i = 0; i < list_total_serverinfo.Count; i++)
 					{
 						list_total_serverinfo[i].isConnected = false;
+						list_total_serverinfo[i].icon.Visibility = Visibility.Hidden;
 					}
 				}
 
@@ -299,7 +300,7 @@ namespace CofileUI.UserControls
 	{
 		public ServerMenuButton parent;
 		public static ServerInfoPanel selected_serverinfo_panel;
-
+		public static ServerInfoPanel connected_serverinfo_panel;
 		MenuItem Disconnect;
 		private void InitContextMenu()
 		{
@@ -367,7 +368,7 @@ namespace CofileUI.UserControls
 		{
 			if(Disconnect != null)
 			{
-				if(selected_serverinfo_panel.IsConnected)
+				if(connected_serverinfo_panel.IsConnected)
 					Disconnect.IsEnabled = true;
 				else
 					Disconnect.IsEnabled = false;

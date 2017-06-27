@@ -106,7 +106,9 @@ namespace CofileUI.UserControls
 				return;
 
 			// 삭제
+			string path = JsonTreeViewItem.Path;
 			Clear();
+			JsonTreeViewItem.Path = path;
 
 			// 추가
 			//TextBlock tblock = new TextBlock();

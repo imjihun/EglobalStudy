@@ -391,9 +391,6 @@ namespace CofileUI.Classes
 		#region Not Portable
 		private static bool InitConnecting()
 		{
-			if(WindowMain.current != null)
-				WindowMain.current.Clear();
-
 			if(shell_stream_read_timer != null)
 				shell_stream_read_timer.Stop();
 
@@ -402,6 +399,9 @@ namespace CofileUI.Classes
 		}
 		private static bool InitConnected()
 		{
+			if(WindowMain.current != null)
+				WindowMain.current.Clear();
+
 			readDummyMessageBlocking();
 
 			if(shell_stream_read_timer != null)
@@ -449,10 +449,13 @@ namespace CofileUI.Classes
 
 				if(!InitConnected())
 					return false;
-				
+
 				if(ServerList.selected_serverinfo_panel != null
 					&& ServerList.selected_serverinfo_panel.Serverinfo != null)
-					ServerList.selected_serverinfo_panel.IsConnected = true;
+				{
+					ServerList.connected_serverinfo_panel = ServerList.selected_serverinfo_panel;
+					ServerList.connected_serverinfo_panel.IsConnected = true;
+				}
 			}
 			return true;
 		}
@@ -467,7 +470,7 @@ namespace CofileUI.Classes
 				WindowMain.current.Clear();
 			if(ServerList.selected_serverinfo_panel != null 
 				&& ServerList.selected_serverinfo_panel.Serverinfo != null)
-				ServerList.selected_serverinfo_panel.IsConnected = false;
+				ServerList.connected_serverinfo_panel.IsConnected = false;
 			return true;
 		}
 		#endregion
