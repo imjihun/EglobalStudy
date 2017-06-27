@@ -12,15 +12,16 @@
 	<UserControl.Resources>
 		<DataTemplate DataType="{x:Type jlinq:JProperty}">
 			<StackPanel Orientation="Horizontal">
-				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"/>
+				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"
+						   Margin="5,0,5,0"/>
 			</StackPanel>
 		</DataTemplate>
 		
-		<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
+		<!--<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
 		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
 			<TextBlock Text="Object">
 			</TextBlock>
-		</HierarchicalDataTemplate>
+		</HierarchicalDataTemplate>-->
 
 		<!--<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
 		<local:MethodToValueConverter2 x:Key="MethodToValueConverter2"/>
@@ -55,13 +56,14 @@
 	</UserControl.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="300"/>
+			<ColumnDefinition Width="Auto"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 		<Grid Grid.Column="0">
-			<TreeView Margin="3" Name="treeView1">
+			<TreeView Margin="3" Name="treeView" BorderBrush="LightGray" BorderThickness="2"
+					  SelectedItemChanged="treeView_SelectedItemChanged">
 				<TreeView.ItemContainerStyle>
-					<Style TargetType="{x:Type TreeViewItem}">
+					<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
 						<Setter Property="IsExpanded" Value="True" />
 					</Style>
 				</TreeView.ItemContainerStyle>
@@ -69,8 +71,12 @@
 			<!--<TreeView x:Name="treeView">
 			</TreeView>-->
 		</Grid>
-		<Grid Grid.Column="1">
-			
+		<Grid Grid.Column="1"
+			  x:Name="panelDetailOption">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
 		</Grid>
 	</Grid>
 </UserControl>

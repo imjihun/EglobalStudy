@@ -68,22 +68,22 @@ namespace CofileUI.UserControls
 		}
 
 		#region Convert To Json, Convert From Json
+		/* 
+		* 구조
+			{
+				"server tab":	{
+								serverinfo,
+								serverinfo ...
+								},
+				"server tab":	{
+								serverinfo,
+								serverinfo ...
+								}
+								...
+			}
+		*/
 		public static JObject ConvertToJson(ServerInfo[][] serverinfos)
 		{
-			/* 
-			* 구조
-				{
-					"server tab":	{
-									serverinfo,
-									serverinfo ...
-									},
-					"server tab":	{
-									serverinfo,
-									serverinfo ...
-									}
-									...
-				}
-			*/
 			try
 			{
 				JObject jobj_root = new JObject();
@@ -111,16 +111,16 @@ namespace CofileUI.UserControls
 
 			return null;
 		}
+		/* 
+			구조
+			"name" : { 
+				"ip" : val,
+				"id" : val,
+				"password" : val
+			}
+		*/
 		public static JProperty ConvertToJson(ServerInfo serverinfo)
 		{
-			/* 
-				구조
-				"name" : { 
-					"ip" : val,
-					"id" : val,
-					"password" : val
-				}
-			*/
 			try
 			{
 				JObject jobj = new JObject();
@@ -368,7 +368,7 @@ namespace CofileUI.UserControls
 		{
 			if(Disconnect != null)
 			{
-				if(connected_serverinfo_panel.IsConnected)
+				if(selected_serverinfo_panel != null && selected_serverinfo_panel.IsConnected)
 					Disconnect.IsEnabled = true;
 				else
 					Disconnect.IsEnabled = false;
@@ -475,22 +475,29 @@ namespace CofileUI.UserControls
 				string ip = wms.Ip;
 				int port = wms.Port;
 
-				JObject jobj = ServerInfo.jobj_root[parent.Content] as JObject;
-				if(jobj == null)
-					return;
+				try
+				{
+					JObject jobj = ServerInfo.jobj_root[parent.Content] as JObject;
+					if(jobj == null)
+						return;
 
-				// JProperty 바꾸기
-				JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(name, ip, port));
-				jobj[ServerList.selected_serverinfo_panel.Serverinfo.name].Parent.Replace(newprop);
+					// JProperty 바꾸기
+					JProperty newprop = ServerInfo.ConvertToJson(new ServerInfo(name, ip, port));
+					jobj[ServerList.selected_serverinfo_panel.Serverinfo.name].Parent.Replace(newprop);
 
-				if(!ServerInfo.save())
-					return;
+					if(!ServerInfo.save())
+						return;
 
-				sitb.Text = sitb.Serverinfo.name = name;
-				sitb.Serverinfo.ip = ip;
-				sitb.Serverinfo.port = port;
-				//sitb.serverinfo.id = wms.textBox_id.Text;
-				//sitb.serverinfo.password = wms.textBox_password.Password;
+					sitb.Text = sitb.Serverinfo.name = name;
+					sitb.Serverinfo.ip = ip;
+					sitb.Serverinfo.port = port;
+					//sitb.serverinfo.id = wms.textBox_id.Text;
+					//sitb.serverinfo.password = wms.textBox_password.Password;
+				}
+				catch(Exception ex)
+				{
+					Log.PrintError(ex.Message, "UserControls.ServerList.OnClickModifyServer");
+				}
 			}
 		}
 		private void DeleteServerInfoUI()

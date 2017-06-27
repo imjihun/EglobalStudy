@@ -1,4 +1,5 @@
 ﻿using CofileUI.Classes;
+using MahApps.Metro.Controls;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace CofileUI.UserControls
 		{
 			InitializeComponent();
 			// Object 밑에 
-			JToken token = JsonController.ParseJson(Properties.Resources.sam_config_default);
+			JToken token = JsonController.ParseJson(Properties.Resources.file_config_default);
 			//treeView.Items.Add(JsonTreeViewItem.convertToTreeViewItem(jtok));
 
 			print(token);
@@ -38,11 +39,116 @@ namespace CofileUI.UserControls
 				children.Add(token);
 			}
 
-			treeView1.ItemsSource = null;
-			treeView1.Items.Clear();
+			treeView.ItemsSource = null;
+			treeView.Items.Clear();
 			//treeView1.ItemsSource = children;
-			treeView1.ItemsSource = token.Children<JProperty>();
+			treeView.ItemsSource = token.Children<JProperty>();
 		}
+
+		private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		{
+			TreeView tv = sender as TreeView;
+			if(tv == null)
+				return;
+			JToken jtok = tv.SelectedItem as JToken;
+			if(jtok == null)
+				return;
+
+			panelDetailOption.Children.Clear();
+			panelDetailOption.RowDefinitions.Clear();
+			if(((JProperty)jtok).Name == "type")
+				return;
+
+			AddItem(panelDetailOption, jtok);
+		}
+
+		string _key = "";
+		char StartDisableProperty = '#';
+		private int AddItem(Panel pan, JToken jtok)
+		{
+			foreach(var v in jtok.Children())
+			{
+				Panel panToAdd = pan;
+				switch(v.Type)
+				{
+					case JTokenType.Boolean:
+					case JTokenType.Integer:
+					case JTokenType.String:
+							pan.Children.Add(ConfigOption.GetUIOptionValue(_key, v));
+						break;
+
+					case JTokenType.Property:
+						{
+							panelDetailOption.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							CheckBox cb = new CheckBox()
+							{
+								Content = ConfigOption.GetStringOptionDetail(((JProperty)v).Name.TrimStart(StartDisableProperty))
+								,
+								Margin = new Thickness(10,3,10,3)
+							};
+							if(((JProperty)v).Name.Length > 0 && ((JProperty)v).Name[0] != StartDisableProperty)
+							{
+								cb.IsChecked = true;
+								cb.Foreground = Brushes.Black;
+							}
+							else
+							{
+								cb.IsChecked = false;
+								cb.Foreground = Brushes.Gray;
+							}
+
+							int idxRow = panelDetailOption.RowDefinitions.Count - 1;
+							Grid.SetRow(cb, idxRow);
+							Grid.SetColumn(cb, 0);
+							pan.Children.Add(cb);
+
+
+							Grid grid_value = new Grid();
+							grid_value.IsEnabled = cb.IsChecked.Value;
+							Grid.SetRow(grid_value, idxRow);
+							Grid.SetColumn(grid_value, 1);
+							pan.Children.Add(grid_value);
+							panToAdd = grid_value;
+
+							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+							JProperty jprop = v as JProperty;
+							cb.Checked += delegate
+							{
+								JProperty newJprop = new JProperty(jprop.Name.TrimStart(StartDisableProperty), jprop.Value);
+								jprop.Replace(newJprop);
+								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+								jprop = newJprop;
+
+								grid_value.IsEnabled = cb.IsChecked.Value;
+								cb.Foreground = Brushes.Black;
+							};
+							cb.Unchecked += delegate
+							{
+								JProperty newJprop = new JProperty(StartDisableProperty + jprop.Name, jprop.Value);
+								jprop.Replace(newJprop);
+								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+								jprop = newJprop;
+
+								grid_value.IsEnabled = cb.IsChecked.Value;
+								cb.Foreground = Brushes.Gray;
+							};
+							_key = jprop.Name.TrimStart(StartDisableProperty);
+						}
+						break;
+					case JTokenType.Array:
+					case JTokenType.Object:
+					case JTokenType.Raw:
+					default:
+						break;
+				}
+				AddItem(panToAdd, v);
+			}
+			return 0;
+		}
+
+
+
+
 
 		int depth = -1;
 		void print(JToken cur)
@@ -58,6 +164,7 @@ namespace CofileUI.UserControls
 			}
 			depth--;
 		}
+
 	}
 	public sealed class MethodToValueConverter2 : IValueConverter
 	{
