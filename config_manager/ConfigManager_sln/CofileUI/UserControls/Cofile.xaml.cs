@@ -796,5 +796,11 @@ namespace CofileUI.UserControls
 			return 0;
 		}
 
+		private void OnPreviewMouseWheelListViewLinuxFiles(object sender, MouseWheelEventArgs e)
+		{
+			ScrollViewer scv = (ScrollViewer)sender;
+			scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+			e.Handled = true;
+		}
 	}
 }

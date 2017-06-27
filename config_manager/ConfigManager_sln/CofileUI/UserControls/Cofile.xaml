@@ -164,18 +164,26 @@
 					<TreeView x:Name="treeView_linux_directory"/>
 				</Grid>
 				<Grid Grid.Row="2" Margin="2">
-					<ListView x:Name="listView_linux_files" Style="{StaticResource StyleListView}"
-							  MouseDoubleClick="OnMouseDoubleClickLinuxFile"
-							  MouseMove="OnMouseMoveLinuxFile"
-							  KeyDown="OnKeyDownLinuxFiles">
+					<ScrollViewer HorizontalScrollBarVisibility="Disabled"
+								  VerticalScrollBarVisibility="Auto"
+								  CanContentScroll="True"
+								  PreviewMouseWheel="OnPreviewMouseWheelListViewLinuxFiles">
+						<ListView x:Name="listView_linux_files" Style="{StaticResource StyleListView}"
+								  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled"
+								  ScrollViewer.CanContentScroll="False"
+								  MouseDoubleClick="OnMouseDoubleClickLinuxFile"
+								  MouseMove="OnMouseMoveLinuxFile"
+								  KeyDown="OnKeyDownLinuxFiles">
 
-						<ListView.ContextMenu>
-							<ContextMenu>
-								<MenuItem Header="{DynamicResource String.Context.Encrypt}" Click="OnClickLinuxFileEncrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Lock}"/>
-								<MenuItem Header="{DynamicResource String.Context.Decrypt}" Click="OnClickLinuxFileDecrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Unlock}"/>
-							</ContextMenu>
-						</ListView.ContextMenu>
-					</ListView>
+							<ListView.ContextMenu>
+								<ContextMenu>
+									<MenuItem Header="{DynamicResource String.Context.Encrypt}" Click="OnClickLinuxFileEncrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Lock}"/>
+									<MenuItem Header="{DynamicResource String.Context.Decrypt}" Click="OnClickLinuxFileDecrypt" Icon="{iconPacks:PackIconFontAwesome Kind=Unlock}"/>
+								</ContextMenu>
+							</ListView.ContextMenu>
+						</ListView>
+					</ScrollViewer>
 				</Grid>
 
 				<GridSplitter Background="Gray"
