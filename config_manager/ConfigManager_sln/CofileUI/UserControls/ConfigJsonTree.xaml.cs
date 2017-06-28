@@ -57,6 +57,7 @@ namespace CofileUI.UserControls
 						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
+				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "Debug");
 				return curRootPathLocal;
 			}
 		}
@@ -73,8 +74,8 @@ namespace CofileUI.UserControls
 		{
 			if(SSHController.ReConnect())
 			{
-				if(RemoveConfigFile(CurRootPathLocal) != 0)
-					return -2;
+				//if(RemoveConfigFile(CurRootPathLocal) != 0)
+				//	return -2;
 
 				if(SSHController.GetConfig(CurRootPathLocal) == null)
 					return -1;

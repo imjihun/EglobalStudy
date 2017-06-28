@@ -39,8 +39,10 @@ namespace CofileUI.Classes
 				string dir = path;
 				if(path[path.Length - 1] != '\\')
 					dir = path.Substring(0, path.LastIndexOf('\\') + 1);
-				if(!FileContoller.CreateDirectory(dir))
-					return false;
+
+				Directory.CreateDirectory(dir);
+				//if(!FileContoller.CreateDirectory(dir))
+				//	return false;
 
 				// 경로에 파일 쓰기.
 				FileStream fs = new FileStream(path, FileMode.Append);

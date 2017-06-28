@@ -41,7 +41,7 @@ namespace CofileUI.UserControls
 			string Key { get; set; }
 			string Detail { get; set; }
 		}
-		public static Dictionary<Options, OptionInfo> dic_options
+		//public static Dictionary<Options, OptionInfo> dic_options
 		public static string[] detailOptions = new string[] {
 												"DB SID 이름"
 												, "암/복호화에 사용할 Item 명"

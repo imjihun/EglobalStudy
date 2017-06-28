@@ -117,14 +117,19 @@ namespace CofileUI.Classes
 				{
 					_path += split[i] + "/";
 					if(!sftp.Exists(_path))
-						sftp.CreateDirectory(_path);
+					{
+						string com = "mkdir " + _path;
+						SendCommand(com);
+						//ssh.RunCommand(com);
+					}
+						//sftp.CreateDirectory(_path);
 				}
 				return true;
 			}
 			catch(Exception ex)
 			{
-				Log.PrintError(ex.Message, "Classes.SSHController.CreateRemoteDirectory");
-				Log.ErrorIntoUI(ex.Message, "CreateRemoteDirectory", Status.current.richTextBox_status);
+				Log.PrintError(ex.Message + "/ path = " + _path, "Classes.SSHController.CreateRemoteDirectory");
+				Log.ErrorIntoUI(ex.Message + "/ path = " + _path, "CreateRemoteDirectory", Status.current.richTextBox_status);
 				return false;
 			}
 		}
@@ -142,7 +147,7 @@ namespace CofileUI.Classes
 				FileInfo fi = new FileInfo(local_path);
 				if(fi.Exists)
 				{
-					FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
+					//FileStream fs = File.Open(local_path, FileMode.Open, FileAccess.Read);
 					remote_file_path = remote_directory + fi.Name;
 					//if(isOverride)
 					//{
@@ -166,25 +171,32 @@ namespace CofileUI.Classes
 
 								// '파일 명'.'연도'.'달'.'날짜'.'시간'.'분'.'초'.backup 형식으로 백업파일 생성
 								string remote_backup_file = remote_backup_dir + fi.Name + dt.ToString(".yyyy.MM.dd.hh.mm.ss") + ".backup";
-								ssh.RunCommand(@"cp " + remote_file_path + " " + remote_backup_file);
+								string com = @"cp " + remote_file_path + " " + remote_backup_file;
+								//ssh.RunCommand(com);
+								SendCommand(com);
 							}
 							else
 							{
-								fs.Close();
+								//fs.Close();
 								Log.PrintError("Create Directory Error", "Classes.SSHController.UploadFile");
 								return null;
 							}
 
 						}
 
-						sftp.UploadFile(fs, remote_file_path, true);
+						//sftp.UploadFile(fs, remote_file_path, true);
+						string str = FileContoller.Read(local_path);
+						string str1 = "echo \'" + str.Replace("\r", "") + "\' > " + remote_file_path;
+						//ssh.RunCommand(str1);
+						SendCommand(str1);
+
 						Log.PrintLog(fi.Name + " => " + remote_file_path, "Classes.SSHController.UploadFile");
 					}
 					else
 					{
 						remote_file_path = null;
 					}
-					fs.Close();
+					//fs.Close();
 				}
 				else
 				{
@@ -195,8 +207,8 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.ErrorIntoUI(e.Message, "UploadFile", Status.current.richTextBox_status);
-				Log.PrintError(e.Message, "Classes.SSHController.UploadFile");
+				Log.ErrorIntoUI(e.Message + "/ " + local_path + " -> " + remote_directory, "UploadFile", Status.current.richTextBox_status);
+				Log.PrintError(e.Message + "/ " + local_path + " -> " + remote_directory, "Classes.SSHController.UploadFile");
 				return null;
 			}
 			return remote_file_path;
@@ -243,7 +255,8 @@ namespace CofileUI.Classes
 		{
 			if(!DownloadFile(local_path_folder, remote_path_file, local_file_name))
 				return false;
-			ssh.RunCommand("rm -rf " + remote_path_file);
+			//ssh.RunCommand("rm -rf " + remote_path_file);
+			SendCommand("rm -rf " + remote_path_file);
 			//sendCommand("rm -rf " + remote_path_file);
 
 			return true;
