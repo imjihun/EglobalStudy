@@ -361,7 +361,7 @@ namespace CofileUI.Classes
 			try
 			{
 				DateTime now = DateTime.Now;
-				DateTime timeout = now.AddSeconds(sec_timeout);
+				DateTime timeout = DateTime.Now.AddSeconds(sec_timeout);
 				while(timeout > (now = DateTime.Now) &&
 					(str_read.Length < cmd.Length
 					|| str_read.LastIndexOf(cmd) < 0
@@ -369,9 +369,12 @@ namespace CofileUI.Classes
 					|| str_read.Split(newLine).Length < cnt_read_outputline + 2))
 				{
 					int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
-					string _read = new string(buffer, 0, cnt);
-
-					str_read += _read;
+					if(cnt > 0)
+					{
+						string _read = new string(buffer, 0, cnt);
+						str_read += _read;
+						timeout = DateTime.Now.AddSeconds(sec_timeout);
+					}
 				}
 				if(timeout < now)
 				{
@@ -575,10 +578,13 @@ namespace CofileUI.Classes
 			int size_buffer = 4096;
 			char[] buffer = new char[size_buffer];
 			//shell_stream.Flush();
-			DateTime now = DateTime.Now;
-			DateTime end = now.AddMilliseconds(200);
+			DateTime end = DateTime.Now.AddMilliseconds(200);
 			for(int i = 0; /*i < 1000 && */end > DateTime.Now; i++)
-				shell_stream_reader.Read(buffer, 0, size_buffer);
+			{
+				int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
+				if(cnt > 0)
+					end = DateTime.Now.AddMilliseconds(200);
+			}
 			return;
 
 			//shell_stream_read_timer.Stop();

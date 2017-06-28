@@ -60,23 +60,27 @@
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 		<Grid Grid.Column="0">
-			<TreeView Margin="3" Name="treeView" BorderBrush="LightGray" BorderThickness="2"
-					  SelectedItemChanged="treeView_SelectedItemChanged">
-				<TreeView.ItemContainerStyle>
-					<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
-						<Setter Property="IsExpanded" Value="True" />
-					</Style>
-				</TreeView.ItemContainerStyle>
-			</TreeView>
-			<!--<TreeView x:Name="treeView">
-			</TreeView>-->
+			<Border BorderBrush="LightGray" BorderThickness="2"/>
+			<Grid x:Name="panelOptionMenu" Margin="2">
+				<TreeView Margin="3" Name="treeView"
+						  SelectedItemChanged="treeView_SelectedItemChanged">
+					<TreeView.ItemContainerStyle>
+						<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
+							<Setter Property="IsExpanded" Value="True" />
+						</Style>
+					</TreeView.ItemContainerStyle>
+				</TreeView>
+				<!--<TreeView x:Name="treeView">
+				</TreeView>-->
+			</Grid>
 		</Grid>
-		<Grid Grid.Column="1"
-			  x:Name="panelDetailOption">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition Width="*"/>
-			</Grid.ColumnDefinitions>
-		</Grid>
+		<ScrollViewer Grid.Column="1">
+			<Grid x:Name="panelDetailOption">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+			</Grid>
+		</ScrollViewer>
 	</Grid>
 </UserControl>

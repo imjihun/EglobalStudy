@@ -27,11 +27,16 @@ namespace CofileUI.UserControls
 		public EditConfig()
 		{
 			InitializeComponent();
-			// Object 밑에 
-			JToken token = JsonController.ParseJson(Properties.Resources.file_config_default);
-			//treeView.Items.Add(JsonTreeViewItem.convertToTreeViewItem(jtok));
 
-			print(token);
+			FileOptions.InitDic();
+			SamOptions.InitDic();
+			Refresh(Properties.Resources.sam_config_default);
+		}
+		private void Refresh(string Json)
+		{
+			JToken token = JsonController.ParseJson(Json);
+
+			//print(token);
 
 			var children = new List<JToken>();
 			if(token != null)
@@ -42,69 +47,106 @@ namespace CofileUI.UserControls
 			treeView.ItemsSource = null;
 			treeView.Items.Clear();
 			//treeView1.ItemsSource = children;
-			treeView.ItemsSource = token.Children<JProperty>();
-		}
+			
+			if(token as JObject != null)
+				treeView.ItemsSource = token.Children();
 
+			//TreeView tv = ConfigOption.GetUIOptionMenus((JObject)token);
+			//tv.SelectedItemChanged += treeView_SelectedItemChanged;
+			//panelOptionMenu.Children.Add(tv);
+		}
 		private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
 		{
 			TreeView tv = sender as TreeView;
 			if(tv == null)
 				return;
-			JToken jtok = tv.SelectedItem as JToken;
-			if(jtok == null)
+			
+			JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
+			if(jprop_optionMenu == null)
 				return;
 
 			panelDetailOption.Children.Clear();
 			panelDetailOption.RowDefinitions.Clear();
-			if(((JProperty)jtok).Name == "type")
-				return;
+			//if(jprop_optionMenu.Name == "type")
+			//	return;
 
-			AddItem(panelDetailOption, jtok);
+			AddItem(panelDetailOption, jprop_optionMenu, jprop_optionMenu);
 		}
-
-		JProperty key;
-		private int AddItem(Panel pan, JToken jtok)
+		
+		private int AddItem(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
 		{
-			foreach(var v in jtok.Children())
+			foreach(var v in cur_jtok.Children())
 			{
-				Panel panToAdd = pan;
+				JProperty jprop = cur_jprop_optionMenu;
+				Panel pan = cur_panel_DetailOption;
 				switch(v.Type)
 				{
 					case JTokenType.Boolean:
 					case JTokenType.Integer:
 					case JTokenType.String:
-							pan.Children.Add(ConfigOption.GetUIOptionValue(key, v));
+						{
+							FrameworkElement ui = SamOptions.GetUIOptionValue(jprop, v);
+							if(ui == null)
+								break;
+
+							cur_panel_DetailOption.Children.Add(ui);
+						}
 						break;
 
 					case JTokenType.Property:
 						{
-							panelDetailOption.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = panelDetailOption.RowDefinitions.Count - 1;
-							
 							Grid grid_key = new Grid();
+							Grid grid_value = new Grid();
+							FrameworkElement ui = SamOptions.GetUIOptionKey((JProperty)v, grid_value);
+							if(ui == null)
+								break;
+
+							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+							
 							Grid.SetRow(grid_key, idxRow);
 							Grid.SetColumn(grid_key, 0);
-							pan.Children.Add(grid_key);
+							cur_panel_DetailOption.Children.Add(grid_key);
 							
-							Grid grid_value = new Grid();
 							Grid.SetRow(grid_value, idxRow);
 							Grid.SetColumn(grid_value, 1);
-							pan.Children.Add(grid_value);
-							panToAdd = grid_value;
+							cur_panel_DetailOption.Children.Add(grid_value);
 
-							FrameworkElement ui = ConfigOption.GetUIOptionKey((JProperty)v, grid_value);
 							grid_key.Children.Add(ui);
 
-							key = (JProperty)v;
+							jprop = (JProperty)v;
+							pan = grid_value;
 						}
 						break;
 					case JTokenType.Array:
+						break;
 					case JTokenType.Object:
+						{
+							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+
+							Grid grid = new Grid();
+							grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+							grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+							grid.Margin = new Thickness(50, 0, 0, 0);
+							Grid.SetRow(grid, idxRow);
+							Grid.SetColumn(grid, 0);
+							Border bd = new Border() { BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
+							Grid.SetColumnSpan(bd, 2);
+							Grid.SetRowSpan(bd, 100);
+							grid.Children.Add(bd);
+
+							pan.Children.Add(grid);
+
+							pan = grid;
+						}
+						break;
 					case JTokenType.Raw:
 					default:
 						break;
 				}
-				AddItem(panToAdd, v);
+				AddItem(pan, jprop, v);
 			}
 			return 0;
 		}
