@@ -62,8 +62,7 @@ namespace CofileUI.UserControls
 			AddItem(panelDetailOption, jtok);
 		}
 
-		string _key = "";
-		char StartDisableProperty = '#';
+		JProperty key;
 		private int AddItem(Panel pan, JToken jtok)
 		{
 			foreach(var v in jtok.Children())
@@ -74,65 +73,29 @@ namespace CofileUI.UserControls
 					case JTokenType.Boolean:
 					case JTokenType.Integer:
 					case JTokenType.String:
-							pan.Children.Add(ConfigOption.GetUIOptionValue(_key, v));
+							pan.Children.Add(ConfigOption.GetUIOptionValue(key, v));
 						break;
 
 					case JTokenType.Property:
 						{
 							panelDetailOption.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							CheckBox cb = new CheckBox()
-							{
-								Content = ConfigOption.GetStringOptionDetail(((JProperty)v).Name.TrimStart(StartDisableProperty))
-								,
-								Margin = new Thickness(10,3,10,3)
-							};
-							if(((JProperty)v).Name.Length > 0 && ((JProperty)v).Name[0] != StartDisableProperty)
-							{
-								cb.IsChecked = true;
-								cb.Foreground = Brushes.Black;
-							}
-							else
-							{
-								cb.IsChecked = false;
-								cb.Foreground = Brushes.Gray;
-							}
-
 							int idxRow = panelDetailOption.RowDefinitions.Count - 1;
-							Grid.SetRow(cb, idxRow);
-							Grid.SetColumn(cb, 0);
-							pan.Children.Add(cb);
-
-
+							
+							Grid grid_key = new Grid();
+							Grid.SetRow(grid_key, idxRow);
+							Grid.SetColumn(grid_key, 0);
+							pan.Children.Add(grid_key);
+							
 							Grid grid_value = new Grid();
-							grid_value.IsEnabled = cb.IsChecked.Value;
 							Grid.SetRow(grid_value, idxRow);
 							Grid.SetColumn(grid_value, 1);
 							pan.Children.Add(grid_value);
 							panToAdd = grid_value;
 
-							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-							JProperty jprop = v as JProperty;
-							cb.Checked += delegate
-							{
-								JProperty newJprop = new JProperty(jprop.Name.TrimStart(StartDisableProperty), jprop.Value);
-								jprop.Replace(newJprop);
-								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-								jprop = newJprop;
+							FrameworkElement ui = ConfigOption.GetUIOptionKey((JProperty)v, grid_value);
+							grid_key.Children.Add(ui);
 
-								grid_value.IsEnabled = cb.IsChecked.Value;
-								cb.Foreground = Brushes.Black;
-							};
-							cb.Unchecked += delegate
-							{
-								JProperty newJprop = new JProperty(StartDisableProperty + jprop.Name, jprop.Value);
-								jprop.Replace(newJprop);
-								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-								jprop = newJprop;
-
-								grid_value.IsEnabled = cb.IsChecked.Value;
-								cb.Foreground = Brushes.Gray;
-							};
-							_key = jprop.Name.TrimStart(StartDisableProperty);
+							key = (JProperty)v;
 						}
 						break;
 					case JTokenType.Array:

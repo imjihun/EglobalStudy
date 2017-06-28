@@ -13,7 +13,7 @@ namespace CofileUI.UserControls
 {
 	class ConfigOption
 	{
-		enum options
+		enum Options
 		{ sid = 0
 			, item
 			, encode_type
@@ -33,7 +33,15 @@ namespace CofileUI.UserControls
 			, output_dir
 			, input_extension
 			, output_extension
+
+			, undefined
 		}
+		class OptionInfo
+		{
+			string Key { get; set; }
+			string Detail { get; set; }
+		}
+		public static Dictionary<Options, OptionInfo> dic_options
 		public static string[] detailOptions = new string[] {
 												"DB SID 이름"
 												, "암/복호화에 사용할 Item 명"
@@ -54,6 +62,7 @@ namespace CofileUI.UserControls
 												, "암/복호화 후 저장될 폴더 경로"
 												, "암/복호화 할 파일의 확장자"
 												, "암/복호화 후 덧 붙일 확장자"
+												, ""
 											};
 		static string[] _options = new string[] {
 												"sid"
@@ -76,17 +85,15 @@ namespace CofileUI.UserControls
 												, "input_extension"
 												, "output_extension"
 											};
-		public static Grid GetUIOptionValue(string optionKey, JToken value)
+		public static FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
-			Grid grid = new Grid();
-			grid.Width = 150;
-			grid.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+			FrameworkElement ret = null;
 			try
 			{
-				options opt = (options)Enum.Parse(typeof(options), optionKey, true);
+				Options opt = GetOption(optionKey);
 				switch(opt)
 				{
-					case options.encode_type:
+					case Options.encode_type:
 						{
 							Dictionary<int, string> dic = new Dictionary<int, string>()
 							{
@@ -97,11 +104,11 @@ namespace CofileUI.UserControls
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Value);
-
-							grid.Children.Add(cb);
+							
+							ret = cb;
 						}
 						break;
-					case options.input_extension:
+					case Options.input_extension:
 						{
 							Dictionary<int, string> dic = new Dictionary<int, string>()
 							{
@@ -124,11 +131,11 @@ namespace CofileUI.UserControls
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Value);
-
-							grid.Children.Add(cb);
+							
+							ret = cb;
 						}
 						break;
-					case options.output_extension:
+					case Options.output_extension:
 						{
 							Dictionary<int, string> dic = new Dictionary<int, string>()
 							{
@@ -151,19 +158,19 @@ namespace CofileUI.UserControls
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Value);
-
-							grid.Children.Add(cb);
+							
+							ret = cb;
 						}
 						break;
-					case options.input_dir:
-					case options.output_dir:
+					case Options.input_dir:
+					case Options.output_dir:
 						{
-							ComboBox cb = new ComboBox() { Text = value.ToString(), IsEditable = true };
-
-							grid.Children.Add(cb);
+							ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
+							
+							ret = cb;
 						}
 						break;
-					case options.input_filter:
+					case Options.input_filter:
 						{
 							Dictionary<string, string> dic = new Dictionary<string, string>()
 							{
@@ -174,18 +181,18 @@ namespace CofileUI.UserControls
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Value);
-
-							grid.Children.Add(cb);
+							
+							ret = cb;
 						}
 						break;
-					case options.log_console_yn:
-					case options.header_file_save_yn:
-					case options.file_reserver_yn:
-					case options.dir_monitoring_yn:
-					case options.verify_yn:
-					case options.result_log_yn:
+					case Options.log_console_yn:
+					case Options.header_file_save_yn:
+					case Options.file_reserver_yn:
+					case Options.dir_monitoring_yn:
+					case Options.verify_yn:
+					case Options.result_log_yn:
 						{
-							ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)value };
+							ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)optionValue };
 							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -197,45 +204,45 @@ namespace CofileUI.UserControls
 							//if(panelDetailOption.RowDefinitions.Count > 0)
 							//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
 							//Grid.SetColumn(ts, 1);
-							grid.Children.Add(ts);
+							ret = ts;
 
 							ts.Checked += delegate
 							{
-								((JValue)value).Value = ts.IsChecked;
+								((JValue)optionValue).Value = ts.IsChecked;
 							};
 							ts.Unchecked += delegate
 							{
-								((JValue)value).Value = ts.IsChecked;
+								((JValue)optionValue).Value = ts.IsChecked;
 							};
 						}
 						break;
-					case options.dir_monitoring_term:
-					case options.thread_count:
+					case Options.dir_monitoring_term:
+					case Options.thread_count:
 						{
-							NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)value };
+							NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)optionValue };
 							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
 							//if(panelDetailOption.RowDefinitions.Count > 0)
 							//	Grid.SetRow(tb_integer, panelDetailOption.RowDefinitions.Count - 1);
 							//Grid.SetColumn(tb_integer, 1);
-							grid.Children.Add(tb_integer);
+							ret = tb_integer;
 
 							tb_integer.ValueChanged += delegate
 							{
-								((JValue)value).Value = (int)tb_integer.Value;
+								((JValue)optionValue).Value = (int)tb_integer.Value;
 							};
 						}
 						break;
 					default:
-						TextBox tb = new TextBox() {Text = value.ToString() };
+						TextBox tb = new TextBox() {Text = optionValue.ToString() };
 						tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 						tb.HorizontalAlignment = HorizontalAlignment.Left;
-						grid.Children.Add(tb);
+						ret = tb;
 
 						tb.TextChanged += delegate
 						{
-							((JValue)value).Value = tb.Text;
+							((JValue)optionValue).Value = tb.Text;
 						};
 						break;
 				}
@@ -244,23 +251,79 @@ namespace CofileUI.UserControls
 			{
 				Log.PrintError(e.Message, "UserControls.ConfigOption.GetUIOptionValue");
 			}
-			return grid;
+			if(ret != null)
+			{
+				ret.Width = 150;
+				ret.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+			}
+			return ret;
 		}
-		
-		public static string GetStringOptionDetail(string optionKey)
+
+		static Options GetOption(string stringkey)
 		{
-			string ret = "";
+			Options opt = Options.undefined;
 			try
 			{
-				options opt = (options)Enum.Parse(typeof(options), optionKey, true);
-				ret = detailOptions[(int)opt];
+				opt = (Options)Enum.Parse(typeof(Options), stringkey, true);
 			}
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "UserControls.ConfigOption.GetStringOptionDetail");
 			}
+			return opt;
+		}
+		static Options GetOption(JProperty optionKey)
+		{
+			string stringkey = ((JProperty)optionKey).Name.TrimStart(StartDisableProperty);
+			return GetOption(stringkey);
+		}
+		static char StartDisableProperty = '#';
+		public static FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value)
+		{
+			FrameworkElement ret;
+			Options opt = GetOption(optionKey);
+			CheckBox cb = new CheckBox()
+			{
+				Content = detailOptions[(int)opt]
+				, Margin = new Thickness(10,3,10,3)
+			};
+			if(((JProperty)optionKey).Name.Length > 0 && ((JProperty)optionKey).Name[0] != StartDisableProperty)
+			{
+				cb.IsChecked = true;
+				cb.Foreground = Brushes.Black;
+			}
+			else
+			{
+				cb.IsChecked = false;
+				cb.Foreground = Brushes.Gray;
+			}
+
+			pan_value.IsEnabled = cb.IsChecked.Value;
+			// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+			JProperty jprop = optionKey;
+			cb.Checked += delegate
+			{
+				JProperty newJprop = new JProperty(jprop.Name.TrimStart(StartDisableProperty), jprop.Value);
+				jprop.Replace(newJprop);
+				// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+				jprop = newJprop;
+
+				pan_value.IsEnabled = cb.IsChecked.Value;
+				cb.Foreground = Brushes.Black;
+			};
+			cb.Unchecked += delegate
+			{
+				JProperty newJprop = new JProperty(StartDisableProperty + jprop.Name, jprop.Value);
+				jprop.Replace(newJprop);
+				// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+				jprop = newJprop;
+
+				pan_value.IsEnabled = cb.IsChecked.Value;
+				cb.Foreground = Brushes.Gray;
+			};
+			ret = cb;
+
 			return ret;
 		}
-		
 	}
 }
