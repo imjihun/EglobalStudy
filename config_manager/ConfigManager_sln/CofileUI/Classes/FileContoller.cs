@@ -15,7 +15,7 @@ namespace CofileUI.Classes
 			try
 			{
 				Directory.CreateDirectory(path);
-				//Log.PrintError("path = " + path, "Debug");
+				Log.PrintError("path = " + path, "Debug");
 			}
 			catch(Exception e)
 			{

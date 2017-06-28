@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8682379-697C-4A25-A387-A03DEBE6B2E1}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CofileUI</RootNamespace>
     <AssemblyName>CofileUI</AssemblyName>
@@ -179,6 +179,9 @@
     <Compile Include="Windows\Window_SelectJsonFile.xaml.cs">
       <DependentUpon>Window_SelectJsonFile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\Window_Setting.xaml.cs">
+      <DependentUpon>Window_Setting.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\Window_ViewFile.xaml.cs">
       <DependentUpon>Window_ViewFile.xaml</DependentUpon>
     </Compile>
@@ -250,6 +253,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Window_SelectJsonFile.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Window_Setting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -119,8 +119,8 @@ namespace CofileUI.Classes
 					if(!sftp.Exists(_path))
 					{
 						string com = "mkdir " + _path;
-						SendCommand(com);
-						//ssh.RunCommand(com);
+						//SendCommand(com);
+						ssh.RunCommand(com);
 					}
 						//sftp.CreateDirectory(_path);
 				}
@@ -172,8 +172,8 @@ namespace CofileUI.Classes
 								// '파일 명'.'연도'.'달'.'날짜'.'시간'.'분'.'초'.backup 형식으로 백업파일 생성
 								string remote_backup_file = remote_backup_dir + fi.Name + dt.ToString(".yyyy.MM.dd.hh.mm.ss") + ".backup";
 								string com = @"cp " + remote_file_path + " " + remote_backup_file;
-								//ssh.RunCommand(com);
-								SendCommand(com);
+								ssh.RunCommand(com);
+								//SendCommand(com);
 							}
 							else
 							{
@@ -187,8 +187,8 @@ namespace CofileUI.Classes
 						//sftp.UploadFile(fs, remote_file_path, true);
 						string str = FileContoller.Read(local_path);
 						string str1 = "echo \'" + str.Replace("\r", "") + "\' > " + remote_file_path;
-						//ssh.RunCommand(str1);
-						SendCommand(str1);
+						ssh.RunCommand(str1);
+						//SendCommand(str1);
 
 						Log.PrintLog(fi.Name + " => " + remote_file_path, "Classes.SSHController.UploadFile");
 					}
@@ -255,9 +255,8 @@ namespace CofileUI.Classes
 		{
 			if(!DownloadFile(local_path_folder, remote_path_file, local_file_name))
 				return false;
-			//ssh.RunCommand("rm -rf " + remote_path_file);
-			SendCommand("rm -rf " + remote_path_file);
-			//sendCommand("rm -rf " + remote_path_file);
+			ssh.RunCommand("rm -rf " + remote_path_file);
+			//SendCommand("rm -rf " + remote_path_file);
 
 			return true;
 		}
@@ -814,6 +813,10 @@ namespace CofileUI.Classes
 		#region Excute Cofile Command
 		private static string envCoHome = null;
 		public static string EnvCoHome {
+			set
+			{
+				envCoHome = value;
+			}
 			get
 			{
 				if(ReConnect(timeout_connect_ms) && envCoHome == null)

@@ -14,8 +14,7 @@ namespace CofileUI.UserControls
 	class ConfigOption
 	{
 		enum Options
-		{
-			sid = 0
+		{ sid = 0
 			, item
 			, encode_type
 			, log_console_yn
@@ -42,6 +41,7 @@ namespace CofileUI.UserControls
 			string Key { get; set; }
 			string Detail { get; set; }
 		}
+		//public static Dictionary<Options, OptionInfo> dic_options
 		public static string[] detailOptions = new string[] {
 												"DB SID 이름"
 												, "암/복호화에 사용할 Item 명"
@@ -85,17 +85,6 @@ namespace CofileUI.UserControls
 												, "input_extension"
 												, "output_extension"
 											};
-
-		static Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
-
-		public static void InitDic()
-		{
-			for(int i = 0; i < _options.Length; i++)
-				dic_options.Add(_options[i], new OptionInfo()
-				{
-					Key = _options[i]
-				}
-		}
 		public static FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
 			FrameworkElement ret = null;
