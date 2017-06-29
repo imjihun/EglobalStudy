@@ -848,8 +848,7 @@ namespace CofileUI.Classes
 		public static string add_path_config_upload = "/var/conf/";
 		public static string add_path_bin = "/bin/";
 		public static string add_path_run_cofile = add_path_bin + "cofile";
-		public static CofileOption selected_type = CofileOption.file;
-		public static string MakeCommandRunCofile(string path_run, CofileOption type, bool isEncrypt, string path, string configname, bool isDirectory)
+		public static string MakeCommandRunCofile(string path_run, CofileType type, bool isEncrypt, string path, string configname, bool isDirectory)
 		{
 			string str = path_run;
 			str += " " + type.ToString().ToLower();
@@ -875,7 +874,7 @@ namespace CofileUI.Classes
 
 			return str;
 		}
-		public static string MakeCommandRunCofilePreview(string path_run, CofileOption type, bool isEncrypt, string path, string configname, bool isDirectory)
+		public static string MakeCommandRunCofilePreview(string path_run, CofileType type, bool isEncrypt, string path, string configname, bool isDirectory)
 		{
 			string str = MakeCommandRunCofile(path_run, type, isEncrypt, path, configname, isDirectory);
 			
@@ -890,7 +889,6 @@ namespace CofileUI.Classes
 			str += " -oe " + Cofile.PreviewExtension;
 			return str;
 		}
-
 		public static string ConvertPathLocalToRemote(string local_path_configfile, string cur_local_root_path)
 		{
 			if(local_path_configfile == null)
@@ -901,43 +899,50 @@ namespace CofileUI.Classes
 			
 			string path_root = cur_local_root_path;
 			string remote_path_configfile = remote_path_configfile_dir;
-
+			string retval = null;
 			try
 			{
 				if(local_path_configfile.Length > path_root.Length
 					&& local_path_configfile.Substring(0, path_root.Length) == cur_local_root_path)
 				{
 					remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
-					if(!sftp.Exists(remote_path_configfile))
-						return null;
+					if(sftp.Exists(remote_path_configfile))
+						retval = remote_path_configfile;
 				}
 				else
 				{
 					string[] split = local_path_configfile.Split('\\');
 					remote_path_configfile = remote_path_configfile_dir + split[split.Length - 1];
-					if(!sftp.Exists(remote_path_configfile))
-						return null;
+					if(sftp.Exists(remote_path_configfile))
+						retval = remote_path_configfile;
 				}
-				return remote_path_configfile;
 			}
 			catch(Exception e)
 			{
 				Log.ErrorIntoUI(e.Message, "Config File Check", Status.current.richTextBox_status);
 				Log.PrintError(e.Message, "Classes.SSHController.ConvertPathLocalToRemote");
 			}
-			return null;
+			if(retval == null)
+			{
+				Log.ErrorIntoUI("Check the Path Config file [path = " + Cofile.current.SelectedConfigLocalPath + "]"
+					, "Config Path Error", Status.current.richTextBox_status);
+
+				string message = "Check the Path Config file" + Environment.NewLine + "path = " + Cofile.current.SelectedConfigLocalPath;
+				WindowMain.current.ShowMessageDialog("Config Path Error", message);
+				Log.PrintError(message, "Classes.SSHController.ConvertPathLocalToRemote");
+			}
+			return retval;
 		}
 		public static bool SendNRecvCofileCommand(IEnumerable<Object> selected_list, bool isEncrypt, bool is_tail_deamon)
 		{
 			Status.current.Clear();
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path, ConfigJsonTree.CurRootPathLocal);
-			if(remote_configfile_path == null)
-			{
-				Log.ErrorIntoUI("Check Config File", isEncrypt ? "Encrypt" : "Decrypt", output_ui: Status.current.richTextBox_status);
-				Log.PrintError("Check Config File", "Classes.SSHController.SendNRecvCofileCommand");
+			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
-			}
+
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigJsonTree.CurRootPathLocal);
+			if(remote_configfile_path == null)
+				return false;
 
 			//string remote_file_path = UploadFile(Cofile.current.Selected_config_file_path, remote_directory);
 			//if(remote_file_path == null)
@@ -959,7 +964,7 @@ namespace CofileUI.Classes
 
 				//string str = LinuxTreeViewItem.selected_list[i].Path.Substring(env_co_home.Length);
 				string send_cmd;
-				send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
+				send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 				//SendCommandOnce(send_cmd);
 				if(!is_tail_deamon)
 					send_cmd += send_cmd + " -1";
@@ -985,13 +990,12 @@ namespace CofileUI.Classes
 		{
 			Status.current.Clear();
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.Selected_config_file_path, ConfigJsonTree.CurRootPathLocal);
-			if(remote_configfile_path == null)
-			{
-				Log.ErrorIntoUI("Check Config File", isEncrypt ? "Encrypt" : "Decrypt", Status.current.richTextBox_status);
-				Log.PrintError("Check Config File", "Classes.SSHController.SendNRecvCofileCommand");
+			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
-			}
+
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigJsonTree.CurRootPathLocal);
+			if(remote_configfile_path == null)
+				return false;
 
 			string env_co_home = EnvCoHome;
 			List <LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();
@@ -1007,7 +1011,7 @@ namespace CofileUI.Classes
 				if(ltvi == null)
 					break;
 
-				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, selected_type, isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
+				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 
 				SendCommand(send_cmd);
 				//string ret = readCofileMessageBlocking();

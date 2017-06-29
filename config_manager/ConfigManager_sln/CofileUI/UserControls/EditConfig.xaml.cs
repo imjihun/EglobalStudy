@@ -24,14 +24,22 @@ namespace CofileUI.UserControls
 	/// </summary>
 	public partial class EditConfig : UserControl
 	{
+		Options options;
 		public EditConfig()
 		{
 			InitializeComponent();
 
-			FileOptions.InitDic();
-			SamOptions.InitDic();
+			//FileOptions.InitDic();
+			//SamOptions.InitDic();
+			FileOptions fo = new FileOptions();
+			fo.InitDic();
+			SamOptions so = new SamOptions();
+			so.InitDic();
+
+			options = so;
 			Refresh(Properties.Resources.sam_config_default);
 		}
+
 		private void Refresh(string Json)
 		{
 			JToken token = JsonController.ParseJson(Json);
@@ -65,27 +73,76 @@ namespace CofileUI.UserControls
 			if(jprop_optionMenu == null)
 				return;
 
-			panelDetailOption.Children.Clear();
-			panelDetailOption.RowDefinitions.Clear();
-			//if(jprop_optionMenu.Name == "type")
-			//	return;
+			panel_DetailOption.Children.Clear();
+			panel_DetailOption.RowDefinitions.Clear();
 
-			AddItem(panelDetailOption, jprop_optionMenu, jprop_optionMenu);
+			AddItem(panel_DetailOption, jprop_optionMenu);
 		}
-		
-		private int AddItem(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
+
+		public int AddItem(Panel panel, JProperty root)
+		{
+			if(root.Value.Type == JTokenType.Object)
+			{
+				GroupBox groupBox = new GroupBox();
+				Grid grid = new Grid();
+
+				groupBox.Header = root.Name;
+				grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+				grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+				groupBox.Content = grid;
+				panel_DetailOption.Children.Add(groupBox);
+
+				return AddItemValueIsObject(grid, root, root);
+			}
+			else if(root.Value.Type == JTokenType.Array)
+			{
+				string[] arr = new string[] {"item", "column_pos", "wrap_char" };
+				DataGrid dataGrid = new DataGrid()
+				{
+					CanUserAddRows = true
+					, CanUserDeleteRows = true
+					, DataContext = root.Value
+				};
+				for(int i = 0; i < arr.Length; i++)
+				{
+					dataGrid.Columns.Add(new DataGridTextColumn()
+					{
+						Header = arr[i]
+							,
+						Binding = new Binding(arr[i])
+					}
+					);
+				}
+				panel_DetailOption.Children.Add(dataGrid);
+				dataGrid.ItemsSource = root.Value;
+				//foreach(var v in root.Value.Children())
+				//{
+				//	Console.WriteLine(v);
+				//	dataGrid.Items.Add(v);
+				//}
+				dataGrid.CellEditEnding += delegate { Console.WriteLine(root.Value); };
+				return 0;
+				//return AddItemValueIsArray(panel_DetailOption, root, root, false);
+			}
+			else
+				return -1;
+		}
+
+		private int AddItemValueIsArray(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok, bool cur_bArray)
 		{
 			foreach(var v in cur_jtok.Children())
 			{
 				JProperty jprop = cur_jprop_optionMenu;
 				Panel pan = cur_panel_DetailOption;
+				bool bArray = cur_bArray;
 				switch(v.Type)
 				{
 					case JTokenType.Boolean:
 					case JTokenType.Integer:
 					case JTokenType.String:
 						{
-							FrameworkElement ui = SamOptions.GetUIOptionValue(jprop, v);
+							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
 							if(ui == null)
 								break;
 
@@ -97,7 +154,7 @@ namespace CofileUI.UserControls
 						{
 							Grid grid_key = new Grid();
 							Grid grid_value = new Grid();
-							FrameworkElement ui = SamOptions.GetUIOptionKey((JProperty)v, grid_value);
+							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
 							if(ui == null)
 								break;
 
@@ -119,8 +176,10 @@ namespace CofileUI.UserControls
 						}
 						break;
 					case JTokenType.Array:
+						bArray = true;
 						break;
 					case JTokenType.Object:
+						if(bArray)
 						{
 							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
 							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
@@ -146,11 +205,70 @@ namespace CofileUI.UserControls
 					default:
 						break;
 				}
-				AddItem(pan, jprop, v);
+				if(v.Type != JTokenType.Array)
+					bArray = false;
+
+				AddItemValueIsArray(pan, jprop, v, bArray);
 			}
 			return 0;
 		}
 
+		private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
+		{
+			foreach(var v in cur_jtok.Children())
+			{
+				JProperty jprop = cur_jprop_optionMenu;
+				Panel pan = cur_panel_DetailOption;
+				switch(v.Type)
+				{
+					case JTokenType.Boolean:
+					case JTokenType.Integer:
+					case JTokenType.String:
+						{
+							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
+							if(ui == null)
+								break;
+
+							cur_panel_DetailOption.Children.Add(ui);
+						}
+						break;
+
+					case JTokenType.Property:
+						{
+							Grid grid_key = new Grid();
+							Grid grid_value = new Grid();
+							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
+							if(ui == null)
+								break;
+
+							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+
+							Grid.SetRow(grid_key, idxRow);
+							Grid.SetColumn(grid_key, 0);
+							cur_panel_DetailOption.Children.Add(grid_key);
+
+							Grid.SetRow(grid_value, idxRow);
+							Grid.SetColumn(grid_value, 1);
+							cur_panel_DetailOption.Children.Add(grid_value);
+
+							grid_key.Children.Add(ui);
+
+							jprop = (JProperty)v;
+							pan = grid_value;
+						}
+						break;
+					case JTokenType.Array:
+					case JTokenType.Object:
+					case JTokenType.Raw:
+					default:
+						break;
+				}
+
+				AddItemValueIsObject(pan, jprop, v);
+			}
+			return 0;
+		}
 
 
 

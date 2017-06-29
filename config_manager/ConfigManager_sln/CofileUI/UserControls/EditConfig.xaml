@@ -75,11 +75,11 @@
 			</Grid>
 		</Grid>
 		<ScrollViewer Grid.Column="1">
-			<Grid x:Name="panelDetailOption">
-				<Grid.ColumnDefinitions>
+			<Grid x:Name="panel_DetailOption">
+				<!--<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="Auto"/>
 					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
+				</Grid.ColumnDefinitions>-->
 			</Grid>
 		</ScrollViewer>
 	</Grid>

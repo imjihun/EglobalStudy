@@ -1,10 +1,13 @@
 ﻿using CofileUI.Classes;
+using CofileUI.Windows;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,6 +20,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace CofileUI.UserControls
 {
@@ -100,13 +105,13 @@ namespace CofileUI.UserControls
 
 		DataTable current_table;
 		DataTable Current_table { get { return current_table; } set { current_table = value; } }
-		DataRow[] filtering_table;
+		DataRow[] filtering_row;
 		DataRow[] Filtering_row
 		{
-			get { return filtering_table; }
+			get { return filtering_row; }
 			set
 			{
-				filtering_table = value;
+				filtering_row = value;
 				max_idx_page = (Filtering_row.Length - 1) / cnt_page;
 			}
 		}
@@ -458,24 +463,220 @@ namespace CofileUI.UserControls
 			UserControls.DataBaseInfo.RefreshUi();
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e)
+		private void OnClickExport(object sender, RoutedEventArgs e)
 		{
-			StringBuilder command = new StringBuilder();
-			command.Append("cofile_monitor -k ");
-
-			foreach(var v in dataGrid.SelectedItems)
+			if(SSHController.IsConnected)
+				ConfirmExport();
+		}
+		private void ConfirmExport()
+		{
+			MahApps.Metro.Controls.Dialogs.MetroDialogSettings setting = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings()
 			{
-				DataRowView drv = v as DataRowView;
-				if(drv == null)
-					continue;
+				AffirmativeButtonText = "All Export"
+				, NegativeButtonText = "Only Current Page Export"
+				, FirstAuxiliaryButtonText = "Cancel"
+			};
+			WindowMain.current.ShowMessageDialog("Export"
+				, "전체 테이블을 Export 하시겠습니까?"
+				, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary
+				, affirmative_callback: TotalExport
+				, negative_callback: PageExport
+				, settings: setting);
+		}
+		string xml = "xml";
+		string csv = "csv";
+		string xls = "xls";
+		private SaveFileDialog MakeSaveFileDialog()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog();
+			string InitalDirectory = AppDomain.CurrentDomain.BaseDirectory;
+			saveFileDialog.FileName = "cofile";
+			saveFileDialog.DefaultExt = "xls";
+			saveFileDialog.Filter = "Xml files (*." + xml + ")|*." + xml
+											+ "|CSV files (*." + csv + ")|*." + csv;
+			//+ "| Excel files(*." + xls + ") | *." + xls;
+			saveFileDialog.InitialDirectory = InitalDirectory;
 
-				if(drv.Row.ItemArray.Length > 0)
+			return saveFileDialog;
+		}
+		private void TotalExport()
+		{
+			SaveFileDialog sfd = MakeSaveFileDialog();
+			if(sfd.ShowDialog() == true)
+			{
+				DataTable dt = Current_table;
+				if(Filtering_row != null && Filtering_row.Length > 0)
+					dt = Filtering_row.CopyToDataTable();
+
+				Export(sfd.FileName, dt);
+			}
+		}
+		private void PageExport()
+		{
+			SaveFileDialog sfd = MakeSaveFileDialog();
+			if(sfd.ShowDialog() == true)
+			{
+				DataTable dt = null;
+
+				if(Filtering_row != null)
 				{
-					command.Append(drv.Row.ItemArray[0].ToString());
-					command.Append(",");
+					List<DataRow> ItemsSource = new List<DataRow>();
+					int start_idx = idx_page * cnt_page;
+					for(int i = start_idx; i < start_idx + cnt_page && i < Filtering_row.Length; i++)
+					{
+						ItemsSource.Add(Filtering_row[i]);
+					}
+					if(ItemsSource.Count > 0)
+						dt = ItemsSource.CopyToDataTable();
+				}
+				Export(sfd.FileName, dt);
+			}
+		}
+		private int Export(string path, DataTable table)
+		{
+			string[] split = path.Split('.');
+			string extension = split[split.Length - 1];
+
+			if(table != null && Current_table != null)
+			{
+				table.TableName = Current_table.TableName;
+				int retval = 0;
+				if(extension == xml)
+					retval = ExportXml(path, table);
+				else if(extension == csv)
+					retval = ExportCSV(path, table);
+				else if(extension == xls)
+					retval = ExportExcel(true, path, table);
+				else
+					retval = -1;
+
+				if(retval == 0)
+				{
+					WindowMain.current.ShowMessageDialog("Export", "Export에 성공하였습니다." + Environment.NewLine + "Path = " + path);
+					return 0;
 				}
 			}
-			command.Remove(command.Length - 1, 1);
+			WindowMain.current.ShowMessageDialog("Export Error", "Export에 실패하였습니다." + Environment.NewLine + "Path = " + path);
+			return -1;
+		}
+		private int ExportXml(string path, DataTable table)
+		{
+			if(table == null)
+				return -1;
+
+			try
+			{
+				table.WriteXml(path);
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.ExportXml");
+				return -2;
+			}
+			return 0;
+		}
+		private int ExportCSV(string path, DataTable table)
+		{
+			if(table == null)
+				return -1;
+
+			try
+			{
+				string delimiter = ",";
+				string newLine = Environment.NewLine;
+				StringBuilder sb = new StringBuilder();
+				
+				for(int i = 0; i < table.Rows.Count; i++)
+				{
+					sb.Append(table.Rows[i].ItemArray[0].ToString());
+					for(int j = 1; j < table.Columns.Count; j++)
+					{
+						sb.Append(delimiter);
+						sb.Append(table.Rows[i].ItemArray[j].ToString());
+					}
+					sb.Append(newLine);
+				}
+				FileContoller.Write(path, sb.ToString());
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.ExportCSV");
+				return -2;
+			}
+			return 0;
+		}
+
+		private int ExportExcel(bool captions, string path, DataTable table)
+		{
+			if(table == null)
+				return -1;
+
+			int num = 0;
+			object missingType = Type.Missing;
+
+			Excel.Application objApp;
+			Excel._Workbook objBook;
+			Excel.Workbooks objBooks;
+			Excel.Sheets objSheets;
+			Excel._Worksheet objSheet;
+			Excel.Range range;
+			
+			string[] headers = new string[table.Columns.Count];
+			string[] columns = new string[table.Columns.Count];
+
+			for(int c = 0; c < table.Columns.Count; c++)
+			{
+				headers[c] = table.Columns[c].ToString();
+				num = c + 65;
+				columns[c] = Convert.ToString((char)num);
+			}
+
+			try
+			{
+				objApp = new Excel.Application();
+				objBooks = objApp.Workbooks;
+				objBook = objBooks.Add(Missing.Value);
+				objSheets = objBook.Worksheets;
+				objSheet = (Excel._Worksheet)objSheets.get_Item(1);
+
+				if(captions)
+				{
+					for(int c = 0; c < table.Columns.Count; c++)
+					{
+						range = objSheet.get_Range(columns[c] + "1", Missing.Value);
+						range.set_Value(Missing.Value, headers[c]);
+					}
+				}
+
+				for(int i = 0; i < table.Rows.Count - 1; i++)
+				{
+					for(int j = 0; j < table.Columns.Count; j++)
+					{
+						range = objSheet.get_Range(columns[j] + Convert.ToString(i + 2),
+																Missing.Value);
+						range.set_Value(Missing.Value,
+												table.Rows[i].ItemArray[j].ToString());
+					}
+				}
+
+				objApp.Visible = false;
+				objApp.UserControl = false;
+
+				objBook.SaveAs(path,
+							Excel.XlFileFormat.xlWorkbookNormal,
+							missingType, missingType, missingType, missingType,
+							Excel.XlSaveAsAccessMode.xlNoChange,
+							missingType, missingType, missingType, missingType, missingType);
+				objBook.Close(false, missingType, missingType);
+
+				Cursor = Cursors.AppStarting;
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.ExportExcel");
+				return -2;
+			}
+			return 0;
 		}
 	}
 }

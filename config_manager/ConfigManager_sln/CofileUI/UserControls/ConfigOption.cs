@@ -16,17 +16,22 @@ namespace CofileUI.UserControls
 	//	FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value);
 	//	FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue);
 	//}
-	static class Options
+	class Options
 	{
-		public delegate FrameworkElement _GetUIOptionKey(JProperty optionKey, Panel pan_value);
-		public delegate FrameworkElement _GetUIOptionValue(JProperty optionKey, JToken optionValue);
-		public static _GetUIOptionKey GetUIOptionKey = null;
-		public static _GetUIOptionValue GetUIOptionValue = null;
+		//public delegate FrameworkElement _GetUIOptionKey(JProperty optionKey, Panel pan_value);
+		//public delegate FrameworkElement _GetUIOptionValue(JProperty optionKey, JToken optionValue);
+		//public static _GetUIOptionKey GetUIOptionKey = null;
+		//public static _GetUIOptionValue GetUIOptionValue = null;
+
+		protected static char StartDisableProperty = '#';
+
+		public virtual FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value) { return null; }
+		public virtual FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue) { return null; }
 	}
 
-	class SamOptions
+	class SamOptions : Options
 	{
-		static string[] _options = new string[]
+		string[] _options = new string[]
 			{
 			// comm_option
 				"sam_type"
@@ -56,7 +61,7 @@ namespace CofileUI.UserControls
 				, "size"
 				, "col_size"
 			};
-		static string[] detailOptions = new string[]
+		string[] detailOptions = new string[]
 			{
 			// comm_option
 				"SAM file type"
@@ -162,8 +167,8 @@ namespace CofileUI.UserControls
 			//public Options Number { get; set; }
 			public Options Index { get; set; }
 		}
-		static Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
-		public static void InitDic()
+		Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
+		public void InitDic()
 		{
 			for(int i = 0; i < _options.Length; i++)
 			{
@@ -179,7 +184,7 @@ namespace CofileUI.UserControls
 				);
 			}
 		}
-		public static FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
+		public override FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
 			FrameworkElement ret = null;
 			try
@@ -189,69 +194,87 @@ namespace CofileUI.UserControls
 				{
 					case Options.sam_type:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 0, "var"}
-								, { 1, "fixed" }
+								{ "var", 0 }
+								, { "fixed", 1 }
 							};
 							ComboBox cb = new ComboBox() { SelectedIndex = 0 };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 
 							ret = cb;
 						}
 						break;
+					case Options.trim:
+						{
+							Dictionary<string, int> dic = new Dictionary<string, int>()
+							{
+								{ "None", 0 }
+								, { "Right", 1 }
+								, { "Left", 2 }
+								, { "Both", 3 }
+							};
+							ComboBox cb = new ComboBox() { SelectedIndex = 0 };
+							var e = dic.GetEnumerator();
+							while(e.MoveNext())
+								cb.Items.Add(e.Current.Key);
+
+							ret = cb;
+						}
+						break;
+						
 					case Options.input_ext:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 0, "*.coenc" }
-								, { 1, "*.txt" }
-								, { 3, "*.jpg" }
-								, { 4, "*.jpe" }
-								, { 5, "*.jpeg" }
-								, { 6, "*.jfif" }
-								, { 7, "*.gif" }
-								, { 8, "*.png" }
-								, { 9, "*.tif" }
-								, { 10, "*.tiff" }
-								, { 11, "*.bmp" }
-								, { 12, "*.dib" }
-								, { 13, "Any" }
+								{ "*.coenc", 0 }
+								, { "*.txt", 1 }
+								, { "*.jpg", 3 }
+								, { "*.jpe", 4 }
+								, { "*.jpeg", 5 }
+								, { "*.jfif", 6 }
+								, { "*.gif", 7 }
+								, { "*.png", 8 }
+								, { "*.tif", 9 }
+								, { "*.tiff", 10 }
+								, { "*.bmp", 11 }
+								, { "*.dib", 12 }
+								, { "Any", 13 }
 							};
 
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 
 							ret = cb;
 						}
 						break;
 					case Options.output_ext:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 1, "*.txt" }
-								, { 2, "*.codec" }
-								, { 3, "*.jpg" }
-								, { 4, "*.jpe" }
-								, { 5, "*.jpeg" }
-								, { 6, "*.jfif" }
-								, { 7, "*.gif" }
-								, { 8, "*.png" }
-								, { 9, "*.tif" }
-								, { 10, "*.tiff" }
-								, { 11, "*.bmp" }
-								, { 12, "*.dib" }
-								, { 13, "Any" }
+								{ "*.txt", 1 }
+								, { "*.codec", 2 }
+								, { "*.jpg", 3 }
+								, { "*.jpe", 4 }
+								, { "*.jpeg", 5 }
+								, { "*.jfif", 6 }
+								, { "*.gif", 7 }
+								, { "*.png", 8 }
+								, { "*.tif", 9 }
+								, { "*.tiff", 10 }
+								, { "*.bmp", 11 }
+								, { "*.dib", 12 }
+								, { "Any", 13 }
 							};
 
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 
 							ret = cb;
 						}
@@ -268,86 +291,96 @@ namespace CofileUI.UserControls
 						{
 							Dictionary<string, string> dic = new Dictionary<string, string>()
 							{
-								{ "[.]coenc$", "*.coenc" }
-								, { "[.]txt$", "*.txt" }
+								{ "*.coenc", "[.]coenc$" }
+								, { "*.txt", "[.]txt$"}
 							};
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 
 							ret = cb;
 						}
 						break;
-					case Options.dir_monitoring_yn:
-						{
-							ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)optionValue };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-							ts.HorizontalAlignment = HorizontalAlignment.Left;
-
-							ts.FontSize = 13;
-							ts.OffLabel = "False";
-							ts.OnLabel = "True";
-							ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
-
-							//if(panelDetailOption.RowDefinitions.Count > 0)
-							//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
-							//Grid.SetColumn(ts, 1);
-							ret = ts;
-
-							ts.Checked += delegate
-							{
-								((JValue)optionValue).Value = ts.IsChecked;
-							};
-							ts.Unchecked += delegate
-							{
-								((JValue)optionValue).Value = ts.IsChecked;
-							};
-						}
-						break;
 					case Options.no_col:
-					case Options.trim:
+					case Options.sid:
+					case Options.delimiter:
 					case Options.skip_header:
 					case Options.record_len:
+					case Options.dir_monitoring_yn:
 					case Options.dir_monitoring_term:
+					case Options.no_access_sentence:
 
+					//case Options.col_var_item:
+					case Options.item:
 					case Options.column_pos:
+					case Options.wrap_char:
+						
+					//case Options.col_fix_item:
 					case Options.start_pos:
 					case Options.size:
 					case Options.col_size:
+						switch(optionValue.Type)
 						{
-							NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)optionValue };
-							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
+							case JTokenType.String:
+								{
+									TextBox tb = new TextBox() {Text = optionValue.ToString() };
+									tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									tb.HorizontalAlignment = HorizontalAlignment.Left;
+									ret = tb;
 
-							//if(panelDetailOption.RowDefinitions.Count > 0)
-							//	Grid.SetRow(tb_integer, panelDetailOption.RowDefinitions.Count - 1);
-							//Grid.SetColumn(tb_integer, 1);
-							ret = tb_integer;
+									tb.TextChanged += delegate
+									{
+										((JValue)optionValue).Value = tb.Text;
+									};
+								}
+								break;
+							case JTokenType.Integer:
+								{
+									NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)optionValue };
+									tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
-							tb_integer.ValueChanged += delegate
-							{
-								((JValue)optionValue).Value = (int)tb_integer.Value;
-							};
+									//if(panelDetailOption.RowDefinitions.Count > 0)
+									//	Grid.SetRow(tb_integer, panelDetailOption.RowDefinitions.Count - 1);
+									//Grid.SetColumn(tb_integer, 1);
+									ret = tb_integer;
+
+									tb_integer.ValueChanged += delegate
+									{
+										((JValue)optionValue).Value = (int)tb_integer.Value;
+									};
+								}
+								break;
+							case JTokenType.Boolean:
+								{
+									ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)optionValue };
+									ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									ts.HorizontalAlignment = HorizontalAlignment.Left;
+
+									ts.FontSize = 13;
+									ts.OffLabel = "False";
+									ts.OnLabel = "True";
+									ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+
+									//if(panelDetailOption.RowDefinitions.Count > 0)
+									//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
+									//Grid.SetColumn(ts, 1);
+									ret = ts;
+
+									ts.Checked += delegate
+									{
+										((JValue)optionValue).Value = ts.IsChecked;
+									};
+									ts.Unchecked += delegate
+									{
+										((JValue)optionValue).Value = ts.IsChecked;
+									};
+								}
+								break;
+							default:
+								break;
 						}
-						break;
-					case Options.sid:
-					case Options.delimiter:
-					case Options.no_access_sentence:
-
-					case Options.wrap_char:
-					//case Options.col_var_item:
-					//case Options.col_fix_item:
-					case Options.item:
-						TextBox tb = new TextBox() {Text = optionValue.ToString() };
-						tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-						tb.HorizontalAlignment = HorizontalAlignment.Left;
-						ret = tb;
-
-						tb.TextChanged += delegate
-						{
-							((JValue)optionValue).Value = tb.Text;
-						};
 						break;
 
 					default:
@@ -368,12 +401,11 @@ namespace CofileUI.UserControls
 			return ret;
 		}
 
-		static string GetStringKey(JProperty key)
+		string GetStringKey(JProperty key)
 		{
 			return key.Name.TrimStart(StartDisableProperty);
 		}
-		static char StartDisableProperty = '#';
-		public static FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value)
+		public override FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value)
 		{
 			FrameworkElement ret = null;
 			try
@@ -481,7 +513,7 @@ namespace CofileUI.UserControls
 			return ret;
 		}
 	}
-	class FileOptions
+	class FileOptions : Options
 	{
 		//static class Options
 		//{
@@ -533,7 +565,7 @@ namespace CofileUI.UserControls
 			, input_extension
 			, output_extension
 		}
-		public static string[] detailOptions = new string[] 
+		public string[] detailOptions = new string[] 
 			{
 				// comm_option
 				"DB SID 이름"
@@ -558,7 +590,7 @@ namespace CofileUI.UserControls
 				, "암/복호화 할 파일의 확장자"
 				, "암/복호화 후 덧 붙일 확장자"
 			};
-		static string[] _options = new string[]
+		string[] _options = new string[]
 			{
 				// comm_option
 				"sid"
@@ -590,8 +622,8 @@ namespace CofileUI.UserControls
 			//public Options Number { get; set; }
 			public Options Index { get; set; }
 		}
-		static Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
-		public static void InitDic()
+		Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
+		public void InitDic()
 		{
 			for(int i = 0; i < _options.Length; i++)
 			{
@@ -606,7 +638,7 @@ namespace CofileUI.UserControls
 			}
 		}
 
-		public static FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
+		public override FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
 			FrameworkElement ret = null;
 			try
@@ -616,69 +648,69 @@ namespace CofileUI.UserControls
 				{
 					case Options.encode_type:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 0, "binary"}
-								, { 1, "ASCII" }
+								{ "binary", 0}
+								, { "ASCII", 1 }
 							};
 							ComboBox cb = new ComboBox() { SelectedIndex = 0 };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 							
 							ret = cb;
 						}
 						break;
 					case Options.input_extension:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 0, "*.coenc" }
-								, { 1, "*.txt" }
-								, { 3, "*.jpg" }
-								, { 4, "*.jpe" }
-								, { 5, "*.jpeg" }
-								, { 6, "*.jfif" }
-								, { 7, "*.gif" }
-								, { 8, "*.png" }
-								, { 9, "*.tif" }
-								, { 10, "*.tiff" }
-								, { 11, "*.bmp" }
-								, { 12, "*.dib" }
-								, { 13, "Any" }
+								{ "*.coenc", 0 }
+								, { "*.txt", 1 }
+								, { "*.jpg", 3 }
+								, { "*.jpe", 4 }
+								, { "*.jpeg", 5 }
+								, { "*.jfif", 6 }
+								, { "*.gif", 7 }
+								, { "*.png", 8 }
+								, { "*.tif", 9 }
+								, { "*.tiff", 10 }
+								, { "*.bmp", 11 }
+								, { "*.dib", 12 }
+								, { "Any", 13 }
 							};
 
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 							
 							ret = cb;
 						}
 						break;
 					case Options.output_extension:
 						{
-							Dictionary<int, string> dic = new Dictionary<int, string>()
+							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ 1, "*.txt" }
-								, { 2, "*.codec" }
-								, { 3, "*.jpg" }
-								, { 4, "*.jpe" }
-								, { 5, "*.jpeg" }
-								, { 6, "*.jfif" }
-								, { 7, "*.gif" }
-								, { 8, "*.png" }
-								, { 9, "*.tif" }
-								, { 10, "*.tiff" }
-								, { 11, "*.bmp" }
-								, { 12, "*.dib" }
-								, { 13, "Any" }
+								{ "*.txt", 1 }
+								, { "*.codec", 2 }
+								, { "*.jpg", 3 }
+								, { "*.jpe", 4 }
+								, { "*.jpeg", 5 }
+								, { "*.jfif", 6 }
+								, { "*.gif", 7 }
+								, { "*.png", 8 }
+								, { "*.tif", 9 }
+								, { "*.tiff", 10 }
+								, { "*.bmp", 11 }
+								, { "*.dib", 12 }
+								, { "Any", 13 }
 							};
 
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 							
 							ret = cb;
 						}
@@ -695,13 +727,13 @@ namespace CofileUI.UserControls
 						{
 							Dictionary<string, string> dic = new Dictionary<string, string>()
 							{
-								{ "[.]coenc$", "*.coenc" }
-								, { "[.]txt$", "*.txt" }
+								{ "*.coenc", "[.]coenc$" }
+								, { "*.txt", "[.]txt$" }
 							};
 							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
-								cb.Items.Add(e.Current.Value);
+								cb.Items.Add(e.Current.Key);
 							
 							ret = cb;
 						}
@@ -712,63 +744,76 @@ namespace CofileUI.UserControls
 					case Options.dir_monitoring_yn:
 					case Options.verify_yn:
 					case Options.result_log_yn:
-						{
-							ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)optionValue };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
-							ts.FontSize = 13;
-							ts.OffLabel = "False";
-							ts.OnLabel = "True";
-							ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
-
-							//if(panelDetailOption.RowDefinitions.Count > 0)
-							//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
-							//Grid.SetColumn(ts, 1);
-							ret = ts;
-
-							ts.Checked += delegate
-							{
-								((JValue)optionValue).Value = ts.IsChecked;
-							};
-							ts.Unchecked += delegate
-							{
-								((JValue)optionValue).Value = ts.IsChecked;
-							};
-						}
-						break;
 					case Options.dir_monitoring_term:
 					case Options.thread_count:
-						{
-							NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)optionValue };
-							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
-							//if(panelDetailOption.RowDefinitions.Count > 0)
-							//	Grid.SetRow(tb_integer, panelDetailOption.RowDefinitions.Count - 1);
-							//Grid.SetColumn(tb_integer, 1);
-							ret = tb_integer;
-
-							tb_integer.ValueChanged += delegate
-							{
-								((JValue)optionValue).Value = (int)tb_integer.Value;
-							};
-						}
-						break;
 					case Options.item:
 					case Options.output_suffix_head:
 					case Options.output_suffix_tail:
 					case Options.schedule_time:
 					case Options.sid:
-						TextBox tb = new TextBox() {Text = optionValue.ToString() };
-						tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
-						tb.HorizontalAlignment = HorizontalAlignment.Left;
-						ret = tb;
-
-						tb.TextChanged += delegate
+						switch(optionValue.Type)
 						{
-							((JValue)optionValue).Value = tb.Text;
-						};
+							case JTokenType.String:
+								{
+									TextBox tb = new TextBox() {Text = optionValue.ToString() };
+									tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									tb.HorizontalAlignment = HorizontalAlignment.Left;
+									ret = tb;
+
+									tb.TextChanged += delegate
+									{
+										((JValue)optionValue).Value = tb.Text;
+									};
+								}
+								break;
+							case JTokenType.Integer:
+								{
+									NumericUpDown tb_integer = new NumericUpDown() {Value = (System.Int64)optionValue };
+									tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
+
+									//if(panelDetailOption.RowDefinitions.Count > 0)
+									//	Grid.SetRow(tb_integer, panelDetailOption.RowDefinitions.Count - 1);
+									//Grid.SetColumn(tb_integer, 1);
+									ret = tb_integer;
+
+									tb_integer.ValueChanged += delegate
+									{
+										((JValue)optionValue).Value = (int)tb_integer.Value;
+									};
+								}
+								break;
+							case JTokenType.Boolean:
+								{
+									ToggleSwitch ts = new ToggleSwitch() { IsChecked = (bool)optionValue };
+									ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+									ts.HorizontalAlignment = HorizontalAlignment.Left;
+
+									ts.FontSize = 13;
+									ts.OffLabel = "False";
+									ts.OnLabel = "True";
+									ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+
+									//if(panelDetailOption.RowDefinitions.Count > 0)
+									//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
+									//Grid.SetColumn(ts, 1);
+									ret = ts;
+
+									ts.Checked += delegate
+									{
+										((JValue)optionValue).Value = ts.IsChecked;
+									};
+									ts.Unchecked += delegate
+									{
+										((JValue)optionValue).Value = ts.IsChecked;
+									};
+								}
+								break;
+							default:
+								break;
+						}
 						break;
 					default:
 						break;
@@ -788,12 +833,11 @@ namespace CofileUI.UserControls
 			return ret;
 		}
 
-		static string GetStringKey(JProperty key)
+		string GetStringKey(JProperty key)
 		{
 			return key.Name.TrimStart(StartDisableProperty);
 		}
-		static char StartDisableProperty = '#';
-		public static FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value)
+		public override FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value)
 		{
 			FrameworkElement ret = null;
 			try

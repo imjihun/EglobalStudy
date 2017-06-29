@@ -124,6 +124,15 @@
     <Compile Include="UserControls\Cofile.xaml.cs">
       <DependentUpon>Cofile.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\ConfigControls\FileConfig.xaml.cs">
+      <DependentUpon>FileConfig.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigControls\SamConfig.xaml.cs">
+      <DependentUpon>SamConfig.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigControls\TailConfig.xaml.cs">
+      <DependentUpon>TailConfig.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ConfigJsonTree.xaml.cs">
       <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
@@ -199,6 +208,18 @@
     <Page Include="UserControls\Cofile.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserControls\ConfigControls\FileConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigControls\SamConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigControls\TailConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\ConfigJsonTree.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -299,6 +320,35 @@
     <Resource Include="Resources\ico_cubeone32.ico" />
     <Content Include="Resources\sam_config_default.txt" />
     <Content Include="Resources\tail_config_default.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Core">
+      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>5</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Interop.Excel">
+      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>7</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VBIDE">
+      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>3</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.1\build\net40\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.1\build\net40\System.Data.SQLite.Core.targets')" />
