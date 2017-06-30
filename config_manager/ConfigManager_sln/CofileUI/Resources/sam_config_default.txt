@@ -1,7 +1,6 @@
 {
   "type": "sam",
   "comm_option": {
-	"#sam_type":"0:var 1:fixed",
 	"sam_type": 0,
 	"no_col": 2,
 	"sid": "API",
@@ -26,7 +25,8 @@
 	},
 	{
 	  "item": "AES256",
-	  "column_pos": 4
+	  "column_pos": 4,
+	  "#wrap_char": "0x22"
 	}
   ],
   "#col_fix": [

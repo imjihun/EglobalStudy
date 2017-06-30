@@ -191,7 +191,7 @@ namespace CofileUI.Windows
 				}
 				if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null && tabControl.SelectedIndex == 1)
 				{
-					UserControls.ConfigJsonTree.current.Refresh();
+					UserControls.ConfigJsonTree.current.Clear();
 					bUpdateConfigFile = true;
 				}
 			}

@@ -12,14 +12,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace CofileUI.UserControls.ConfigControls
+namespace CofileUI.UserControls.ConfigOptions.Tail
 {
 	/// <summary>
-	/// FileConfig.xaml에 대한 상호 작용 논리
+	/// comm_option.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class FileConfig : UserControl
+	public partial class comm_option : UserControl
 	{
-		public FileConfig()
+		public comm_option()
 		{
 			InitializeComponent();
 		}

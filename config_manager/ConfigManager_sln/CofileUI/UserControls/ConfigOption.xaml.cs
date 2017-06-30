@@ -1,4 +1,5 @@
 ﻿using CofileUI.Classes;
+using CofileUI.UserControls.ConfigOptions;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json.Linq;
 using System;
@@ -22,19 +23,17 @@ namespace CofileUI.UserControls
 	/// <summary>
 	/// EditConfig.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class EditConfig : UserControl
+	public partial class ConfigOption : UserControl
 	{
 		Options options;
-		public EditConfig()
+		public ConfigOption()
 		{
 			InitializeComponent();
 
 			//FileOptions.InitDic();
 			//SamOptions.InitDic();
 			FileOptions fo = new FileOptions();
-			fo.InitDic();
 			SamOptions so = new SamOptions();
-			so.InitDic();
 
 			options = so;
 			Refresh(Properties.Resources.sam_config_default);
@@ -78,141 +77,64 @@ namespace CofileUI.UserControls
 
 			AddItem(panel_DetailOption, jprop_optionMenu);
 		}
-
-		public int AddItem(Panel panel, JProperty root)
+		public int AddItem(Grid panel, JProperty root)
 		{
 			if(root.Value.Type == JTokenType.Object)
 			{
-				GroupBox groupBox = new GroupBox();
-				Grid grid = new Grid();
+				//panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+				//panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
-				groupBox.Header = root.Name;
-				grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-				grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-
-				groupBox.Content = grid;
-				panel_DetailOption.Children.Add(groupBox);
-
-				return AddItemValueIsObject(grid, root, root);
+				Panel _pan = GetUIOptionPanel();
+				panel.Children.Add(_pan);
+				return AddItemValueIsObject(_pan, root, root);
 			}
 			else if(root.Value.Type == JTokenType.Array)
 			{
-				string[] arr = new string[] {"item", "column_pos", "wrap_char" };
-				DataGrid dataGrid = new DataGrid()
+				//StackPanel sp = new StackPanel();
+				//panel.Children.Add(sp);
+				//return AddItemValueIsArray(sp, root, root, false);
+
+				string key = root.Name.TrimStart('#');
+				UIElement ui = null;
+				switch(key)
 				{
-					CanUserAddRows = true
-					, CanUserDeleteRows = true
-					, DataContext = root.Value
-				};
-				for(int i = 0; i < arr.Length; i++)
-				{
-					dataGrid.Columns.Add(new DataGridTextColumn()
-					{
-						Header = arr[i]
-							,
-						Binding = new Binding(arr[i])
-					}
-					);
+					case "col_var":
+						ui = new ConfigOptions.Sam.col_var() { DataContext = root };
+						//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
+						break;
+					case "col_fix":
+						ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
+						//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
+						break;
+					case "enc_inform":
+						ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
+						//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
+						break;
+					default:
+						break;
 				}
-				panel_DetailOption.Children.Add(dataGrid);
-				dataGrid.ItemsSource = root.Value;
-				//foreach(var v in root.Value.Children())
-				//{
-				//	Console.WriteLine(v);
-				//	dataGrid.Items.Add(v);
-				//}
-				dataGrid.CellEditEnding += delegate { Console.WriteLine(root.Value); };
+				if(ui != null)
+				{
+					//ui.ItemsSource = root.Value;
+					panel.Children.Add(ui);
+				}
+
 				return 0;
-				//return AddItemValueIsArray(panel_DetailOption, root, root, false);
 			}
 			else
 				return -1;
 		}
-
-		private int AddItemValueIsArray(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok, bool cur_bArray)
+		Panel GetUIOptionPanel()
 		{
-			foreach(var v in cur_jtok.Children())
-			{
-				JProperty jprop = cur_jprop_optionMenu;
-				Panel pan = cur_panel_DetailOption;
-				bool bArray = cur_bArray;
-				switch(v.Type)
-				{
-					case JTokenType.Boolean:
-					case JTokenType.Integer:
-					case JTokenType.String:
-						{
-							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
-							if(ui == null)
-								break;
-
-							cur_panel_DetailOption.Children.Add(ui);
-						}
-						break;
-
-					case JTokenType.Property:
-						{
-							Grid grid_key = new Grid();
-							Grid grid_value = new Grid();
-							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
-							if(ui == null)
-								break;
-
-							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
-							
-							Grid.SetRow(grid_key, idxRow);
-							Grid.SetColumn(grid_key, 0);
-							cur_panel_DetailOption.Children.Add(grid_key);
-							
-							Grid.SetRow(grid_value, idxRow);
-							Grid.SetColumn(grid_value, 1);
-							cur_panel_DetailOption.Children.Add(grid_value);
-
-							grid_key.Children.Add(ui);
-
-							jprop = (JProperty)v;
-							pan = grid_value;
-						}
-						break;
-					case JTokenType.Array:
-						bArray = true;
-						break;
-					case JTokenType.Object:
-						if(bArray)
-						{
-							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
-
-							Grid grid = new Grid();
-							grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-							grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-
-							grid.Margin = new Thickness(50, 0, 0, 0);
-							Grid.SetRow(grid, idxRow);
-							Grid.SetColumn(grid, 0);
-							Border bd = new Border() { BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
-							Grid.SetColumnSpan(bd, 2);
-							Grid.SetRowSpan(bd, 100);
-							grid.Children.Add(bd);
-
-							pan.Children.Add(grid);
-
-							pan = grid;
-						}
-						break;
-					case JTokenType.Raw:
-					default:
-						break;
-				}
-				if(v.Type != JTokenType.Array)
-					bArray = false;
-
-				AddItemValueIsArray(pan, jprop, v, bArray);
-			}
-			return 0;
+			Grid grid = new Grid();
+			//Border bd = new Border() {BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
+			//Grid.SetColumnSpan(bd, 50);
+			//Grid.SetRowSpan(bd, 50);
+			grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+			grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+			//grid.Children.Add(bd);
+			return grid;
 		}
-
 		private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
 		{
 			foreach(var v in cur_jtok.Children())
@@ -229,7 +151,7 @@ namespace CofileUI.UserControls
 							if(ui == null)
 								break;
 
-							cur_panel_DetailOption.Children.Add(ui);
+							pan.Children.Add(ui);
 						}
 						break;
 
@@ -246,11 +168,11 @@ namespace CofileUI.UserControls
 
 							Grid.SetRow(grid_key, idxRow);
 							Grid.SetColumn(grid_key, 0);
-							cur_panel_DetailOption.Children.Add(grid_key);
+							pan.Children.Add(grid_key);
 
 							Grid.SetRow(grid_value, idxRow);
 							Grid.SetColumn(grid_value, 1);
-							cur_panel_DetailOption.Children.Add(grid_value);
+							pan.Children.Add(grid_value);
 
 							grid_key.Children.Add(ui);
 
@@ -269,7 +191,79 @@ namespace CofileUI.UserControls
 			}
 			return 0;
 		}
+		private int AddItemValueIsArray(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok, bool cur_bArray)
+		{
+			foreach(var v in cur_jtok.Children())
+			{
+				JProperty jprop = cur_jprop_optionMenu;
+				Panel pan = cur_panel_DetailOption;
+				bool bArray = cur_bArray;
+				switch(v.Type)
+				{
+					case JTokenType.Boolean:
+					case JTokenType.Integer:
+					case JTokenType.String:
+						{
+							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
+							if(ui == null)
+								break;
 
+							pan.Children.Add(ui);
+						}
+						break;
+
+					case JTokenType.Property:
+						{
+							Grid grid_key = new Grid();
+							Grid grid_value = new Grid();
+							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
+							if(ui == null)
+								break;
+
+							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+
+							Grid.SetRow(grid_key, idxRow);
+							Grid.SetColumn(grid_key, 0);
+							pan.Children.Add(grid_key);
+
+							Grid.SetRow(grid_value, idxRow);
+							Grid.SetColumn(grid_value, 1);
+							pan.Children.Add(grid_value);
+
+							grid_key.Children.Add(ui);
+
+							jprop = (JProperty)v;
+							pan = grid_value;
+						}
+						break;
+					case JTokenType.Object:
+						if(bArray)
+						{
+							//Border bd = new Border() {BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
+							//Grid grid = new Grid();
+							//grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+							//grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+							//bd.Child = grid;
+							Panel _pan = GetUIOptionPanel();
+							pan.Children.Add(_pan);
+							pan = _pan;
+						}
+						break;
+					case JTokenType.Array:
+					case JTokenType.Raw:
+					default:
+						break;
+				}
+				if(v.Type == JTokenType.Array)
+					bArray = true;
+				else
+					bArray = false;
+
+				AddItemValueIsArray(pan, jprop, v, bArray);
+			}
+			return 0;
+		}
 
 
 
@@ -288,6 +282,43 @@ namespace CofileUI.UserControls
 			depth--;
 		}
 
+	}
+
+	class OnlyBooleanConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToBoolean(value);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToBoolean(value);
+		}
+	}
+	class OnlyInt64Converter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToInt64(value);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToInt64(value);
+		}
+	}
+	public sealed class Int64ToStringConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToString(value);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToInt64(value);
+		}
 	}
 	public sealed class MethodToValueConverter2 : IValueConverter
 	{

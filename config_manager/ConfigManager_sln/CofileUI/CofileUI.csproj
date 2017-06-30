@@ -124,24 +124,45 @@
     <Compile Include="UserControls\Cofile.xaml.cs">
       <DependentUpon>Cofile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConfigControls\FileConfig.xaml.cs">
-      <DependentUpon>FileConfig.xaml</DependentUpon>
+    <Compile Include="UserControls\ConfigOptions\File\comm_option.xaml.cs">
+      <DependentUpon>comm_option.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConfigControls\SamConfig.xaml.cs">
-      <DependentUpon>SamConfig.xaml</DependentUpon>
+    <Compile Include="UserControls\ConfigOptions\File\dec_option.xaml.cs">
+      <DependentUpon>dec_option.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConfigControls\TailConfig.xaml.cs">
-      <DependentUpon>TailConfig.xaml</DependentUpon>
+    <Compile Include="UserControls\ConfigOptions\File\enc_option.xaml.cs">
+      <DependentUpon>enc_option.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\File\FileOptions.xaml.cs">
+      <DependentUpon>FileOptions.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Sam\col_fix.xaml.cs">
+      <DependentUpon>col_fix.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Sam\col_var.xaml.cs">
+      <DependentUpon>col_var.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Sam\comm_option.xaml.cs">
+      <DependentUpon>comm_option.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Sam\SamOptions.xaml.cs">
+      <DependentUpon>SamOptions.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Tail\comm_option.xaml.cs">
+      <DependentUpon>comm_option.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ConfigOptions\Tail\enc_inform.xaml.cs">
+      <DependentUpon>enc_inform.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ConfigJsonTree.xaml.cs">
       <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConfigOption.cs" />
+    <Compile Include="UserControls\ConfigOptions\Common.cs" />
     <Compile Include="UserControls\CustomUI\Cofile\LinuxTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ConfigJsonTree\JsonTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ServerMenu\ServerInfo.cs" />
-    <Compile Include="UserControls\EditConfig.xaml.cs">
-      <DependentUpon>EditConfig.xaml</DependentUpon>
+    <Compile Include="UserControls\ConfigOption.xaml.cs">
+      <DependentUpon>ConfigOption.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\LinuxDirectoryViewer.xaml.cs">
       <DependentUpon>LinuxDirectoryViewer.xaml</DependentUpon>
@@ -197,6 +218,10 @@
     <Compile Include="Windows\Window_ViewImage.xaml.cs">
       <DependentUpon>Window_ViewImage.xaml</DependentUpon>
     </Compile>
+    <Page Include="Resources\ConfigOptionResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Resources\StringResources\StringCofile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -209,15 +234,43 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserControls\ConfigControls\FileConfig.xaml">
+    <Page Include="UserControls\ConfigOptions\File\comm_option.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserControls\ConfigControls\SamConfig.xaml">
+    <Page Include="UserControls\ConfigOptions\File\dec_option.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserControls\ConfigControls\TailConfig.xaml">
+    <Page Include="UserControls\ConfigOptions\File\enc_option.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\File\FileOptions.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Sam\col_fix.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Sam\col_var.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Sam\comm_option.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Sam\SamOptions.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Tail\comm_option.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Tail\enc_inform.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -225,7 +278,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserControls\EditConfig.xaml">
+    <Page Include="UserControls\ConfigOption.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -4,9 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CofileUI.UserControls"
+			 
 			 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+			 xmlns:jlinq ="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+			 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="600">
+	<UserControl.Resources>
+		<DataTemplate DataType="{x:Type jlinq:JProperty}">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"
+						   Margin="5,0,5,0"/>
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.Resources>
 	<Grid>
 		<DockPanel>
 			<Menu DockPanel.Dock="Top">
@@ -26,10 +37,33 @@
 				</MenuItem>
 				<MenuItem Header="_ViewFile" Click="OnClickButtonViewJsonFile"/>
 			</Menu>
-			<Grid>
-				<TreeView x:Name="json_tree_view" Margin="0,0,0,0">
-				</TreeView>
-			</Grid>
+			<GroupBox x:Name="groupBox">
+				<Grid x:Name="grid">
+					<!--<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<Grid Grid.Column="0">
+						<Border BorderBrush="LightGray" BorderThickness="2"/>
+						<Grid x:Name="panelOptionMenu" Margin="2">
+							<TreeView Margin="3" Name="treeView"
+						  SelectedItemChanged="treeView_SelectedItemChanged">
+								<TreeView.ItemContainerStyle>
+									<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
+										<Setter Property="IsExpanded" Value="True" />
+									</Style>
+								</TreeView.ItemContainerStyle>
+							</TreeView>
+							--><!--<TreeView x:Name="treeView">
+				</TreeView>--><!--
+						</Grid>
+					</Grid>
+					<ScrollViewer Grid.Column="1">
+						<Grid x:Name="panel_DetailOption">
+						</Grid>
+					</ScrollViewer>-->
+				</Grid>
+			</GroupBox>
 		</DockPanel>
 
 		<Button Content="cancel"
