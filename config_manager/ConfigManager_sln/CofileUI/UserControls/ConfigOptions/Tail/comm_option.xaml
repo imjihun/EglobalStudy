@@ -13,7 +13,11 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</UserControl.Resources>
-	<Grid>
+	<Grid x:Name="grid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
+		</Grid.ColumnDefinitions>
 
 	</Grid>
 </UserControl>

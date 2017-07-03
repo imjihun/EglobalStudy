@@ -14,138 +14,108 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
-namespace CofileUI.UserControls.ConfigOptions.Sam
+namespace CofileUI.UserControls.ConfigOptions.Tail
 {
 	/// <summary>
-	/// SamOptions.xaml에 대한 상호 작용 논리
+	/// TailOptions.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class SamOptions : UserControl
+	public partial class TailOptions : UserControl
 	{
-		public SamOptions()
+		public TailOptions()
 		{
 			//try
 			//{
-			//	JToken token = JsonController.ParseJson(Properties.Resources.sam_config_default);
+			//	JToken token = JsonController.ParseJson(Properties.Resources.tail_config_default);
 			//	DataContext = token;
 			//}
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
-
-			JToken token = DataContext as JToken;
-			if(token == null)
-				return;
-
-			//foreach(var v in token.Children())
-			//{
-			//	JProperty jprop = v as JProperty;
-			//	if(jprop == null)
-			//		return;
-
-			//	if(jprop.Name == "col_var" || jprop.Name == "#col_var")
-			//	{
-
-			//	}
-			//}
-			//grid1.Children.Add(new comm_option() { DataContext = token["comm_option"].Parent });
-			grid2.Children.Add(new col_var() { DataContext = token["col_var"].Parent });
-			grid3.Children.Add(new col_fix() { DataContext = token["#col_fix"].Parent });
 		}
 	}
-
-	class SamOption : IOptions
+	class TailOption : IOptions
 	{
 		string[] _options = new string[]
 			{
 			// comm_option
-				"sam_type"
-				, "no_col"
-				, "sid"
-				, "delimiter"
-				, "trim"
-				, "skip_header"
-				, "record_len"
-				, "input_filter"
-				, "input_dir"
+				"input_dir"
 				, "input_ext"
 				, "output_dir"
 				, "output_ext"
-				, "dir_monitoring_yn"
-				, "dir_monitoring_term"
+				, "sid"
+				, "tail_type"
+				, "interval"
+				, "no_inform"
+				, "input_filter"
+				, "shutdown_time"
+				, "zero_byte_yn"
 				, "no_access_sentence"
+				, "file_reserver_yn"
+				, "reg_yn"
 				
-				// col_var
+				// enc_inform
 				, "item"
-				, "column_pos"
-				, "wrap_char"
-				
-				// col_fix
-				//, "item"
-				, "start_pos"
-				, "size"
-				, "col_size"
+				, "enc_pattern"
+				, "pattern"
+				, "delimiter"
+				, "sub_left_len"
+				, "sub_right_len"
+				, "jumin_check_yn"
 			};
 		string[] detailOptions = new string[]
 			{
 			// comm_option
-				"SAM file type"
-				, "암호화 대상 컬럼 수"
-				, "암호화 대상 DB SID"
-				, "Column 구분자"
-				, "공백제거 사용 유무"
-				, "암/복호화 제외 라인 수"
-				, "New Line 구분이 없을 때 라인 길이"
-				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, '암/복호화 할 대상 확장자명' 옵션보다 우선순위가 높다)"
-				, "암/복호화 할 대상 폴더"
-				, "암/복호화 할 대상 확장자명"
-				, "암/복호화 후 저장할 폴더"
-				, "암/복호화 후 덧붙일 확장자명"
-				, "폴더 감시 모드 (daemon)"
-				, "폴더 감시 모드일 때, 감시 주기"
+				"암/복호화 할 입력 로그 파일이 위치하는 경로"
+				, "암/복호화 할 입력 로그파일의 확장자"
+				, "암/복호화 후 출력 경로"
+				, "암/복호화 후 덧붙일 확장자"
+				, "DB SID 이름"
+				, "cofiletail 암/복호화 방식"
+				, "암호화시, 입력 폴더의 감시하는 주기"
+				, "tail_type이 PATTERN일 경우 패턴을 정하는 개수"
+				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, input_ext의 옵션보다 우선순위가 높다)"
+				, "자식 데몬들을 특정 시간 후 종료할 시간"
+				, "데몬 시작시 파일크기가 0인 파일에 대해서 암/복호화 유/무\n (true면 0byte파일도 감시)"
 				, "no_access_sentence"
-
-				// col_var
-				, "암/복호화에 사용할 Item명"
-				, "암/복호화 대상 컬럼 위치"
-				, "암/복호화시 제외할 문자(호환성 유지용도)"
-
-				// col_fix
-				//, "암/복호화에 사용할 Item명"
-				, "암/복호화 대상 컬럼 시작 위치"
-				, "암/복호화 대상 컬럼 크기"
-				, "암/복호화 후 데이터 크기"
+				, "file_reserver_yn"
+				, "reg_yn"
+				
+				// enc_inform
+				, "암/복호화에 사용할 ITEM 명"
+				, "enc_pattern"
+				, "감시하고자 하는 pattern, 정규표현식으로 작성"
+				, "구분자"
+				, "감시한 패턴에서 왼쪽에서 제외할 크기"
+				, "감시한 패턴에서 오른쪽에서 제외할 크기"
+				, "jumin_check_yn"
 			};
 		enum Options
 		{
-			sam_type = 0
-			, no_col
-			, sid
-			, delimiter
-			, trim
-			, skip_header
-			, record_len
-			, input_filter
-			, input_dir
+			// comm_option
+			input_dir = 0
 			, input_ext
 			, output_dir
 			, output_ext
-			, dir_monitoring_yn
-			, dir_monitoring_term
+			, sid
+			, tail_type
+			, interval
+			, no_inform
+			, input_filter
+			, shutdown_time
+			, zero_byte_yn
 			, no_access_sentence
+			, file_reserver_yn
+			, reg_yn
 
-			// col_var
+			// enc_inform
 			, item
-			//, col_var_item
-			, column_pos
-			, wrap_char
-
-			// col_fix
-			//, col_fix_item
-			, start_pos
-			, size
-			, col_size
+			, enc_pattern
+			, pattern
+			, delimiter
+			, sub_left_len
+			, sub_right_len
+			, jumin_check_yn
 		}
 		class OptionInfo
 		{
@@ -155,7 +125,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			public Options Index { get; set; }
 		}
 		Dictionary<string, OptionInfo> dic_options = new Dictionary<string, OptionInfo>();
-		public SamOption()
+		public TailOption()
 		{
 			InitDic();
 		}
@@ -175,7 +145,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				);
 			}
 		}
-		public static char StartDisableProperty = '#';
+		static char StartDisableProperty = '#';
 		public FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
 			FrameworkElement ret = null;
@@ -184,15 +154,14 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				Options opt = dic_options[GetStringKey(optionKey)].Index;
 				switch(opt)
 				{
-					case Options.sam_type:
+					case Options.tail_type:
 						{
-
 							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
-								{ "var", 0 }
-								, { "fixed", 1 }
+								{ "LINE", 0 }
+								, { "PATTERN", 1 }
 							};
-							ComboBox cb = new ComboBox();
+							ComboBox cb = new ComboBox() { SelectedIndex = 0 };
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
@@ -207,31 +176,6 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							ret = cb;
 						}
 						break;
-					case Options.trim:
-						{
-							Dictionary<string, int> dic = new Dictionary<string, int>()
-							{
-								{ "None", 0 }
-								, { "Right", 1 }
-								, { "Left", 2 }
-								, { "Both", 3 }
-							};
-							ComboBox cb = new ComboBox();
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							bd.Converter = new OnlyInt64Converter();
-							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
-
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()]; };
-							ret = cb;
-						}
-						break;
-
 					case Options.input_ext:
 						{
 							Dictionary<string, int> dic = new Dictionary<string, int>()
@@ -255,12 +199,12 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
-							
+
 							cb.DataContext = optionValue.Root;
 							Binding bd = new Binding("comm_option." + opt.ToString());
 							bd.Mode = BindingMode.TwoWay;
 							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.Text; };
 							ret = cb;
 						}
 						break;
@@ -292,7 +236,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							Binding bd = new Binding("comm_option." + opt.ToString());
 							bd.Mode = BindingMode.TwoWay;
 							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.Text; };
 							ret = cb;
 						}
 						break;
@@ -305,47 +249,29 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							Binding bd = new Binding("comm_option." + opt.ToString());
 							bd.Mode = BindingMode.TwoWay;
 							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.Text; };
 							ret = cb;
 						}
 						break;
-					case Options.input_filter:
-						{
-							Dictionary<string, string> dic = new Dictionary<string, string>()
-							{
-								{ "*[.]sam$", "[.]sam$" }
-								, { "[.]txt$", "[.]txt$"}
-							};
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-							ret = cb;
-						}
-						break;
-					case Options.no_col:
+					// comm_option
 					case Options.sid:
-					case Options.delimiter:
-					case Options.skip_header:
-					case Options.record_len:
-					case Options.dir_monitoring_yn:
-					case Options.dir_monitoring_term:
+					case Options.interval:
+					case Options.no_inform:
+					case Options.input_filter:
+					case Options.shutdown_time:
+					case Options.zero_byte_yn:
 					case Options.no_access_sentence:
-						
-					//case Options.col_var_item:
-					case Options.item:
-					case Options.column_pos:
-					case Options.wrap_char:
+					case Options.file_reserver_yn:
+					case Options.reg_yn:
 
-					//case Options.col_fix_item:
-					case Options.start_pos:
-					case Options.size:
-					case Options.col_size:
+					// enc_inform
+					case Options.item:
+					case Options.enc_pattern:
+					case Options.pattern:
+					case Options.delimiter:
+					case Options.sub_left_len:
+					case Options.sub_right_len:
+					case Options.jumin_check_yn:
 						switch(optionValue.Type)
 						{
 							case JTokenType.String:
@@ -425,6 +351,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 								break;
 						}
 						break;
+
+
 					default:
 						break;
 				}
@@ -456,37 +384,31 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				string detail = dic_options[GetStringKey(optionKey)].Detail;
 				switch(opt)
 				{
-					// Basical
-					case Options.sam_type:
-					case Options.no_col:
-					case Options.sid:
-					case Options.delimiter:
-					case Options.trim:
-					case Options.skip_header:
-					case Options.record_len:
+					// comm_option
 					case Options.input_dir:
 					case Options.input_ext:
 					case Options.output_dir:
 					case Options.output_ext:
-					case Options.dir_monitoring_yn:
-					case Options.dir_monitoring_term:
+					case Options.sid:
+					case Options.tail_type:
+					case Options.interval:
+					case Options.no_inform:
+					case Options.zero_byte_yn:
+					case Options.file_reserver_yn:
+					case Options.reg_yn:
 
-					//case Options.col_var_item:
-					case Options.column_pos:
-
+					// enc_inform
 					case Options.item:
-					//case Options.col_fix_item:
-					case Options.start_pos:
-					case Options.size:
-					case Options.col_size:
+					case Options.enc_pattern:
+					case Options.pattern:
+					case Options.delimiter:
+					case Options.sub_left_len:
+					case Options.sub_right_len:
+					case Options.jumin_check_yn:
 						{
-							if(optionKey.Name[0] == '#')
-								break;
-
 							TextBlock cb = new TextBlock()
 							{
 								Text = detail
-								//Text = _options[(int)opt]
 							};
 
 							ret = cb;
@@ -495,14 +417,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 					// Optional
 					case Options.input_filter:
+					case Options.shutdown_time:
 					case Options.no_access_sentence:
-
-					case Options.wrap_char:
-
 						{
-							//if(optionKey.Name[0] != '#')
-							//	break;
-
 							CheckBox cb = new CheckBox()
 							{
 								Content = detail
@@ -523,21 +440,16 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							JProperty jprop = optionKey;
 							cb.Checked += delegate
 							{
-								Console.WriteLine("jprop = " + jprop.Value);
 								JProperty newJprop = new JProperty(jprop.Name.TrimStart(StartDisableProperty), jprop.Value);
-
 								jprop.Replace(newJprop);
 								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
 								jprop = newJprop;
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Black;
-
-								Console.WriteLine("jprop = " + jprop);
 							};
 							cb.Unchecked += delegate
 							{
-								Console.WriteLine("jprop = " + jprop.Value);
 								JProperty newJprop = new JProperty(StartDisableProperty + jprop.Name, jprop.Value);
 								jprop.Replace(newJprop);
 								// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
@@ -545,7 +457,6 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Gray;
-								Console.WriteLine("jprop = " + jprop);
 							};
 							ret = cb;
 						}

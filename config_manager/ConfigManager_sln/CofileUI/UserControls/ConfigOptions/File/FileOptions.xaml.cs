@@ -23,27 +23,16 @@ namespace CofileUI.UserControls.ConfigOptions.File
 	/// </summary>
 	public partial class FileOptions : UserControl
 	{
-		JToken token;
 		public FileOptions()
 		{
-			try
-			{
-				token = JsonController.ParseJson(Properties.Resources.file_config_default);
-				DataContext = token;
-			}
-			catch(Exception e)
-			{ }
+			//try
+			//{
+			//	JToken token = JsonController.ParseJson(Properties.Resources.file_config_default);
+			//	DataContext = token;
+			//}
+			//catch(Exception e)
+			//{ }
 			InitializeComponent();
-
-			DispatcherTimer dt = new DispatcherTimer();
-			dt.Interval = new TimeSpan(0, 0, 0, 1);
-			dt.Tick += Dt_Tick;
-			dt.Start();
-		}
-
-		private void Dt_Tick(object sender, EventArgs e)
-		{
-			Console.WriteLine(token["comm_option"]);
 		}
 	}
 
@@ -198,6 +187,12 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
 
+							cb.DataContext = optionValue.Root;
+							Binding bd = new Binding("comm_option." + opt.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							bd.Converter = new StringToInt64Converter();
+							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
+
 							ret = cb;
 						}
 						break;
@@ -224,6 +219,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
+
+							cb.DataContext = optionValue.Root;
+							Binding bd = new Binding("comm_option." + opt.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							cb.SetBinding(ComboBox.TextProperty, bd);
 
 							ret = cb;
 						}
@@ -252,6 +252,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
 
+							cb.DataContext = optionValue.Root;
+							Binding bd = new Binding("comm_option." + opt.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							cb.SetBinding(ComboBox.TextProperty, bd);
+
 							ret = cb;
 						}
 						break;
@@ -259,6 +264,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Options.output_dir:
 						{
 							ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
+
+							cb.DataContext = optionValue.Root;
+							Binding bd = new Binding("comm_option." + opt.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							cb.SetBinding(ComboBox.TextProperty, bd);
 
 							ret = cb;
 						}
@@ -274,6 +284,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							var e = dic.GetEnumerator();
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
+
+							cb.DataContext = optionValue.Root;
+							Binding bd = new Binding("comm_option." + opt.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							cb.SetBinding(ComboBox.TextProperty, bd);
 
 							ret = cb;
 						}
@@ -292,7 +307,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Options.output_suffix_head:
 					case Options.output_suffix_tail:
 					case Options.schedule_time:
-					case Options.sid:
 						switch(optionValue.Type)
 						{
 							case JTokenType.String:
@@ -302,10 +316,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									tb.HorizontalAlignment = HorizontalAlignment.Left;
 									ret = tb;
 
-									tb.TextChanged += delegate
-									{
-										((JValue)optionValue).Value = tb.Text;
-									};
+									tb.DataContext = optionValue.Root;
+									Binding bd = new Binding("comm_option." + opt.ToString());
+									bd.Mode = BindingMode.TwoWay;
+									tb.SetBinding(TextBox.TextProperty, bd);
+
+									//tb.TextChanged += delegate
+									//{
+									//	((JValue)optionValue).Value = tb.Text;
+									//};
 								}
 								break;
 							case JTokenType.Integer:
@@ -319,10 +338,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									//Grid.SetColumn(tb_integer, 1);
 									ret = tb_integer;
 
-									tb_integer.ValueChanged += delegate
-									{
-										((JValue)optionValue).Value = (int)tb_integer.Value;
-									};
+									tb_integer.DataContext = optionValue.Root;
+									Binding bd = new Binding("comm_option." + opt.ToString());
+									bd.Mode = BindingMode.TwoWay;
+									bd.Converter = new OnlyInt64Converter();
+									tb_integer.SetBinding(NumericUpDown.ValueProperty, bd);
+									//tb_integer.ValueChanged += delegate
+									//{
+									//	((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
+									//};
 								}
 								break;
 							case JTokenType.Boolean:
@@ -341,20 +365,27 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									//Grid.SetColumn(ts, 1);
 									ret = ts;
 
-									ts.Checked += delegate
-									{
-										((JValue)optionValue).Value = ts.IsChecked;
-									};
-									ts.Unchecked += delegate
-									{
-										((JValue)optionValue).Value = ts.IsChecked;
-									};
+
+									ts.DataContext = optionValue.Root;
+									Binding bd = new Binding("comm_option." + opt.ToString());
+									bd.Mode = BindingMode.TwoWay;
+									bd.Converter = new OnlyBooleanConverter();
+									ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
+									//ts.Checked += delegate
+									//{
+									//	((JValue)optionValue).Value = ts.IsChecked;
+									//};
+									//ts.Unchecked += delegate
+									//{
+									//	((JValue)optionValue).Value = ts.IsChecked;
+									//};
 								}
 								break;
 							default:
 								break;
 						}
 						break;
+
 					default:
 						break;
 				}

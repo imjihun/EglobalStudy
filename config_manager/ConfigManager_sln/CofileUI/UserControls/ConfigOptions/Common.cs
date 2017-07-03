@@ -166,6 +166,7 @@ namespace CofileUI.UserControls.ConfigOptions
 				}
 
 				AddItemValueIsObject(pan, jprop, v, op);
+				//Console.WriteLine("\tcur_jtok\n" + cur_jtok);
 			}
 			return 0;
 		}

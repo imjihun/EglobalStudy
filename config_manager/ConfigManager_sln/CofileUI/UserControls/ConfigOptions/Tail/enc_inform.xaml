@@ -17,6 +17,10 @@
 		</ResourceDictionary>
 	</UserControl.Resources>
 	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="30"/>
+		</Grid.RowDefinitions>
 		<DataGrid x:Name="dataGrid" 
 				  ItemsSource="{Binding Value}" 
 				  Style="{StaticResource StyleDataGrid}">
@@ -30,5 +34,13 @@
 				<DataGridCheckBoxColumn Header="jumin_check_yn" Binding="{Binding jumin_check_yn}"/>
 			</DataGrid.Columns>
 		</DataGrid>
+		<Grid Grid.Row="1">
+			<Button Content="Add" Width="80" HorizontalAlignment="Center" Margin="0,0,200,0"
+					Click="OnClickAdd"/>
+			<Button Content="Delete" Width="80" HorizontalAlignment="Center"
+					Click="OnClickDelete"/>
+			<Button Content="Modify" Width="80" HorizontalAlignment="Center" Margin="200,0,0,0"
+					Click="OnClickModify"/>
+		</Grid>
 	</Grid>
 </UserControl>

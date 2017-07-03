@@ -493,8 +493,8 @@ namespace CofileUI.UserControls
 			saveFileDialog.FileName = "cofile";
 			saveFileDialog.DefaultExt = "xls";
 			saveFileDialog.Filter = "Xml files (*." + xml + ")|*." + xml
-											+ "|CSV files (*." + csv + ")|*." + csv;
-			//+ "| Excel files(*." + xls + ") | *." + xls;
+											+ "|CSV files (*." + csv + ")|*." + csv
+			+"| Excel files(*." + xls + ") | *." + xls;
 			saveFileDialog.InitialDirectory = InitalDirectory;
 
 			return saveFileDialog;

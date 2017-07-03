@@ -16,13 +16,12 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</UserControl.Resources>
-	<ScrollViewer>
-		<Grid x:Name="grid">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
-				<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
-			</Grid.ColumnDefinitions>
-			<!--<Grid.RowDefinitions>
+	<Grid x:Name="grid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
+		</Grid.ColumnDefinitions>
+		<!--<Grid.RowDefinitions>
 				<RowDefinition Height="{StaticResource GridRowHeight}"/>
 				<RowDefinition Height="{StaticResource GridRowHeight}"/>
 				<RowDefinition Height="{StaticResource GridRowHeight}"/>
@@ -136,6 +135,5 @@
 			<TextBox Grid.Row="14" Grid.Column="1"
 					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
 					 Text="{Binding no_access_sentence}"/>-->
-		</Grid>
-	</ScrollViewer>
+	</Grid>
 </UserControl>

@@ -37,9 +37,8 @@
 				</MenuItem>
 				<MenuItem Header="_ViewFile" Click="OnClickButtonViewJsonFile"/>
 			</Menu>
-			<GroupBox x:Name="groupBox">
-				<Grid x:Name="grid">
-					<!--<Grid.ColumnDefinitions>
+			<Grid x:Name="grid">
+				<!--<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
@@ -54,16 +53,17 @@
 									</Style>
 								</TreeView.ItemContainerStyle>
 							</TreeView>
-							--><!--<TreeView x:Name="treeView">
-				</TreeView>--><!--
+							-->
+				<!--<TreeView x:Name="treeView">
+				</TreeView>-->
+				<!--
 						</Grid>
 					</Grid>
 					<ScrollViewer Grid.Column="1">
 						<Grid x:Name="panel_DetailOption">
 						</Grid>
 					</ScrollViewer>-->
-				</Grid>
-			</GroupBox>
+			</Grid>
 		</DockPanel>
 
 		<Button Content="cancel"

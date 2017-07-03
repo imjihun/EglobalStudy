@@ -51,10 +51,11 @@ namespace CofileUI.UserControls
 
 			Root = root;
 			if(root["type"].ToString() == "file")
-				grid.Children.Add(new ConfigOptions.File.FileOptions());
+				grid.Children.Add(new ConfigOptions.File.FileOptions() { DataContext = Root });
 			else if(root["type"].ToString() == "sam")
-				grid.Children.Add(new ConfigOptions.Sam.SamOptions());
-			else;
+				grid.Children.Add(new ConfigOptions.Sam.SamOptions() { DataContext = Root });
+			else if(root["type"].ToString() == "tail")
+				grid.Children.Add(new ConfigOptions.Tail.TailOptions() { DataContext = Root });
 
 			//if(root as JObject != null)
 			//	treeView.ItemsSource = root.Children();
@@ -355,7 +356,6 @@ namespace CofileUI.UserControls
 				if(jtok != null)
 				{
 					Refresh(jtok);
-					groupBox.Header = ofd.FileName;
 				}
 				JsonTreeViewItem.Path = ofd.FileName;
 				//refreshJsonTree(JsonController.parseJson(json));

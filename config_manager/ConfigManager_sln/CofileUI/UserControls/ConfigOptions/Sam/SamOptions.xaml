@@ -25,28 +25,36 @@
 				<Border BorderBrush="LightGray" BorderThickness="0,0,0,2"/>
 			</Grid>
 			<Grid Grid.Row="1">
-			<TabControl x:Name="tabControl" Grid.ColumnSpan = "2" Background="{x:Null}"
+				<TabControl x:Name="tabControl" Grid.ColumnSpan = "2" Background="{x:Null}"
 										  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 										  Controls:TabControlHelper.IsUnderlined="True" 
 										  Controls:TabControlHelper.Underlined="TabPanel"
 										  TabStripPlacement="Left">
 
-				<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
-					<Grid x:Name="grid1">
-							<local:comm_option DataContext="{Binding comm_option.Parent}"/>
-					</Grid>
-				</TabItem>
-				<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
-					<Grid x:Name="grid2">
-							<local:col_var DataContext="{Binding col_var.Parent}"/>
-					</Grid>
-				</TabItem>
-				<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
-					<Grid x:Name="grid3">
-							<local:col_fix DataContext="{Binding col_fix.Parent}"/>
-					</Grid>
-				</TabItem>
-			</TabControl>
+					<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
+						<ScrollViewer>
+							<Grid x:Name="grid1">
+								<local:comm_option DataContext="{Binding comm_option.Parent}"/>
+							</Grid>
+						</ScrollViewer>
+					</TabItem>
+					<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
+
+						<ScrollViewer>
+							<Grid x:Name="grid2">
+								<local:col_var DataContext="{Binding col_var.Parent}"/>
+							</Grid>
+						</ScrollViewer>
+					</TabItem>
+					<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
+
+						<ScrollViewer>
+							<Grid x:Name="grid3">
+								<local:col_fix DataContext="{Binding col_fix.Parent}"/>
+							</Grid>
+						</ScrollViewer>
+					</TabItem>
+				</TabControl>
 			</Grid>
 		</Grid>
 	</Border>

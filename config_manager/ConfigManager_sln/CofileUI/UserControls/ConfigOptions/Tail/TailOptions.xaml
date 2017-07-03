@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="CofileUI.UserControls.ConfigOptions.File.FileOptions"
+﻿<UserControl x:Class="CofileUI.UserControls.ConfigOptions.Tail.TailOptions"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:CofileUI.UserControls.ConfigOptions.File"
+             xmlns:local="clr-namespace:CofileUI.UserControls.ConfigOptions.Tail"
 			 
 			 xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 			 
@@ -21,7 +21,7 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
-				<Label Content="File"/>
+				<Label Content="Tail"/>
 				<Border BorderBrush="LightGray" BorderThickness="0,0,0,2"/>
 			</Grid>
 			<Grid Grid.Row="1">
@@ -32,27 +32,16 @@
 										  TabStripPlacement="Left">
 
 					<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
-
 						<ScrollViewer>
 							<Grid x:Name="grid1">
 								<local:comm_option DataContext="{Binding comm_option.Parent}"/>
 							</Grid>
-
 						</ScrollViewer>
 					</TabItem>
 					<TabItem Header="Encrypt" Style="{StaticResource StyleTabItem}">
-
 						<ScrollViewer>
 							<Grid x:Name="grid2">
-								<local:enc_option DataContext="{Binding enc_option.Parent}"/>
-							</Grid>
-
-						</ScrollViewer>
-					</TabItem>
-					<TabItem Header="Decrypt" Style="{StaticResource StyleTabItem}">
-						<ScrollViewer>
-							<Grid x:Name="grid3">
-								<local:dec_option DataContext="{Binding dec_option.Parent}"/>
+								<local:enc_inform DataContext="{Binding enc_inform.Parent}"/>
 							</Grid>
 						</ScrollViewer>
 					</TabItem>

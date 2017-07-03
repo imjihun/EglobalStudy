@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,9 +20,18 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 	/// </summary>
 	public partial class comm_option : UserControl
 	{
+		bool bInit = false;
 		public comm_option()
 		{
 			InitializeComponent();
+			this.Loaded += delegate
+			{
+				if(!bInit)
+				{
+					Common.InitCommonOption(grid, DataContext as JProperty, new TailOption());
+					bInit = true;
+				}
+			};
 		}
 	}
 }

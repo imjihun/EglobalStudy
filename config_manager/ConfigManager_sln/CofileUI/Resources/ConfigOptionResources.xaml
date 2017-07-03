@@ -28,6 +28,7 @@
 		<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
 		<Setter Property="AutoGenerateColumns" Value="False" />
 		<Setter Property="GridLinesVisibility" Value="All"/>
+		<Setter Property="IsReadOnly" Value="true"/>
 	</Style>
 
 

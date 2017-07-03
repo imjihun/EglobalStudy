@@ -13,12 +13,10 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</UserControl.Resources>
-	<ScrollViewer>
-		<Grid x:Name="grid">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
-				<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
-			</Grid.ColumnDefinitions>
-		</Grid>
-	</ScrollViewer>
+	<Grid x:Name="grid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
+			<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
+		</Grid.ColumnDefinitions>
+	</Grid>
 </UserControl>

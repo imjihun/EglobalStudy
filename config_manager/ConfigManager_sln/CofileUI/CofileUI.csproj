@@ -158,6 +158,9 @@
       <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ConfigOptions\Common.cs" />
+    <Compile Include="UserControls\ConfigOptions\Tail\TailOptions.xaml.cs">
+      <DependentUpon>TailOptions.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\CustomUI\Cofile\LinuxTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ConfigJsonTree\JsonTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ServerMenu\ServerInfo.cs" />
@@ -181,6 +184,9 @@
     </Compile>
     <Compile Include="Windows\WindowMain.xaml.cs">
       <DependentUpon>WindowMain.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_AddDataGridInConfig.xaml.cs">
+      <DependentUpon>Window_AddDataGridInConfig.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Window_AddJsonItem.xaml.cs">
       <DependentUpon>Window_AddJsonItem.xaml</DependentUpon>
@@ -282,6 +288,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControls\ConfigOptions\Tail\TailOptions.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UserControls\LinuxDirectoryViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -305,6 +315,10 @@
     <Page Include="Windows\WindowMain.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_AddDataGridInConfig.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Window_AddJsonItem.xaml">
       <Generator>MSBuild:Compile</Generator>
