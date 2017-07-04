@@ -28,7 +28,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			{
 				if(!bInit)
 				{
-					ConfigOptions.InitCommonOption(grid, DataContext as JProperty, new TailOption());
+					ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new TailOption());
 					bInit = true;
 				}
 			};

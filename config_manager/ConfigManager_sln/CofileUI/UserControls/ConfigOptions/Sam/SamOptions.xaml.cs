@@ -23,8 +23,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 	/// </summary>
 	public partial class SamOptions : UserControl
 	{
+		bool bInit = false;
+		public static SamOptions current;
 		public SamOptions()
 		{
+			current = this;
 			//try
 			//{
 			//	JToken token = JsonController.ParseJson(Properties.Resources.sam_config_default);
@@ -33,11 +36,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
-			ConfigOptions.bChanged = false;
+			ConfigOptionManager.bChanged = false;
 
-			JToken token = DataContext as JToken;
-			if(token == null)
-				return;
+			//JToken token = DataContext as JToken;
+			//if(token == null)
+			//	return;
 
 			//foreach(var v in token.Children())
 			//{
@@ -51,8 +54,56 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			//	}
 			//}
 			//grid1.Children.Add(new comm_option() { DataContext = token["comm_option"].Parent });
-			grid2.Children.Add(new col_var() { DataContext = token["col_var"].Parent });
-			grid3.Children.Add(new col_fix() { DataContext = token["#col_fix"].Parent });
+			//grid2.Children.Add(new col_var() { DataContext = token["col_var"].Parent });
+			//grid3.Children.Add(new col_fix() { DataContext = token["#col_fix"].Parent });
+			this.Loaded += delegate
+			{
+				if(!bInit)
+				{
+					ChangeSecondGrid();
+					bInit = true;
+				}
+			};
+		}
+		public void ChangeSecondGrid()
+		{
+			JObject root = DataContext as JObject;
+			if(root == null)
+				return;
+			JObject jobj = root["comm_option"] as JObject;
+			if(jobj == null)
+				return;
+			JValue jval = jobj["sam_type"] as JValue;
+			if(jval == null)
+				return;
+
+			if(Convert.ToInt64(jval.Value) == 0)
+			{
+				ChangeBySamType(root, "col_var", "col_fix");
+				grid2.Children.Add(new col_var() { DataContext = root["col_var"].Parent });
+			}
+			else if(Convert.ToInt64(jval.Value) == 1)
+			{
+				ChangeBySamType(root, "col_fix", "col_var");
+				grid2.Children.Add(new col_fix() { DataContext = root["col_fix"].Parent });
+			}
+		}
+		static void ChangeBySamType(JObject root, string enableKey, string disableKey)
+		{
+			if(root == null || enableKey == null || disableKey == null)
+				return;
+
+			if(root[disableKey] != null)
+			{
+				root[disableKey].Parent.Replace(new JProperty(SamOption.StartDisableProperty + disableKey, root[disableKey]));
+			}
+			if(root[enableKey] == null)
+			{
+				if(root[SamOption.StartDisableProperty + enableKey] != null)
+					root[SamOption.StartDisableProperty + enableKey].Parent.Replace(new JProperty(enableKey, root[SamOption.StartDisableProperty + enableKey]));
+				else
+					root.Add(new JProperty(enableKey, new JArray()));
+			}
 		}
 	}
 
@@ -204,9 +255,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							bd.Converter = new OnlyInt64Converter();
 							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
 
+							JObject root = optionValue.Root as JObject;
 							cb.SelectionChanged += delegate {
 								//((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()];
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
+								SamOptions.current.ChangeSecondGrid();
 							};
 							ret = cb;
 						}
@@ -233,7 +286,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 							cb.SelectionChanged += delegate {
 								//((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()];
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}
@@ -361,12 +414,14 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									tb.DataContext = optionValue.Root;
 									Binding bd = new Binding("comm_option." + opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
+									// TextBox.Text 의 UpdateSourceTrigger 의 기본속성은 LostFocus 이다.
+									bd.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
 									tb.SetBinding(TextBox.TextProperty, bd);
 
 									tb.TextChanged += delegate
 									{
 										//((JValue)optionValue).Value = tb.Text;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -390,7 +445,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									tb_integer.ValueChanged += delegate
 									{
 										//((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -419,12 +474,12 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									ts.Checked += delegate
 									{
 										//((JValue)optionValue).Value = ts.IsChecked;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 									ts.Unchecked += delegate
 									{
 										//((JValue)optionValue).Value = ts.IsChecked;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -552,7 +607,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 								Console.WriteLine("jprop = " + jprop);
 
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							cb.Unchecked += delegate
 							{
@@ -566,7 +621,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 								cb.Foreground = Brushes.Gray;
 								Console.WriteLine("jprop = " + jprop);
 
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}

@@ -363,10 +363,10 @@ namespace CofileUI.UserControls
 			};
 			this.ContextMenu.Items.Add(item);
 
-			Setting = new MenuItem();
-			Setting.Click += OnClickEnvSetting;
-			Setting.Header = "Env Setting";
-			this.ContextMenu.Items.Add(Setting);
+			//Setting = new MenuItem();
+			//Setting.Click += OnClickEnvSetting;
+			//Setting.Header = "Env Setting";
+			//this.ContextMenu.Items.Add(Setting);
 
 			this.ContextMenu.Opened += ContextMenu_Opened;
 		}

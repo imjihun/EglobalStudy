@@ -38,40 +38,26 @@ namespace CofileUI.UserControls
 
 		}
 		#region
-
-		JToken Root { get; set; }
+		
 		private void Refresh(JToken root)
 		{
 			if(root == null)
 				return;
-			Clear();
+			grid.Children.Clear();
 
-			Root = root;
-			if(root["type"].ToString() == "file")
-				grid.Children.Add(new ConfigOptions.File.FileOptions() { DataContext = Root });
-			else if(root["type"].ToString() == "sam")
-				grid.Children.Add(new ConfigOptions.Sam.SamOptions() { DataContext = Root });
-			else if(root["type"].ToString() == "tail")
-				grid.Children.Add(new ConfigOptions.Tail.TailOptions() { DataContext = Root });
+			//UserControl retval = null;
+			//if(root["type"].ToString() == "file")
+			//	retval = new ConfigOptions.File.FileOptions() { DataContext = root };
+			//else if(root["type"].ToString() == "sam")
+			//	retval = new ConfigOptions.Sam.SamOptions() { DataContext = root };
+			//else if(root["type"].ToString() == "tail")
+			//	retval = new ConfigOptions.Tail.TailOptions() { DataContext = root };
+			//grid.Children.Add(retval);
 
-			//if(root as JObject != null)
-			//	treeView.ItemsSource = root.Children();
+			UserControl ui = ConfigOptionManager.CreateOption(root);
+			if(ui != null)
+				grid.Children.Add(ui);
 		}
-		////private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-		////{
-		////	TreeView tv = sender as TreeView;
-		////	if(tv == null)
-		////		return;
-
-		////	JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
-		////	if(jprop_optionMenu == null)
-		////		return;
-
-		////	panel_DetailOption.Children.Clear();
-		////	panel_DetailOption.RowDefinitions.Clear();
-
-		////	AddItem(panel_DetailOption, jprop_optionMenu);
-		////}
 		//Options options = null;
 		//public int AddItem(Grid panel, JProperty root)
 		//{
@@ -235,95 +221,60 @@ namespace CofileUI.UserControls
 		//}
 		public void Clear()
 		{
-			//if(JsonTreeViewItem.Path != null)
-			//{
-			//	JsonTreeViewItem.Clear();
-			//	json_tree_view.Items.Clear();
-			//}
-			//JsonTreeViewItem.Clear();
-			//json_tree_view.Items.Clear();
 			grid.Children.Clear();
-			ConfigOptions.ConfigOptions.bChanged = false;
-			//treeView.ItemsSource = null;
-			//treeView.Items.Clear();
+			ConfigOptions.ConfigOptionManager.Clear();
 		}
-		//public void refreshJsonTree(JToken jtok_root)
-		//{
-		//	// 변환
-		//	JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
-		//	if(root_jtree == null)
-		//		return;
-
-		//	// 삭제
-		//	string path = JsonTreeViewItem.Path;
-		//	Clear();
-		//	JsonTreeViewItem.Path = path;
-
-		//	// 추가
-		//	//TextBlock tblock = new TextBlock();
-		//	//tblock.Text = JsonInfo.current.Filename;
-		//	//root_jtree.Header.Children.Insert(0, tblock);
-		//	//json_tree_view.Items.Add(root_jtree);
-
-		//	// 추가
-		//	Label label = new Label();
-		//	label.VerticalAlignment = VerticalAlignment.Center;
-		//	label.Content = JsonTreeViewItem.Filename;
-		//	root_jtree.Header.Children.Insert(0, label);
-		//	int MAX_WIDTH_TREE = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX + JsonTreeViewItemSize.WIDTH_VALUEPANEL + 50;
-		//	root_jtree.Header.Width = MAX_WIDTH_TREE;
-		//	json_tree_view.Items.Add(root_jtree);
-
-		//	JsonTreeViewItem.Root = root_jtree;
-		//}
 
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JsonTreeViewItem.Path != null)
+			if(ConfigOptionManager.Path != null)
 			{
 				;
 			}
-			ConfirmSave();
-
+			WindowMain.CallBack afterSave_callback = null;
 			MenuItem mi = sender as MenuItem;
 			if(mi.Header as string == "_File")
-				WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File);
+				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File); };
 			if(mi.Header as string == "_Sam")
-				WindowMain.current.ShowMessageDialog("New Sam Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam);
+				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam); };
 			if(mi.Header as string == "_Tail")
-				WindowMain.current.ShowMessageDialog("New Tail Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail);
+				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail); };
+
+			ConfirmSave(afterSave_callback);
 		}
 		private void NewJsonFile_File()
 		{
-			JsonTreeViewItem.Clear();
+			ConfigOptionManager.Clear();
 
 			JToken jtok = JsonController.ParseJson(Properties.Resources.file_config_default);
 			Refresh(jtok);
 
-			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
 		}
 		private void NewJsonFile_Sam()
 		{
-			JsonTreeViewItem.Clear();
+			ConfigOptionManager.Clear();
 		
 			JToken jtok = JsonController.ParseJson(Properties.Resources.sam_config_default);
 			Refresh(jtok);
 
-			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
 		}
 		private void NewJsonFile_Tail()
 		{
-			JsonTreeViewItem.Clear();
+			ConfigOptionManager.Clear();
 			
 			JToken jtok = JsonController.ParseJson(Properties.Resources.tail_config_default);
 			Refresh(jtok);
 
-			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
 		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
-			ConfirmSave();
-
+			ConfirmSave(OpenJsonFile);
+		}
+		private void OpenJsonFile()
+		{
 			if(InitOpenFile() != 0)
 				return;
 
@@ -331,9 +282,9 @@ namespace CofileUI.UserControls
 
 			ofd.InitialDirectory = CurRootPathLocal;
 
-			if(JsonTreeViewItem.Path != null)
+			if(ConfigOptionManager.Path != null)
 			{
-				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+				string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					ofd.InitialDirectory = dir_path;
@@ -350,41 +301,57 @@ namespace CofileUI.UserControls
 				{
 					Refresh(jtok);
 				}
-				JsonTreeViewItem.Path = ofd.FileName;
+				ConfigOptionManager.Path = ofd.FileName;
 				//refreshJsonTree(JsonController.parseJson(json));
-				//JsonTreeViewItem.Path = ofd.FileName;
+				//ConfigOptionManager.Path = ofd.FileName;
 			}
 		}
 		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
 		{
 			ConfirmSave();
 		}
-		public void ConfirmSave()
+		public void ConfirmSave(WindowMain.CallBack afterSave_callback = null)
 		{
 			if(!CheckJson())
+			{
+				afterSave_callback?.Invoke();
 				return;
+			}
 
-			if(!UserControls.ConfigOptions.ConfigOptions.bChanged)
+			if(!UserControls.ConfigOptions.ConfigOptionManager.bChanged)
+			{
+				afterSave_callback?.Invoke();
 				return;
+			}
 
-			if(JsonTreeViewItem.Path == null)
+			MahApps.Metro.Controls.Dialogs.MetroDialogSettings settings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings()
+			{
+				AffirmativeButtonText = "Yes",
+				NegativeButtonText = "No",
+				FirstAuxiliaryButtonText = "Cancel"
+			};
+			WindowMain.current.ShowMessageDialog("Save", "변경된 Config File 을 저장하시겠습니까?", 
+				MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary, 
+				affirmative_callback: delegate { SaveJsonFile(); afterSave_callback?.Invoke(); }, 
+				negative_callback: delegate { afterSave_callback?.Invoke(); }, 
+				settings: settings);
+		}
+		private void SaveJsonFile()
+		{
+			if(ConfigOptionManager.Path == null)
 			{
 				OtherSaveJsonFile();
 				return;
 			}
 
-			FileInfo f = new FileInfo(JsonTreeViewItem.Path);
+			FileInfo f = new FileInfo(ConfigOptionManager.Path);
 			if(!f.Exists)
 			{
 				OtherSaveJsonFile();
 				return;
 			}
 
-			WindowMain.current.ShowMessageDialog("Save", "변경된 Config File 을 저장하시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, SaveJsonFile);
-		}
-		private void SaveJsonFile()
-		{
-			if(SaveFile(JsonTreeViewItem.Path) == 0)
+			if(SaveFile(ConfigOptionManager.Path) == 0)
 			{ }
 		}
 		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
@@ -403,9 +370,9 @@ namespace CofileUI.UserControls
 
 			sfd.InitialDirectory = CurRootPathLocal;
 
-			if(JsonTreeViewItem.Path != null)
+			if(ConfigOptionManager.Path != null)
 			{
-				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+				string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					sfd.InitialDirectory = dir_path;
@@ -415,18 +382,11 @@ namespace CofileUI.UserControls
 			if(sfd.ShowDialog() == true)
 			{
 				if(SaveFile(sfd.FileName) == 0)
-					JsonTreeViewItem.Path = sfd.FileName;
+					ConfigOptionManager.Path = sfd.FileName;
 			}
 		}
 		private bool CheckJson()
 		{
-			//// 로드된 오브젝트가 없으면 실행 x
-			//if(json_tree_view.Items.Count < 1)
-			//	return false;
-			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			//if(root == null)
-			//	return false;
-
 			// 로드된 오브젝트가 없으면 실행 x
 			if(grid.Children.Count < 1)
 				return false;
@@ -437,9 +397,8 @@ namespace CofileUI.UserControls
 		{
 			if(!CheckJson())
 				return -1;
-
-			//JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
-			JToken Jtok_root = Root;
+			
+			JToken Jtok_root = ConfigOptionManager.Root;
 			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
 			{
 				string path_remote;
@@ -459,7 +418,7 @@ namespace CofileUI.UserControls
 					WindowMain.current.ShowMessageDialog("Save", message);
 					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
 
-					ConfigOptions.ConfigOptions.bChanged = false;
+					ConfigOptions.ConfigOptionManager.bChanged = false;
 					return 0;
 				}
 			}
@@ -474,29 +433,23 @@ namespace CofileUI.UserControls
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JsonTreeViewItem.Path == null)
+			if(ConfigOptionManager.Path == null)
 				return;
-
-			//if(json_tree_view.Items.Count <= 0)
-			//	return;
-			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			//if(root == null)
-			//	return;
-
-			//Window_EditFile w = new Window_EditFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
-			Window_EditFile w = new Window_EditFile(FileContoller.Read(JsonTreeViewItem.Path), JsonTreeViewItem.Path);
+			
+			Window_EditFile w = new Window_EditFile(FileContoller.Read(ConfigOptionManager.Path), ConfigOptionManager.Path);
 
 			if(w.ShowDialog() == true)
 			{
 				Refresh(JsonController.ParseJson(w.tb_file.Text));
+				ConfigOptionManager.bChanged = true;
 			}
 		}
 		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(JsonTreeViewItem.Path == null)
+			if(ConfigOptionManager.Path == null)
 				return;
 
-			string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+			string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
 			DirectoryInfo d = new DirectoryInfo(dir_path);
 			if(!d.Exists)
 				return;
@@ -505,92 +458,11 @@ namespace CofileUI.UserControls
 		}
 		private void CalcelJsonFile()
 		{
-			string json = FileContoller.Read(JsonTreeViewItem.Path);
+			string json = FileContoller.Read(ConfigOptionManager.Path);
 			Refresh(JsonController.ParseJson(json));
 			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion
 	}
 
-	#region Converter
-	public class OnlyStringConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToString(value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToString(value);
-		}
-	}
-	public class OnlyBooleanConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToBoolean(value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToBoolean(value);
-		}
-	}
-	public class OnlyInt64Converter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToInt64(value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToInt64(value);
-		}
-	}
-	public sealed class Int64ToStringConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToString(value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToInt64(value);
-		}
-	}
-	public sealed class StringToInt64Converter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToInt64(value);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return System.Convert.ToString(value);
-		}
-	}
-
-	public sealed class MethodToValueConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			var methodName = parameter as string;
-			if(value == null || methodName == null)
-				return null;
-			var methodInfo = value.GetType().GetMethod(methodName, new Type[0]);
-			if(methodInfo == null)
-				return null;
-			return methodInfo.Invoke(value, new object[0]);
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			throw new NotSupportedException(GetType().Name + " can only be used for one way conversion.");
-		}
-	}
-	#endregion
 }

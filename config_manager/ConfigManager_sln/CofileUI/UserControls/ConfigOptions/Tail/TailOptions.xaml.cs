@@ -34,7 +34,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
-			ConfigOptions.bChanged = false;
+			ConfigOptionManager.bChanged = false;
 		}
 	}
 	class TailOption : IOptions
@@ -177,7 +177,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 							cb.SelectionChanged += delegate {
 								//((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()];
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}
@@ -286,12 +286,14 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 									tb.DataContext = optionValue.Root;
 									Binding bd = new Binding("comm_option." + opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
+									// TextBox.Text 의 UpdateSourceTrigger 의 기본속성은 LostFocus 이다.
+									bd.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
 									tb.SetBinding(TextBox.TextProperty, bd);
 
 									tb.TextChanged += delegate
 									{
 										//((JValue)optionValue).Value = tb.Text;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -315,7 +317,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 									tb_integer.ValueChanged += delegate
 									{
 										//((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -343,11 +345,11 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 									ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
 									ts.Checked += delegate
 									{
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 									ts.Unchecked += delegate
 									{
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -458,7 +460,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Black;
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							cb.Unchecked += delegate
 							{
@@ -469,7 +471,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Gray;
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}

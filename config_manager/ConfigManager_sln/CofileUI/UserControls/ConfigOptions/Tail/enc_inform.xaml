@@ -26,12 +26,12 @@
 				  Style="{StaticResource StyleDataGrid}">
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="item" Binding="{Binding item}"/>
+				<DataGridTextColumn Header="enc_pattern" Binding="{Binding enc_pattern}"/>
 				<DataGridTextColumn Header="pattern" Binding="{Binding pattern}"/>
 				<DataGridTextColumn Header="delimiter" Binding="{Binding delimiter}"/>
 				<Controls:DataGridNumericUpDownColumn Header="sub_left_len" Binding="{Binding sub_left_len, Converter={StaticResource Int64ToStringConverter}}"/>
 				<Controls:DataGridNumericUpDownColumn Header="sub_right_len" Binding="{Binding sub_right_len, Converter={StaticResource Int64ToStringConverter}}"/>
-				<DataGridTextColumn Header="enc_pattern" Binding="{Binding enc_pattern}"/>
-				<DataGridCheckBoxColumn Header="jumin_check_yn" Binding="{Binding jumin_check_yn}"/>
+				<DataGridCheckBoxColumn Header="jumin_check_yn" Binding="{Binding jumin_check_yn, Converter={StaticResource OnlyBooleanConverter}}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 		<Grid Grid.Row="1">

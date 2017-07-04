@@ -32,7 +32,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			{
 				if(!bInit)
 				{
-					ConfigOptions.InitCommonOption(grid, DataContext as JProperty, new SamOption());
+					ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new SamOption());
 					bInit = true;
 				}
 			};

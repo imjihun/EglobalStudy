@@ -29,6 +29,7 @@ using System.Globalization;
 using System.Windows.Controls.Primitives;
 using Newtonsoft.Json.Linq;
 using MahApps.Metro.Controls.Dialogs;
+using CofileUI.UserControls.ConfigOptions;
 
 namespace CofileUI.UserControls
 {
@@ -175,9 +176,9 @@ namespace CofileUI.UserControls
 			// 초기경로 지정
 			ofd.InitialDirectory = ConfigOption.CurRootPathLocal;
 
-			if(JsonTreeViewItem.Path != null)
+			if(ConfigOptionManager.Path != null)
 			{
-				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+				string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
 				DirectoryInfo d = new DirectoryInfo(dir_path);
 				if(d.Exists)
 					ofd.InitialDirectory = dir_path;

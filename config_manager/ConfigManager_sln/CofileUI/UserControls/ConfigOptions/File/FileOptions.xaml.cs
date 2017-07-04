@@ -33,7 +33,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
-			ConfigOptions.bChanged = false;
+			ConfigOptionManager.bChanged = false;
 		}
 	}
 
@@ -195,7 +195,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
 
 							cb.SelectionChanged += delegate {
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}
@@ -230,12 +230,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									tb.DataContext = optionValue.Parent.Parent;
 									Binding bd = new Binding(opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
+									// TextBox.Text 의 UpdateSourceTrigger 의 기본속성은 LostFocus 이다.
+									bd.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
 									tb.SetBinding(TextBox.TextProperty, bd);
 
+									JToken token = optionValue.Parent.Parent;
 									tb.TextChanged += delegate
 									{
 										//((JValue)optionValue).Value = tb.Text;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -258,7 +261,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									tb_integer.ValueChanged += delegate
 									{
 										//((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -287,12 +290,12 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									ts.Checked += delegate
 									{
 										//((JValue)optionValue).Value = ts.IsChecked;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 									ts.Unchecked += delegate
 									{
 										//((JValue)optionValue).Value = ts.IsChecked;
-										ConfigOptions.bChanged = true;
+										ConfigOptionManager.bChanged = true;
 									};
 								}
 								break;
@@ -491,7 +494,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Black;
 
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							cb.Unchecked += delegate
 							{
@@ -503,7 +506,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Gray;
 
-								ConfigOptions.bChanged = true;
+								ConfigOptionManager.bChanged = true;
 							};
 							ret = cb;
 						}

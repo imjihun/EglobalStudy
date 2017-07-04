@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:CofileUI.Windows"
         xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
         mc:Ignorable="d"
-        Title="Window_AddDataGridInConfig" Height="300" Width="500"
+        Title="Window_AddDataGridInConfig" Height="330" Width="500"
         WindowStyle="None"
         AllowsTransparency="True" Background="Transparent"  ResizeMode="NoResize">
 	<Grid>
@@ -29,12 +29,14 @@
 				</Grid>
 
 				<Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="2" Grid.ColumnSpan="2">
-					<Grid x:Name="grid" Height="Auto" Margin="5,0,0,0">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="Auto"/>
-							<ColumnDefinition Width="*"/>
-						</Grid.ColumnDefinitions>
-					</Grid>
+					<ScrollViewer>
+						<Grid x:Name="grid" Height="Auto" Margin="5,0,0,0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+						</Grid>
+					</ScrollViewer>
 				</Border>
 				<Grid Grid.Row="2">
 					<Button Content="ok" Background="White"

@@ -61,7 +61,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				jobj.Add(new JProperty(((Option)i).ToString(), wa.Value[i]));
 			jarr.Add(jobj);
 
-			ConfigOptions.bChanged = true;
+			ConfigOptionManager.bChanged = true;
 		}
 		private void OnClickDelete(object sender, RoutedEventArgs e)
 		{
@@ -77,7 +77,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 			jarr.Remove(jobj);
 
-			ConfigOptions.bChanged = true;
+			ConfigOptionManager.bChanged = true;
 		}
 		private void OnClickModify(object sender, RoutedEventArgs e)
 		{
@@ -131,7 +131,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 			DataContext = null;
 			DataContext = jprop;
-			ConfigOptions.bChanged = true;
+			ConfigOptionManager.bChanged = true;
 		}
 	}
 }

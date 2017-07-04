@@ -42,18 +42,18 @@
 
 						<ScrollViewer>
 							<Grid x:Name="grid2">
-								<local:col_var DataContext="{Binding col_var.Parent}"/>
+								<!--<local:col_var DataContext="{Binding col_var.Parent}"/>-->
 							</Grid>
 						</ScrollViewer>
 					</TabItem>
-					<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
+					<!--<TabItem Header="Column" Style="{StaticResource StyleTabItem}">
 
 						<ScrollViewer>
 							<Grid x:Name="grid3">
-								<local:col_fix DataContext="{Binding col_fix.Parent}"/>
+								--><!--<local:col_fix DataContext="{Binding col_fix.Parent}"/>--><!--
 							</Grid>
 						</ScrollViewer>
-					</TabItem>
+					</TabItem>-->
 				</TabControl>
 			</Grid>
 		</Grid>

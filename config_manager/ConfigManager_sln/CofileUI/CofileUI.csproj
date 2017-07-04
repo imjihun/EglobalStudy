@@ -157,7 +157,7 @@
     <Compile Include="UserControls\ConfigJsonTree.xaml.cs">
       <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConfigOptions\ConfigOptions.cs" />
+    <Compile Include="UserControls\ConfigOptions\ConfigOptionManager.cs" />
     <Compile Include="UserControls\ConfigOptions\Tail\TailOptions.xaml.cs">
       <DependentUpon>TailOptions.xaml</DependentUpon>
     </Compile>

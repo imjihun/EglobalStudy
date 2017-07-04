@@ -492,9 +492,9 @@ namespace CofileUI.UserControls
 			string InitalDirectory = AppDomain.CurrentDomain.BaseDirectory;
 			saveFileDialog.FileName = "cofile";
 			saveFileDialog.DefaultExt = "xls";
-			saveFileDialog.Filter = "Xml files (*." + xml + ")|*." + xml
-											+ "|CSV files (*." + csv + ")|*." + csv
-			+"| Excel files(*." + xls + ") | *." + xls;
+			saveFileDialog.Filter = "CSV files (*." + csv + ")|*." + csv
+										+ "|Xml files (*." + xml + ")|*." + xml;
+										//+"|Excel files(*." + xls + ") | *." + xls;
 			saveFileDialog.InitialDirectory = InitalDirectory;
 
 			return saveFileDialog;

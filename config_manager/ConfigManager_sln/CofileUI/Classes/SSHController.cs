@@ -431,20 +431,24 @@ namespace CofileUI.Classes
 			if(LoadEnvCoHome() == ReturnValue.Fail.LOAD_CO_HOME)
 				return false;
 
-			MahApps.Metro.Controls.Dialogs.MetroDialogSettings settings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings()
-			{
-				AffirmativeButtonText = "Yes",
-				NegativeButtonText = "No"
-			};
-			WindowMain.current.ShowMessageDialog("$CO_HOME", "$CO_HOME = " + EnvCoHome + "\n환경변수를 수정하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, settings: settings, affirmative_callback: EditCoHome);
+			EditCoHome();
+			//MahApps.Metro.Controls.Dialogs.MetroDialogSettings settings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings()
+			//{
+			//	AffirmativeButtonText = "Yes",
+			//	NegativeButtonText = "No"
+			//};
+			//WindowMain.current.ShowMessageDialog("$CO_HOME", "$CO_HOME = " + EnvCoHome + "\n환경변수를 수정하시겠습니까?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative, settings: settings, affirmative_callback: EditCoHome);
 			return true;
 		}
 		public static void EditCoHome()
 		{
 			Window_Setting wms = new Window_Setting();
-			Point pt = WindowMain.current.PointToScreen(new Point(0, 0));
-			wms.Left = pt.X + WindowMain.current.Width / 2;
-			wms.Top = pt.Y + WindowMain.current.Height / 2;
+			if(ServerList.selected_serverinfo_panel != null)
+			{
+				Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
+				wms.Left = pt.X;
+				wms.Top = pt.Y;
+			}
 			wms.textBox_cohome.Text = EnvCoHome;
 			if(wms.ShowDialog() == true)
 			{
@@ -467,9 +471,12 @@ namespace CofileUI.Classes
 					return false;
 				
 				Window_LogIn wl = new Window_LogIn();
-				Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
-				wl.Left = pt.X;
-				wl.Top = pt.Y;
+				if(ServerList.selected_serverinfo_panel != null)
+				{
+					Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
+					wl.Left = pt.X;
+					wl.Top = pt.Y;
+				}
 				if(wl.ShowDialog() != true)
 					return false;
 

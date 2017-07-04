@@ -1,4 +1,5 @@
 ﻿using CofileUI.UserControls;
+using CofileUI.UserControls.ConfigOptions;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json.Linq;
 using System;
@@ -23,6 +24,7 @@ namespace CofileUI.Windows
 	public partial class Window_AddDataGridInConfig : Window
 	{
 		public object[] Value { get; set; }
+		const int HEIGHT_ROW = 30;
 		public Window_AddDataGridInConfig(string[] detail, object[] InitValue)
 		{
 			InitializeComponent();
@@ -30,16 +32,17 @@ namespace CofileUI.Windows
 			Value = InitValue;
 			this.DataContext = this;
 			int i;
+			this.Height = 100 + InitValue.Length * HEIGHT_ROW;
 			for(i = 0; i < InitValue.Length; i++)
 			{
 				TextBlock tblock = new TextBlock()
 				{
 					Text = detail[i],
-					Margin = new Thickness(0, i * 30 + 5, 5, 5),
+					Margin = new Thickness(0, i * HEIGHT_ROW + 5, 5, 5),
 					VerticalAlignment = VerticalAlignment.Top,
 					HorizontalAlignment = HorizontalAlignment.Left,
 					TextAlignment = TextAlignment.Center,
-					Height = 30
+					Height = HEIGHT_ROW
 				};
 				grid.Children.Add(tblock);
 				Grid.SetColumn(tblock, 0);
@@ -54,12 +57,13 @@ namespace CofileUI.Windows
 					CheckBox cb = new CheckBox()
 					{
 						IsChecked = Convert.ToBoolean(InitValue[i]),
-						Margin = new Thickness(0, i * 30 + 5, 5, 5),
+						Margin = new Thickness(0, i * HEIGHT_ROW + 5, 5, 5),
 						VerticalAlignment = VerticalAlignment.Top,
 						HorizontalAlignment = HorizontalAlignment.Stretch,
-						Height = 30
+						Height = HEIGHT_ROW
 					};
 					Binding bd = new Binding("Value[" + i + "]");
+					bd.Converter = new OnlyBooleanConverter();
 					cb.SetBinding(CheckBox.IsCheckedProperty, bd);
 
 					grid.Children.Add(cb);
@@ -71,10 +75,10 @@ namespace CofileUI.Windows
 					NumericUpDown nud = new NumericUpDown()
 					{
 						Value = Convert.ToInt64(InitValue[i]),
-						Margin = new Thickness(0, i * 30 + 5, 5, 5),
+						Margin = new Thickness(0, i * HEIGHT_ROW + 5, 5, 5),
 						VerticalAlignment = VerticalAlignment.Top,
 						HorizontalAlignment = HorizontalAlignment.Stretch,
-						Height = 30
+						Height = HEIGHT_ROW
 					};
 					Binding bd = new Binding("Value[" + i + "]");
 					bd.Converter = new OnlyInt64Converter();
@@ -89,12 +93,13 @@ namespace CofileUI.Windows
 					TextBox tb = new TextBox()
 					{
 						Text = Convert.ToString(InitValue[i]),
-						Margin = new Thickness(0, i * 30 + 5, 5, 5),
+						Margin = new Thickness(0, i * HEIGHT_ROW + 5, 5, 5),
 						VerticalAlignment = VerticalAlignment.Top,
 						HorizontalAlignment = HorizontalAlignment.Stretch,
-						Height = 30
+						Height = HEIGHT_ROW
 					};
 					Binding bd = new Binding("Value[" + i + "]");
+					bd.Converter = new OnlyStringConverter();
 					tb.SetBinding(TextBox.TextProperty, bd);
 
 					grid.Children.Add(tb);

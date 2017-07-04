@@ -459,7 +459,7 @@ namespace CofileUI.UserControls
 					WindowMain.current.ShowMessageDialog("Save", message);
 					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
 
-					ConfigOptions.ConfigOptions.bChanged = false;
+					ConfigOptions.ConfigOptionManager.bChanged = false;
 					return 0;
 				}
 			}
