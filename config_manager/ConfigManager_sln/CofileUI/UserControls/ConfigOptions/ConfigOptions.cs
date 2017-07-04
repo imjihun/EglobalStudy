@@ -1,4 +1,5 @@
 ﻿using CofileUI.Classes;
+using CofileUI.Windows;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json.Linq;
 using System;
@@ -16,8 +17,23 @@ namespace CofileUI.UserControls.ConfigOptions
 		FrameworkElement GetUIOptionKey(JProperty optionKey, Panel pan_value);
 		FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue);
 	}
-	static class Common
+	static class ConfigOptions
 	{
+		public static string Path;
+		private static bool _bChanged = false;
+		public static bool bChanged
+		{
+			get { return _bChanged; }
+			set
+			{
+				_bChanged = value;
+				if(value)
+					WindowMain.current.tabItem_Config.Header = "*" + Application.Current.FindResource("MainTab.Config") as string;
+				else
+					WindowMain.current.tabItem_Config.Header = Application.Current.FindResource("MainTab.Config") as string;
+			}
+		}
+
 		enum Type
 		{
 			file = 0,

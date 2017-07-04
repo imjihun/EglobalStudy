@@ -21,7 +21,7 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
-				<Label Content="Sam"/>
+				<Label x:Name="label" Content="Sam"/>
 				<Border BorderBrush="LightGray" BorderThickness="0,0,0,2"/>
 			</Grid>
 			<Grid Grid.Row="1">

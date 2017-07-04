@@ -168,6 +168,21 @@ namespace CofileUI.Windows
 		{
 			if(e.Source != tabControl)
 				return;
+
+			if(idx_tab_before_change == 1 && tabControl.SelectedIndex != 1)
+				UserControls.ConfigOption.current.ConfirmSave();
+			//Console.WriteLine("tabControl.SelectedIndex = " + tabControl.SelectedIndex);
+			//Console.WriteLine("\te.OriginalSource = " + e.OriginalSource);
+			//if(tabControl.SelectedIndex != 1)
+			//{
+			//	UserControls.ConfigOption.current.ConfirmSave();
+			//	if(UserControls.ConfigOptions.ConfigOptions.bChanged)
+			//	{
+			//		tabControl.SelectedIndex = idx_tab_before_change;
+			//		return;
+			//	}
+			//}
+
 			TabUpdate();
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
@@ -189,9 +204,9 @@ namespace CofileUI.Windows
 					UserControls.DataBaseInfo.RefreshUi();
 					bUpdateDataBase = true;
 				}
-				if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null && tabControl.SelectedIndex == 1)
+				if(!bUpdateConfigFile && UserControls.ConfigOption.current != null && tabControl.SelectedIndex == 1)
 				{
-					UserControls.ConfigJsonTree.current.Clear();
+					UserControls.ConfigOption.current.Clear();
 					bUpdateConfigFile = true;
 				}
 			}
@@ -232,8 +247,8 @@ namespace CofileUI.Windows
 		{
 			if(Cofile.current != null)
 				Cofile.current.Clear();
-			if(ConfigJsonTree.current != null)
-				ConfigJsonTree.current.Clear();
+			if(ConfigOption.current != null)
+				ConfigOption.current.Clear();
 			if(Sqlite_LogTable.current != null)
 				Sqlite_LogTable.current.Clear();
 			if(Sqlite_StatusTable.current != null)

@@ -29,11 +29,12 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 		{
 			item=0,
 			column_pos,
-			wrap_char
+			wrap_char,
+			Length
 		}
 		//string[] _option = new string[] { "item", "column_pos", "wrap_char" };
-		string[] detail = new string[] { "암/복호화에 사용할 Item명", "암/복호화 대상 컬럼 위치", "암/복호화시 제외할 문자(호환성 유지용도)" };
-		object[] initvalue = new object[] {"", (Int64)0, "" };
+		string[] detail = new string[(int)Option.Length] { "암/복호화에 사용할 Item명", "암/복호화 대상 컬럼 위치", "암/복호화시 제외할 문자(호환성 유지용도)" };
+		object[] initvalue = new object[(int)Option.Length] {"", (Int64)0, "" };
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
 			JProperty jprop = this.DataContext as JProperty;
@@ -57,6 +58,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			for(int i = 0; i < wa.Value.Length; i++)
 				jobj.Add(new JProperty(((Option)i).ToString(), wa.Value[i]));
 			jarr.Add(jobj);
+
+			ConfigOptions.bChanged = true;
 		}
 		private void OnClickDelete(object sender, RoutedEventArgs e)
 		{
@@ -71,6 +74,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				return;
 
 			jarr.Remove(jobj);
+
+			ConfigOptions.bChanged = true;
 		}
 		private void OnClickModify(object sender, RoutedEventArgs e)
 		{
@@ -84,41 +89,14 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			if(jobj == null)
 				return;
 			object[] _initvalue = new object[initvalue.Length];
-			int i=0;
-			try
+			for(int i = 0; i < _initvalue.Length; i++)
 			{
-				foreach(var v in jobj.Children())
-				{
-					JProperty jp = v as JProperty;
-					if(jp == null)
-						continue;
-					JValue jv = jp.Value as JValue;
-					if(jv == null)
-						continue;
-
-					int idx = (int)Enum.Parse(typeof(Option), jp.Name);
-					_initvalue[idx] = jv.Value;
-				}
-			}
-			catch(Exception ex)
-			{
-				Log.PrintError(ex.Message, "UserControls.ConfigOptions.Sam.col_var.OnClickModify");
-			}
-			for(int _i = 0; _i < _initvalue.Length; _i++)
-			{
-				if(_initvalue[_i] == null)
-				{
-					switch((Option)_i)
-					{
-						case Option.item:
-
-							break;
-						case Option.column_pos:
-							break;
-						case Option.wrap_char:
-							break;
-					}
-				}
+				string key = ((Option)i).ToString();
+				JValue jval = jobj[key] as JValue;
+				if(jval != null)
+					_initvalue[i] = jval.Value;
+				else
+					_initvalue[i] = initvalue[i];
 			}
 
 			Button btn = sender as Button;
@@ -132,20 +110,27 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			if(wa.ShowDialog() != true)
 				return;
 
-			i=0;
-			foreach(var v in jobj.Children())
-			{
-				JProperty jp = v as JProperty;
-				if(jp == null)
-					continue;
-				JValue jv = jp.Value as JValue;
-				if(jv == null)
-					continue;
 
-				jv.Value = wa.Value[i++];
+			for(int i = 0; i < wa.Value.Length; i++)
+			{
+				string key = ((Option)i).ToString();
+				JValue jval = jobj[key] as JValue;
+				if(jval == null)
+				{
+					jobj.Add(new JProperty(key, wa.Value[i]));
+
+					jval = jobj[SamOption.StartDisableProperty + key] as JValue;
+					if(jval != null)
+						jobj.Remove(SamOption.StartDisableProperty + key);
+				}
+				else
+					jval.Value = wa.Value[i];
 			}
+
 			DataContext = null;
 			DataContext = jprop;
+
+			ConfigOptions.bChanged = true;
 		}
 	}
 }

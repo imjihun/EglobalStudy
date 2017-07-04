@@ -5,11 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CofileUI.UserControls"
 			 
+			 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 			 xmlns:jlinq ="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
-			 xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 			 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="800">
+             d:DesignHeight="300" d:DesignWidth="600">
 	<UserControl.Resources>
 		<DataTemplate DataType="{x:Type jlinq:JProperty}">
 			<StackPanel Orientation="Horizontal">
@@ -17,107 +17,53 @@
 						   Margin="5,0,5,0"/>
 			</StackPanel>
 		</DataTemplate>
-		
-		<!--<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Object">
-			</TextBlock>
-		</HierarchicalDataTemplate>-->
-
-		<!--<local:MethodToValueConverter x:Key="MethodToValueConverter"/>
-		<local:MethodToValueConverter2 x:Key="MethodToValueConverter2"/>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JArray}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Array">
-			</TextBlock>
-		</HierarchicalDataTemplate>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JProperty}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter2}, ConverterParameter='Children'}">
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Text="Property: "/>
-				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"/>
-			</StackPanel>
-		</HierarchicalDataTemplate>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JObject}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Object">
-			</TextBlock>
-		</HierarchicalDataTemplate>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JConstructor}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Constructor">
-			</TextBlock>
-		</HierarchicalDataTemplate>
-		<HierarchicalDataTemplate DataType="{x:Type jlinq:JRaw}" ItemsSource="{Binding Converter={StaticResource MethodToValueConverter}, ConverterParameter='Children'}">
-			<TextBlock Text="Raw">
-			</TextBlock>
-		</HierarchicalDataTemplate>
-		<DataTemplate DataType="{x:Type jlinq:JValue}">
-			<StackPanel Orientation="Horizontal">
-				<TextBlock Text="Value: "/>
-				<TextBox Text="{Binding Path=Value, Mode=TwoWay}"/>
-			</StackPanel>
-		</DataTemplate>-->
-		<local:Int64ToStringConverter x:Key="Int64ToStringConverter"/>
-		<Style x:Key="StyleDataGrid" BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
-			<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
-			<Setter Property="AutoGenerateColumns" Value="False" />
-			<Setter Property="GridLinesVisibility" Value="All"/>
-		</Style>
-
-		<DataGrid x:Key="DataGridResourceSamColVar" Style="{StaticResource StyleDataGrid}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="item" Binding="{Binding item}"/>
-				<Controls:DataGridNumericUpDownColumn Header="column_pos" Binding="{Binding column_pos, Converter={StaticResource Int64ToStringConverter}}"/>
-				<DataGridTextColumn Header="wrap_char" Binding="{Binding wrap_char}"/>
-			</DataGrid.Columns>
-		</DataGrid>
-		<DataGrid x:Key="DataGridResourceSamColFix" Style="{StaticResource StyleDataGrid}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="item" Binding="{Binding item}"/>
-				<Controls:DataGridNumericUpDownColumn Header="start_pos" Binding="{Binding start_pos, Converter={StaticResource Int64ToStringConverter}}"/>
-				<Controls:DataGridNumericUpDownColumn Header="size" Binding="{Binding size, Converter={StaticResource Int64ToStringConverter}}"/>
-				<Controls:DataGridNumericUpDownColumn Header="col_size" Binding="{Binding col_size, Converter={StaticResource Int64ToStringConverter}}"/>
-			</DataGrid.Columns>
-		</DataGrid>
-		<DataGrid x:Key="DataGridResourceTailEncInform" Style="{StaticResource StyleDataGrid}">
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="item" Binding="{Binding item}"/>
-				<DataGridTextColumn Header="pattern" Binding="{Binding pattern}"/>
-				<DataGridTextColumn Header="delimiter" Binding="{Binding delimiter}"/>
-				<Controls:DataGridNumericUpDownColumn Header="sub_left_len" Binding="{Binding sub_left_len, Converter={StaticResource Int64ToStringConverter}}"/>
-				<Controls:DataGridNumericUpDownColumn Header="sub_right_len" Binding="{Binding sub_right_len, Converter={StaticResource Int64ToStringConverter}}"/>
-				<DataGridTextColumn Header="enc_pattern" Binding="{Binding enc_pattern}"/>
-				<DataGridCheckBoxColumn Header="jumin_check_yn" Binding="{Binding jumin_check_yn}"/>
-			</DataGrid.Columns>
-		</DataGrid>
 	</UserControl.Resources>
 	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="*"/>
-		</Grid.ColumnDefinitions>
-		<Grid Grid.Column="0">
-			<Border BorderBrush="LightGray" BorderThickness="2"/>
-			<Grid x:Name="panelOptionMenu" Margin="2">
-				<TreeView Margin="3" Name="treeView"
-						  SelectedItemChanged="treeView_SelectedItemChanged">
-					<TreeView.ItemContainerStyle>
-						<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
-							<Setter Property="IsExpanded" Value="True" />
-						</Style>
-					</TreeView.ItemContainerStyle>
-				</TreeView>
-				<!--<TreeView x:Name="treeView">
-				</TreeView>-->
-			</Grid>
-		</Grid>
-		<Grid Grid.Column="1">
-			<!--<Border BorderBrush="LightGray" BorderThickness="2"/>-->
-			<ScrollViewer>
-				<Grid x:Name="panel_DetailOption">
-					<!--<Grid.ColumnDefinitions>
+		<DockPanel>
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="_File">
+					<MenuItem Header="_New" Icon="{iconPacks:PackIconFontAwesome Kind=Folder}">
+						<MenuItem Header="_File" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Sam" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Tail" Click="OnClickButtonNewJsonFile" />
+					</MenuItem>
+					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=FolderOpen}"/>
+					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSave}"/>
+					<MenuItem Header="_Other Save" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>
+					<!--<MenuItem Header="_New" Click="OnClickButtonNewJsonFile"/>
+					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile"/>
+					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile"/>
+					<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile"/>-->
+				</MenuItem>
+				<MenuItem Header="_ViewFile" Click="OnClickButtonViewJsonFile"/>
+			</Menu>
+			<Grid x:Name="grid">
+				<!--<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>-->
-				</Grid>
-			</ScrollViewer>
-		</Grid>
+					</Grid.ColumnDefinitions>
+					<Grid Grid.Column="0">
+						<Border BorderBrush="LightGray" BorderThickness="2"/>
+						<Grid x:Name="panelOptionMenu" Margin="2">
+							<TreeView Margin="3" Name="treeView"
+						  SelectedItemChanged="treeView_SelectedItemChanged">
+								<TreeView.ItemContainerStyle>
+									<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
+										<Setter Property="IsExpanded" Value="True" />
+									</Style>
+								</TreeView.ItemContainerStyle>
+							</TreeView>
+							-->
+				<!--<TreeView x:Name="treeView">
+				</TreeView>-->
+				<!--
+						</Grid>
+					</Grid>
+					<ScrollViewer Grid.Column="1">
+						<Grid x:Name="panel_DetailOption">
+						</Grid>
+					</ScrollViewer>-->
+			</Grid>
+		</DockPanel>
 	</Grid>
 </UserControl>

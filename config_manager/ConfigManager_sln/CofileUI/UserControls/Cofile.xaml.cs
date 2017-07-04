@@ -168,12 +168,12 @@ namespace CofileUI.UserControls
 			//if(ws.ShowDialog() == true)
 			//	Selected_config_file_path = ws.FilePathRemote;
 
-			if(ConfigJsonTree.current.InitOpenFile() != 0)
+			if(ConfigOption.current.InitOpenFile() != 0)
 				return;
 
 			OpenFileDialog ofd = new OpenFileDialog();
 			// 초기경로 지정
-			ofd.InitialDirectory = ConfigJsonTree.CurRootPathLocal;
+			ofd.InitialDirectory = ConfigOption.CurRootPathLocal;
 
 			if(JsonTreeViewItem.Path != null)
 			{

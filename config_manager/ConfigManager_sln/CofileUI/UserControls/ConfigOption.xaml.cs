@@ -1,11 +1,15 @@
 ﻿using CofileUI.Classes;
 using CofileUI.UserControls.ConfigOptions;
+using CofileUI.Windows;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -25,265 +29,490 @@ namespace CofileUI.UserControls
 	/// </summary>
 	public partial class ConfigOption : UserControl
 	{
-		Options options;
+		public static ConfigOption current;
 		public ConfigOption()
 		{
+			current = this;
 			InitializeComponent();
+			InitJsonFileView();
 
-			//FileOptions.InitDic();
-			//SamOptions.InitDic();
-			FileOptions fo = new FileOptions();
-			SamOptions so = new SamOptions();
-
-			options = so;
-			Refresh(Properties.Resources.sam_config_default);
 		}
+		#region
 
-		private void Refresh(string Json)
+		JToken Root { get; set; }
+		private void Refresh(JToken root)
 		{
-			JToken token = JsonController.ParseJson(Json);
-
-			//print(token);
-
-			var children = new List<JToken>();
-			if(token != null)
-			{
-				children.Add(token);
-			}
-
-			treeView.ItemsSource = null;
-			treeView.Items.Clear();
-			//treeView1.ItemsSource = children;
-			
-			if(token as JObject != null)
-				treeView.ItemsSource = token.Children();
-
-			//TreeView tv = ConfigOption.GetUIOptionMenus((JObject)token);
-			//tv.SelectedItemChanged += treeView_SelectedItemChanged;
-			//panelOptionMenu.Children.Add(tv);
-		}
-		private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-		{
-			TreeView tv = sender as TreeView;
-			if(tv == null)
+			if(root == null)
 				return;
-			
-			JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
-			if(jprop_optionMenu == null)
-				return;
+			Clear();
 
-			panel_DetailOption.Children.Clear();
-			panel_DetailOption.RowDefinitions.Clear();
+			Root = root;
+			if(root["type"].ToString() == "file")
+				grid.Children.Add(new ConfigOptions.File.FileOptions() { DataContext = Root });
+			else if(root["type"].ToString() == "sam")
+				grid.Children.Add(new ConfigOptions.Sam.SamOptions() { DataContext = Root });
+			else if(root["type"].ToString() == "tail")
+				grid.Children.Add(new ConfigOptions.Tail.TailOptions() { DataContext = Root });
 
-			AddItem(panel_DetailOption, jprop_optionMenu);
+			//if(root as JObject != null)
+			//	treeView.ItemsSource = root.Children();
 		}
-		public int AddItem(Grid panel, JProperty root)
+		////private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		////{
+		////	TreeView tv = sender as TreeView;
+		////	if(tv == null)
+		////		return;
+
+		////	JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
+		////	if(jprop_optionMenu == null)
+		////		return;
+
+		////	panel_DetailOption.Children.Clear();
+		////	panel_DetailOption.RowDefinitions.Clear();
+
+		////	AddItem(panel_DetailOption, jprop_optionMenu);
+		////}
+		//Options options = null;
+		//public int AddItem(Grid panel, JProperty root)
+		//{
+		//	string type = Convert.ToString(root.Root["type"]);
+		//	if(type == "file")
+		//		options = new ConfigOptions.FileOptions();
+		//	else if(type == "sam")
+		//		options = new ConfigOptions.SamOptions();
+		//	else if(type == "tail")
+		//		options = new ConfigOptions.FileOptions();
+		//	else return -1;
+
+		//	if(root.Value.Type == JTokenType.Object)
+		//	{
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+		//		return AddItemValueIsObject(panel, root, root);
+		//	}
+		//	else if(root.Value.Type == JTokenType.Array)
+		//	{
+		//		string key = root.Name.TrimStart('#');
+		//		UIElement ui = null;
+		//		switch(key)
+		//		{
+		//			case "col_var":
+		//				ui = new ConfigOptions.Sam.col_var() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
+		//				break;
+		//			case "col_fix":
+		//				ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
+		//				break;
+		//			case "enc_inform":
+		//				ui = new ConfigOptions.Tail.enc_inform() { DataContext = root };
+		//				//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
+		//				break;
+		//			default:
+		//				break;
+		//		}
+		//		if(ui != null)
+		//		{
+		//			//ui.ItemsSource = root.Value;
+		//			panel.Children.Add(ui);
+		//		}
+
+		//		return 0;
+		//	}
+		//	else
+		//		return -1;
+		//}
+		//private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
+		//{
+		//	foreach(var v in cur_jtok.Children())
+		//	{
+		//		JProperty jprop = cur_jprop_optionMenu;
+		//		Panel pan = cur_panel_DetailOption;
+		//		switch(v.Type)
+		//		{
+		//			case JTokenType.Boolean:
+		//			case JTokenType.Integer:
+		//			case JTokenType.String:
+		//				{
+		//					FrameworkElement ui = options.GetUIOptionValue(jprop, v);
+		//					if(ui == null)
+		//						break;
+
+		//					pan.Children.Add(ui);
+		//				}
+		//				break;
+
+		//			case JTokenType.Property:
+		//				{
+		//					Grid grid_key = new Grid();
+		//					Grid grid_value = new Grid();
+		//					FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
+		//					if(ui == null)
+		//						break;
+
+		//					((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+		//					int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+
+		//					Grid.SetRow(grid_key, idxRow);
+		//					Grid.SetColumn(grid_key, 0);
+		//					pan.Children.Add(grid_key);
+
+		//					Grid.SetRow(grid_value, idxRow);
+		//					Grid.SetColumn(grid_value, 1);
+		//					pan.Children.Add(grid_value);
+
+		//					grid_key.Children.Add(ui);
+
+		//					jprop = (JProperty)v;
+		//					pan = grid_value;
+		//				}
+		//				break;
+		//			case JTokenType.Array:
+		//			case JTokenType.Object:
+		//			case JTokenType.Raw:
+		//			default:
+		//				break;
+		//		}
+
+		//		AddItemValueIsObject(pan, jprop, v);
+		//	}
+		//	return 0;
+		//}
+
+		#endregion
+		#region Json Tree Area
+		static string DIR = @"config\";
+		private static string root_path_local = AppDomain.CurrentDomain.BaseDirectory + DIR;
+		public static string curRootPathLocal = root_path_local;
+		public static string CurRootPathLocal
 		{
-			if(root.Value.Type == JTokenType.Object)
+			get
 			{
-				//panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-				//panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+				curRootPathLocal = root_path_local;
+				if(ServerList.selected_serverinfo_panel == null
+					|| ServerList.selected_serverinfo_panel.Serverinfo == null)
+				{ }
+				else
+				{
+					if(ServerList.selected_serverinfo_panel.Serverinfo.name != null && ServerList.selected_serverinfo_panel.Serverinfo.name != "")
+						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.name + @"\";
+					if(ServerList.selected_serverinfo_panel.Serverinfo.id != null && ServerList.selected_serverinfo_panel.Serverinfo.id != "")
+						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
+				}
 
-				Panel _pan = GetUIOptionPanel();
-				panel.Children.Add(_pan);
-				return AddItemValueIsObject(_pan, root, root);
+				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "Debug");
+				return curRootPathLocal;
 			}
-			else if(root.Value.Type == JTokenType.Array)
-			{
-				//StackPanel sp = new StackPanel();
-				//panel.Children.Add(sp);
-				//return AddItemValueIsArray(sp, root, root, false);
+		}
 
-				string key = root.Name.TrimStart('#');
-				UIElement ui = null;
-				switch(key)
-				{
-					case "col_var":
-						ui = new ConfigOptions.Sam.col_var() { DataContext = root };
-						//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
-						break;
-					case "col_fix":
-						ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
-						//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
-						break;
-					case "enc_inform":
-						ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
-						//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
-						break;
-					default:
-						break;
-				}
-				if(ui != null)
-				{
-					//ui.ItemsSource = root.Value;
-					panel.Children.Add(ui);
-				}
+		bool InitJsonFileView()
+		{
+			return FileContoller.CreateDirectory(CurRootPathLocal);
+		}
+		int RemoveConfigFile(string path)
+		{
+			return FileContoller.DeleteDirectory(path);
+		}
+		public int InitOpenFile()
+		{
+			if(SSHController.ReConnect())
+			{
+				//if(RemoveConfigFile(CurRootPathLocal) != 0)
+				//	return -2;
+
+				if(SSHController.GetConfig(CurRootPathLocal) == null)
+					return -1;
 
 				return 0;
 			}
-			else
+			return -3;
+		}
+		//public void Refresh()
+		//{
+		//	Clear();
+		//	//InitOpenFile();
+		//}
+		public void Clear()
+		{
+			//if(JsonTreeViewItem.Path != null)
+			//{
+			//	JsonTreeViewItem.Clear();
+			//	json_tree_view.Items.Clear();
+			//}
+			//JsonTreeViewItem.Clear();
+			//json_tree_view.Items.Clear();
+			grid.Children.Clear();
+			ConfigOptions.ConfigOptions.bChanged = false;
+			//treeView.ItemsSource = null;
+			//treeView.Items.Clear();
+		}
+		//public void refreshJsonTree(JToken jtok_root)
+		//{
+		//	// 변환
+		//	JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
+		//	if(root_jtree == null)
+		//		return;
+
+		//	// 삭제
+		//	string path = JsonTreeViewItem.Path;
+		//	Clear();
+		//	JsonTreeViewItem.Path = path;
+
+		//	// 추가
+		//	//TextBlock tblock = new TextBlock();
+		//	//tblock.Text = JsonInfo.current.Filename;
+		//	//root_jtree.Header.Children.Insert(0, tblock);
+		//	//json_tree_view.Items.Add(root_jtree);
+
+		//	// 추가
+		//	Label label = new Label();
+		//	label.VerticalAlignment = VerticalAlignment.Center;
+		//	label.Content = JsonTreeViewItem.Filename;
+		//	root_jtree.Header.Children.Insert(0, label);
+		//	int MAX_WIDTH_TREE = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX + JsonTreeViewItemSize.WIDTH_VALUEPANEL + 50;
+		//	root_jtree.Header.Width = MAX_WIDTH_TREE;
+		//	json_tree_view.Items.Add(root_jtree);
+
+		//	JsonTreeViewItem.Root = root_jtree;
+		//}
+
+		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(JsonTreeViewItem.Path != null)
+			{
+				;
+			}
+			ConfirmSave();
+
+			MenuItem mi = sender as MenuItem;
+			if(mi.Header as string == "_File")
+				WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File);
+			if(mi.Header as string == "_Sam")
+				WindowMain.current.ShowMessageDialog("New Sam Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam);
+			if(mi.Header as string == "_Tail")
+				WindowMain.current.ShowMessageDialog("New Tail Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail);
+		}
+		private void NewJsonFile_File()
+		{
+			JsonTreeViewItem.Clear();
+
+			JToken jtok = JsonController.ParseJson(Properties.Resources.file_config_default);
+			Refresh(jtok);
+
+			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+		}
+		private void NewJsonFile_Sam()
+		{
+			JsonTreeViewItem.Clear();
+		
+			JToken jtok = JsonController.ParseJson(Properties.Resources.sam_config_default);
+			Refresh(jtok);
+
+			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+		}
+		private void NewJsonFile_Tail()
+		{
+			JsonTreeViewItem.Clear();
+			
+			JToken jtok = JsonController.ParseJson(Properties.Resources.tail_config_default);
+			Refresh(jtok);
+
+			UserControls.ConfigOptions.ConfigOptions.bChanged = true;
+		}
+		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
+		{
+			ConfirmSave();
+
+			if(InitOpenFile() != 0)
+				return;
+
+			OpenFileDialog ofd = new OpenFileDialog();
+
+			ofd.InitialDirectory = CurRootPathLocal;
+
+			if(JsonTreeViewItem.Path != null)
+			{
+				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+				DirectoryInfo d = new DirectoryInfo(dir_path);
+				if(d.Exists)
+					ofd.InitialDirectory = dir_path;
+			}
+
+			// 파일 열기
+			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
+			if(ofd.ShowDialog() == true)
+			{
+				Log.PrintConsole(ofd.FileName, "UserControls.ConfigJsonTree.OnClickButtonOpenJsonFile");
+				string json = FileContoller.Read(ofd.FileName);
+				JToken jtok = JsonController.ParseJson(json);
+				if(jtok != null)
+				{
+					Refresh(jtok);
+				}
+				JsonTreeViewItem.Path = ofd.FileName;
+				//refreshJsonTree(JsonController.parseJson(json));
+				//JsonTreeViewItem.Path = ofd.FileName;
+			}
+		}
+		private void OnClickButtonSaveJsonFile(object sender, RoutedEventArgs e)
+		{
+			ConfirmSave();
+		}
+		public void ConfirmSave()
+		{
+			if(!CheckJson())
+				return;
+
+			if(!UserControls.ConfigOptions.ConfigOptions.bChanged)
+				return;
+
+			if(JsonTreeViewItem.Path == null)
+			{
+				OtherSaveJsonFile();
+				return;
+			}
+
+			FileInfo f = new FileInfo(JsonTreeViewItem.Path);
+			if(!f.Exists)
+			{
+				OtherSaveJsonFile();
+				return;
+			}
+
+			WindowMain.current.ShowMessageDialog("Save", "변경된 Config File 을 저장하시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, SaveJsonFile);
+		}
+		private void SaveJsonFile()
+		{
+			if(SaveFile(JsonTreeViewItem.Path) == 0)
+			{ }
+		}
+		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(!CheckJson())
+				return;
+
+			OtherSaveJsonFile();
+		}
+		private void OtherSaveJsonFile()
+		{
+			if(InitOpenFile() != 0)
+				return;
+
+			SaveFileDialog sfd = new SaveFileDialog();
+
+			sfd.InitialDirectory = CurRootPathLocal;
+
+			if(JsonTreeViewItem.Path != null)
+			{
+				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+				DirectoryInfo d = new DirectoryInfo(dir_path);
+				if(d.Exists)
+					sfd.InitialDirectory = dir_path;
+			}
+
+			sfd.Filter = "JSon Files (.json)|*.json";
+			if(sfd.ShowDialog() == true)
+			{
+				if(SaveFile(sfd.FileName) == 0)
+					JsonTreeViewItem.Path = sfd.FileName;
+			}
+		}
+		private bool CheckJson()
+		{
+			//// 로드된 오브젝트가 없으면 실행 x
+			//if(json_tree_view.Items.Count < 1)
+			//	return false;
+			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			//if(root == null)
+			//	return false;
+
+			// 로드된 오브젝트가 없으면 실행 x
+			if(grid.Children.Count < 1)
+				return false;
+
+			return true;
+		}
+		private int SaveFile(string path_local)
+		{
+			if(!CheckJson())
 				return -1;
-		}
-		Panel GetUIOptionPanel()
-		{
-			Grid grid = new Grid();
-			//Border bd = new Border() {BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
-			//Grid.SetColumnSpan(bd, 50);
-			//Grid.SetRowSpan(bd, 50);
-			grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-			grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-			//grid.Children.Add(bd);
-			return grid;
-		}
-		private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
-		{
-			foreach(var v in cur_jtok.Children())
+
+			//JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
+			JToken Jtok_root = Root;
+			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
 			{
-				JProperty jprop = cur_jprop_optionMenu;
-				Panel pan = cur_panel_DetailOption;
-				switch(v.Type)
+				string path_remote;
+				if((path_remote = SSHController.SetConfig(path_local, CurRootPathLocal)) == null)
 				{
-					case JTokenType.Boolean:
-					case JTokenType.Integer:
-					case JTokenType.String:
-						{
-							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
-							if(ui == null)
-								break;
+					//FileContoller.FileDelete(path_local);
 
-							pan.Children.Add(ui);
-						}
-						break;
-
-					case JTokenType.Property:
-						{
-							Grid grid_key = new Grid();
-							Grid grid_value = new Grid();
-							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
-							if(ui == null)
-								break;
-
-							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
-
-							Grid.SetRow(grid_key, idxRow);
-							Grid.SetColumn(grid_key, 0);
-							pan.Children.Add(grid_key);
-
-							Grid.SetRow(grid_value, idxRow);
-							Grid.SetColumn(grid_value, 1);
-							pan.Children.Add(grid_value);
-
-							grid_key.Children.Add(ui);
-
-							jprop = (JProperty)v;
-							pan = grid_value;
-						}
-						break;
-					case JTokenType.Array:
-					case JTokenType.Object:
-					case JTokenType.Raw:
-					default:
-						break;
+					string caption = "Save Error";
+					string message = "서버 연결 에러";
+					WindowMain.current.ShowMessageDialog(caption, message);
+					Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
+					return -3;
 				}
-
-				AddItemValueIsObject(pan, jprop, v);
-			}
-			return 0;
-		}
-		private int AddItemValueIsArray(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok, bool cur_bArray)
-		{
-			foreach(var v in cur_jtok.Children())
-			{
-				JProperty jprop = cur_jprop_optionMenu;
-				Panel pan = cur_panel_DetailOption;
-				bool bArray = cur_bArray;
-				switch(v.Type)
-				{
-					case JTokenType.Boolean:
-					case JTokenType.Integer:
-					case JTokenType.String:
-						{
-							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
-							if(ui == null)
-								break;
-
-							pan.Children.Add(ui);
-						}
-						break;
-
-					case JTokenType.Property:
-						{
-							Grid grid_key = new Grid();
-							Grid grid_value = new Grid();
-							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
-							if(ui == null)
-								break;
-
-							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
-
-							Grid.SetRow(grid_key, idxRow);
-							Grid.SetColumn(grid_key, 0);
-							pan.Children.Add(grid_key);
-
-							Grid.SetRow(grid_value, idxRow);
-							Grid.SetColumn(grid_value, 1);
-							pan.Children.Add(grid_value);
-
-							grid_key.Children.Add(ui);
-
-							jprop = (JProperty)v;
-							pan = grid_value;
-						}
-						break;
-					case JTokenType.Object:
-						if(bArray)
-						{
-							//Border bd = new Border() {BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(2) };
-							//Grid grid = new Grid();
-							//grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-							//grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-							//bd.Child = grid;
-							Panel _pan = GetUIOptionPanel();
-							pan.Children.Add(_pan);
-							pan = _pan;
-						}
-						break;
-					case JTokenType.Array:
-					case JTokenType.Raw:
-					default:
-						break;
-				}
-				if(v.Type == JTokenType.Array)
-					bArray = true;
 				else
-					bArray = false;
+				{
+					string message = path_remote + " 파일이 저장되었습니다.";
+					WindowMain.current.ShowMessageDialog("Save", message);
+					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
 
-				AddItemValueIsArray(pan, jprop, v, bArray);
+					ConfigOptions.ConfigOptions.bChanged = false;
+					return 0;
+				}
 			}
-			return 0;
-		}
-
-
-
-		int depth = -1;
-		void print(JToken cur)
-		{
-			depth++;
-			foreach(var v in cur.Children())
+			else
 			{
-				Console.Write("\t" + depth + " : ");
-				for(int i = 0; i < depth; i++)
-					Console.Write("  ");
-				Console.WriteLine(v.Type);
-				print(v);
+				string caption = "Save Error";
+				string message = path_local + " 파일을 저장하는데 문제가 생겼습니다.";
+				WindowMain.current.ShowMessageDialog(caption, message);
+				Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
+				return -2;
 			}
-			depth--;
 		}
+		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(JsonTreeViewItem.Path == null)
+				return;
 
+			//if(json_tree_view.Items.Count <= 0)
+			//	return;
+			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			//if(root == null)
+			//	return;
+
+			//Window_EditFile w = new Window_EditFile(JsonTreeViewItem.convertToJToken(root).ToString(), JsonTreeViewItem.Path);
+			Window_EditFile w = new Window_EditFile(FileContoller.Read(JsonTreeViewItem.Path), JsonTreeViewItem.Path);
+
+			if(w.ShowDialog() == true)
+			{
+				Refresh(JsonController.ParseJson(w.tb_file.Text));
+			}
+		}
+		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
+		{
+			if(JsonTreeViewItem.Path == null)
+				return;
+
+			string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
+			DirectoryInfo d = new DirectoryInfo(dir_path);
+			if(!d.Exists)
+				return;
+
+			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌리시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, CalcelJsonFile);
+		}
+		private void CalcelJsonFile()
+		{
+			string json = FileContoller.Read(JsonTreeViewItem.Path);
+			Refresh(JsonController.ParseJson(json));
+			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
+		}
+		#endregion
 	}
 
+	#region Converter
 	public class OnlyStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -341,37 +570,10 @@ namespace CofileUI.UserControls
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return System.Convert.ToString(value); 
+			return System.Convert.ToString(value);
 		}
 	}
-	public sealed class MethodToValueConverter2 : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			JProperty jprop = value as JProperty;
 
-			var methodName = parameter as string;
-			if(value == null || methodName == null)
-				return null;
-			var methodInfo = value.GetType().GetMethod(methodName, new Type[0]);
-			if(methodInfo == null)
-				return null;
-
-			// value 가 JProperty 이고, JProperty.value 가 JObject 일 때 리턴
-			JToken j = value as JToken;
-			if(j == null)
-				return null;
-			if(j.Children().Children().Children().Children().Count() <= 0)
-				return null;
-
-			return j.Children().Children();
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			throw new NotSupportedException(GetType().Name + " can only be used for one way conversion.");
-		}
-	}
 	public sealed class MethodToValueConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -390,4 +592,5 @@ namespace CofileUI.UserControls
 			throw new NotSupportedException(GetType().Name + " can only be used for one way conversion.");
 		}
 	}
+	#endregion
 }

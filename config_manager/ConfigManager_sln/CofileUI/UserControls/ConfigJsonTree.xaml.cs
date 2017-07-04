@@ -60,128 +60,128 @@ namespace CofileUI.UserControls
 			//if(root as JObject != null)
 			//	treeView.ItemsSource = root.Children();
 		}
-		//private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		////private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		////{
+		////	TreeView tv = sender as TreeView;
+		////	if(tv == null)
+		////		return;
+
+		////	JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
+		////	if(jprop_optionMenu == null)
+		////		return;
+
+		////	panel_DetailOption.Children.Clear();
+		////	panel_DetailOption.RowDefinitions.Clear();
+
+		////	AddItem(panel_DetailOption, jprop_optionMenu);
+		////}
+		//Options options = null;
+		//public int AddItem(Grid panel, JProperty root)
 		//{
-		//	TreeView tv = sender as TreeView;
-		//	if(tv == null)
-		//		return;
+		//	string type = Convert.ToString(root.Root["type"]);
+		//	if(type == "file")
+		//		options = new ConfigOptions.FileOptions();
+		//	else if(type == "sam")
+		//		options = new ConfigOptions.SamOptions();
+		//	else if(type == "tail")
+		//		options = new ConfigOptions.FileOptions();
+		//	else return -1;
 
-		//	JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
-		//	if(jprop_optionMenu == null)
-		//		return;
+		//	if(root.Value.Type == JTokenType.Object)
+		//	{
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
-		//	panel_DetailOption.Children.Clear();
-		//	panel_DetailOption.RowDefinitions.Clear();
+		//		return AddItemValueIsObject(panel, root, root);
+		//	}
+		//	else if(root.Value.Type == JTokenType.Array)
+		//	{
+		//		string key = root.Name.TrimStart('#');
+		//		UIElement ui = null;
+		//		switch(key)
+		//		{
+		//			case "col_var":
+		//				ui = new ConfigOptions.Sam.col_var() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
+		//				break;
+		//			case "col_fix":
+		//				ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
+		//				break;
+		//			case "enc_inform":
+		//				ui = new ConfigOptions.Tail.enc_inform() { DataContext = root };
+		//				//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
+		//				break;
+		//			default:
+		//				break;
+		//		}
+		//		if(ui != null)
+		//		{
+		//			//ui.ItemsSource = root.Value;
+		//			panel.Children.Add(ui);
+		//		}
 
-		//	AddItem(panel_DetailOption, jprop_optionMenu);
+		//		return 0;
+		//	}
+		//	else
+		//		return -1;
 		//}
-		Options options = null;
-		public int AddItem(Grid panel, JProperty root)
-		{
-			string type = Convert.ToString(root.Root["type"]);
-			if(type == "file")
-				options = new ConfigOptions.FileOptions();
-			else if(type == "sam")
-				options = new ConfigOptions.SamOptions();
-			else if(type == "tail")
-				options = new ConfigOptions.FileOptions();
-			else return -1;
+		//private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
+		//{
+		//	foreach(var v in cur_jtok.Children())
+		//	{
+		//		JProperty jprop = cur_jprop_optionMenu;
+		//		Panel pan = cur_panel_DetailOption;
+		//		switch(v.Type)
+		//		{
+		//			case JTokenType.Boolean:
+		//			case JTokenType.Integer:
+		//			case JTokenType.String:
+		//				{
+		//					FrameworkElement ui = options.GetUIOptionValue(jprop, v);
+		//					if(ui == null)
+		//						break;
 
-			if(root.Value.Type == JTokenType.Object)
-			{
-				panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-				panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+		//					pan.Children.Add(ui);
+		//				}
+		//				break;
 
-				return AddItemValueIsObject(panel, root, root);
-			}
-			else if(root.Value.Type == JTokenType.Array)
-			{
-				string key = root.Name.TrimStart('#');
-				UIElement ui = null;
-				switch(key)
-				{
-					case "col_var":
-						ui = new ConfigOptions.Sam.col_var() { DataContext = root };
-						//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
-						break;
-					case "col_fix":
-						ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
-						//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
-						break;
-					case "enc_inform":
-						ui = new ConfigOptions.Tail.enc_inform() { DataContext = root };
-						//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
-						break;
-					default:
-						break;
-				}
-				if(ui != null)
-				{
-					//ui.ItemsSource = root.Value;
-					panel.Children.Add(ui);
-				}
+		//			case JTokenType.Property:
+		//				{
+		//					Grid grid_key = new Grid();
+		//					Grid grid_value = new Grid();
+		//					FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
+		//					if(ui == null)
+		//						break;
 
-				return 0;
-			}
-			else
-				return -1;
-		}
-		private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
-		{
-			foreach(var v in cur_jtok.Children())
-			{
-				JProperty jprop = cur_jprop_optionMenu;
-				Panel pan = cur_panel_DetailOption;
-				switch(v.Type)
-				{
-					case JTokenType.Boolean:
-					case JTokenType.Integer:
-					case JTokenType.String:
-						{
-							FrameworkElement ui = options.GetUIOptionValue(jprop, v);
-							if(ui == null)
-								break;
+		//					((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+		//					int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
 
-							pan.Children.Add(ui);
-						}
-						break;
+		//					Grid.SetRow(grid_key, idxRow);
+		//					Grid.SetColumn(grid_key, 0);
+		//					pan.Children.Add(grid_key);
 
-					case JTokenType.Property:
-						{
-							Grid grid_key = new Grid();
-							Grid grid_value = new Grid();
-							FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
-							if(ui == null)
-								break;
+		//					Grid.SetRow(grid_value, idxRow);
+		//					Grid.SetColumn(grid_value, 1);
+		//					pan.Children.Add(grid_value);
 
-							((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-							int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+		//					grid_key.Children.Add(ui);
 
-							Grid.SetRow(grid_key, idxRow);
-							Grid.SetColumn(grid_key, 0);
-							pan.Children.Add(grid_key);
+		//					jprop = (JProperty)v;
+		//					pan = grid_value;
+		//				}
+		//				break;
+		//			case JTokenType.Array:
+		//			case JTokenType.Object:
+		//			case JTokenType.Raw:
+		//			default:
+		//				break;
+		//		}
 
-							Grid.SetRow(grid_value, idxRow);
-							Grid.SetColumn(grid_value, 1);
-							pan.Children.Add(grid_value);
-
-							grid_key.Children.Add(ui);
-
-							jprop = (JProperty)v;
-							pan = grid_value;
-						}
-						break;
-					case JTokenType.Array:
-					case JTokenType.Object:
-					case JTokenType.Raw:
-					default:
-						break;
-				}
-
-				AddItemValueIsObject(pan, jprop, v);
-			}
-			return 0;
-		}
+		//		AddItemValueIsObject(pan, jprop, v);
+		//	}
+		//	return 0;
+		//}
 
 		#endregion
 		#region Json Tree Area
@@ -459,6 +459,7 @@ namespace CofileUI.UserControls
 					WindowMain.current.ShowMessageDialog("Save", message);
 					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
 
+					ConfigOptions.ConfigOptions.bChanged = false;
 					return 0;
 				}
 			}

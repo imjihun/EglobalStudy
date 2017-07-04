@@ -33,6 +33,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
+			ConfigOptions.bChanged = false;
 		}
 	}
 
@@ -187,126 +188,36 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							while(e.MoveNext())
 								cb.Items.Add(e.Current.Key);
 
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
+							cb.DataContext = optionValue.Parent.Parent;
+							Binding bd = new Binding(opt.ToString());
 							bd.Mode = BindingMode.TwoWay;
 							bd.Converter = new StringToInt64Converter();
 							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
 
-							ret = cb;
-						}
-						break;
-					case Options.input_extension:
-						{
-							Dictionary<string, int> dic = new Dictionary<string, int>()
-							{
-								{ "*.coenc", 0 }
-								, { "*.txt", 1 }
-								, { "*.jpg", 3 }
-								, { "*.jpe", 4 }
-								, { "*.jpeg", 5 }
-								, { "*.jfif", 6 }
-								, { "*.gif", 7 }
-								, { "*.png", 8 }
-								, { "*.tif", 9 }
-								, { "*.tiff", 10 }
-								, { "*.bmp", 11 }
-								, { "*.dib", 12 }
-								, { "Any", 13 }
+							cb.SelectionChanged += delegate {
+								ConfigOptions.bChanged = true;
 							};
-
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-
 							ret = cb;
 						}
 						break;
-					case Options.output_extension:
-						{
-							Dictionary<string, int> dic = new Dictionary<string, int>()
-							{
-								{ "*.txt", 1 }
-								, { "*.codec", 2 }
-								, { "*.jpg", 3 }
-								, { "*.jpe", 4 }
-								, { "*.jpeg", 5 }
-								, { "*.jfif", 6 }
-								, { "*.gif", 7 }
-								, { "*.png", 8 }
-								, { "*.tif", 9 }
-								, { "*.tiff", 10 }
-								, { "*.bmp", 11 }
-								, { "*.dib", 12 }
-								, { "Any", 13 }
-							};
-
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-
-							ret = cb;
-						}
-						break;
-					case Options.input_dir:
-					case Options.output_dir:
-						{
-							ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-
-							ret = cb;
-						}
-						break;
-					case Options.input_filter:
-						{
-							Dictionary<string, string> dic = new Dictionary<string, string>()
-							{
-								{ "*.coenc", "[.]coenc$" }
-								, { "*.txt", "[.]txt$" }
-							};
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
-
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-
-							ret = cb;
-						}
-						break;
+					case Options.item:
 					case Options.log_console_yn:
 					case Options.header_file_save_yn:
 					case Options.file_reserver_yn:
 					case Options.dir_monitoring_yn:
-					case Options.verify_yn:
-					case Options.result_log_yn:
-
 					case Options.dir_monitoring_term:
+					case Options.verify_yn:
+					case Options.schedule_time:
+					case Options.result_log_yn:
 					case Options.thread_count:
 
-					case Options.item:
+					case Options.input_filter:
 					case Options.output_suffix_head:
 					case Options.output_suffix_tail:
-					case Options.schedule_time:
+					case Options.input_dir:
+					case Options.output_dir:
+					case Options.input_extension:
+					case Options.output_extension:
 						switch(optionValue.Type)
 						{
 							case JTokenType.String:
@@ -315,16 +226,17 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
 									tb.HorizontalAlignment = HorizontalAlignment.Left;
 									ret = tb;
-
-									tb.DataContext = optionValue.Root;
-									Binding bd = new Binding("comm_option." + opt.ToString());
+									
+									tb.DataContext = optionValue.Parent.Parent;
+									Binding bd = new Binding(opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
 									tb.SetBinding(TextBox.TextProperty, bd);
 
-									//tb.TextChanged += delegate
-									//{
-									//	((JValue)optionValue).Value = tb.Text;
-									//};
+									tb.TextChanged += delegate
+									{
+										//((JValue)optionValue).Value = tb.Text;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							case JTokenType.Integer:
@@ -338,15 +250,16 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									//Grid.SetColumn(tb_integer, 1);
 									ret = tb_integer;
 
-									tb_integer.DataContext = optionValue.Root;
-									Binding bd = new Binding("comm_option." + opt.ToString());
+									tb_integer.DataContext = optionValue.Parent.Parent;
+									Binding bd = new Binding(opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
 									bd.Converter = new OnlyInt64Converter();
 									tb_integer.SetBinding(NumericUpDown.ValueProperty, bd);
-									//tb_integer.ValueChanged += delegate
-									//{
-									//	((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
-									//};
+									tb_integer.ValueChanged += delegate
+									{
+										//((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							case JTokenType.Boolean:
@@ -364,35 +277,135 @@ namespace CofileUI.UserControls.ConfigOptions.File
 									//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
 									//Grid.SetColumn(ts, 1);
 									ret = ts;
-
-
-									ts.DataContext = optionValue.Root;
-									Binding bd = new Binding("comm_option." + opt.ToString());
+									
+									ts.DataContext = optionValue.Parent.Parent;
+									Binding bd = new Binding(opt.ToString());
 									bd.Mode = BindingMode.TwoWay;
 									bd.Converter = new OnlyBooleanConverter();
 									ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
-									//ts.Checked += delegate
-									//{
-									//	((JValue)optionValue).Value = ts.IsChecked;
-									//};
-									//ts.Unchecked += delegate
-									//{
-									//	((JValue)optionValue).Value = ts.IsChecked;
-									//};
+
+									ts.Checked += delegate
+									{
+										//((JValue)optionValue).Value = ts.IsChecked;
+										ConfigOptions.bChanged = true;
+									};
+									ts.Unchecked += delegate
+									{
+										//((JValue)optionValue).Value = ts.IsChecked;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							default:
 								break;
 						}
 						break;
+						///////////////////// enc, dec
+					//case Options.input_filter:
+					//	{
+					//		Dictionary<string, string> dic = new Dictionary<string, string>()
+					//		{
+					//			{ "[.]coenc$", "[.]coenc$" }
+					//			, { "[.]txt$", "[.]txt$" }
+					//		};
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
 
+					//		cb.DataContext = optionValue.Parent.Parent;
+					//		Binding bd = new Binding(opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+
+					//		ret = cb;
+					//	}
+					//	break;
+					//case Options.input_dir:
+					//case Options.output_dir:
+					//	{
+					//		ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
+
+					//		cb.DataContext = optionValue.Parent.Parent;
+					//		Binding bd = new Binding(opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+
+					//		ret = cb;
+					//	}
+					//	break;
+
+					//case Options.input_extension:
+					//	{
+					//		Dictionary<string, int> dic = new Dictionary<string, int>()
+					//		{
+					//			{ "*.coenc", 0 }
+					//			, { "*.txt", 1 }
+					//			, { "*.jpg", 3 }
+					//			, { "*.jpe", 4 }
+					//			, { "*.jpeg", 5 }
+					//			, { "*.jfif", 6 }
+					//			, { "*.gif", 7 }
+					//			, { "*.png", 8 }
+					//			, { "*.tif", 9 }
+					//			, { "*.tiff", 10 }
+					//			, { "*.bmp", 11 }
+					//			, { "*.dib", 12 }
+					//			, { "Any", 13 }
+					//		};
+
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
+
+					//		cb.DataContext = optionValue.Parent.Parent;
+					//		Binding bd = new Binding(opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+
+					//		ret = cb;
+					//	}
+					//	break;
+					//case Options.output_extension:
+					//	{
+					//		Dictionary<string, int> dic = new Dictionary<string, int>()
+					//		{
+					//			{ "*.txt", 1 }
+					//			, { "*.codec", 2 }
+					//			, { "*.jpg", 3 }
+					//			, { "*.jpe", 4 }
+					//			, { "*.jpeg", 5 }
+					//			, { "*.jfif", 6 }
+					//			, { "*.gif", 7 }
+					//			, { "*.png", 8 }
+					//			, { "*.tif", 9 }
+					//			, { "*.tiff", 10 }
+					//			, { "*.bmp", 11 }
+					//			, { "*.dib", 12 }
+					//			, { "Any", 13 }
+					//		};
+
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
+
+					//		cb.DataContext = optionValue.Parent.Parent;
+					//		Binding bd = new Binding(opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+
+					//		ret = cb;
+					//	}
+					//	break;
 					default:
 						break;
 				}
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UserControls.ConfigOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + optionKey.Name + "\" : \"" + optionValue + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
 			}
 			if(ret != null)
 			{
@@ -477,6 +490,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Black;
+
+								ConfigOptions.bChanged = true;
 							};
 							cb.Unchecked += delegate
 							{
@@ -487,6 +502,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Gray;
+
+								ConfigOptions.bChanged = true;
 							};
 							ret = cb;
 						}
@@ -497,7 +514,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UserControls.ConfigOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + optionKey + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
 			}
 
 			if(ret != null)

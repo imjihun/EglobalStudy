@@ -33,6 +33,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			//catch(Exception e)
 			//{ }
 			InitializeComponent();
+			ConfigOptions.bChanged = false;
 
 			JToken token = DataContext as JToken;
 			if(token == null)
@@ -203,7 +204,10 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							bd.Converter = new OnlyInt64Converter();
 							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
 
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()]; };
+							cb.SelectionChanged += delegate {
+								//((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()];
+								ConfigOptions.bChanged = true;
+							};
 							ret = cb;
 						}
 						break;
@@ -227,125 +231,124 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							bd.Converter = new OnlyInt64Converter();
 							cb.SetBinding(ComboBox.SelectedIndexProperty, bd);
 
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()]; };
+							cb.SelectionChanged += delegate {
+								//((JValue)optionValue).Value = dic[cb.SelectedItem.ToString()];
+								ConfigOptions.bChanged = true;
+							};
 							ret = cb;
 						}
 						break;
 
-					case Options.input_ext:
-						{
-							Dictionary<string, int> dic = new Dictionary<string, int>()
-							{
-								{ "*.coenc", 0 }
-								, { "*.txt", 1 }
-								, { "*.jpg", 3 }
-								, { "*.jpe", 4 }
-								, { "*.jpeg", 5 }
-								, { "*.jfif", 6 }
-								, { "*.gif", 7 }
-								, { "*.png", 8 }
-								, { "*.tif", 9 }
-								, { "*.tiff", 10 }
-								, { "*.bmp", 11 }
-								, { "*.dib", 12 }
-								, { "Any", 13 }
-							};
+					//case Options.input_ext:
+					//	{
+					//		Dictionary<string, int> dic = new Dictionary<string, int>()
+					//		{
+					//			{ "*.coenc", 0 }
+					//			, { "*.txt", 1 }
+					//			, { "*.jpg", 3 }
+					//			, { "*.jpe", 4 }
+					//			, { "*.jpeg", 5 }
+					//			, { "*.jfif", 6 }
+					//			, { "*.gif", 7 }
+					//			, { "*.png", 8 }
+					//			, { "*.tif", 9 }
+					//			, { "*.tiff", 10 }
+					//			, { "*.bmp", 11 }
+					//			, { "*.dib", 12 }
+					//			, { "Any", 13 }
+					//		};
 
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
 							
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
-							ret = cb;
-						}
-						break;
-					case Options.output_ext:
-						{
-							Dictionary<string, int> dic = new Dictionary<string, int>()
-							{
-								{ "*.txt", 1 }
-								, { "*.codec", 2 }
-								, { "*.jpg", 3 }
-								, { "*.jpe", 4 }
-								, { "*.jpeg", 5 }
-								, { "*.jfif", 6 }
-								, { "*.gif", 7 }
-								, { "*.png", 8 }
-								, { "*.tif", 9 }
-								, { "*.tiff", 10 }
-								, { "*.bmp", 11 }
-								, { "*.dib", 12 }
-								, { "Any", 13 }
-							};
+					//		cb.DataContext = optionValue.Root;
+					//		Binding bd = new Binding("comm_option." + opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+					//		//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+					//		ret = cb;
+					//	}
+					//	break;
+					//case Options.output_ext:
+					//	{
+					//		Dictionary<string, int> dic = new Dictionary<string, int>()
+					//		{
+					//			{ "*.txt", 1 }
+					//			, { "*.codec", 2 }
+					//			, { "*.jpg", 3 }
+					//			, { "*.jpe", 4 }
+					//			, { "*.jpeg", 5 }
+					//			, { "*.jfif", 6 }
+					//			, { "*.gif", 7 }
+					//			, { "*.png", 8 }
+					//			, { "*.tif", 9 }
+					//			, { "*.tiff", 10 }
+					//			, { "*.bmp", 11 }
+					//			, { "*.dib", 12 }
+					//			, { "Any", 13 }
+					//		};
 
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
 
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
-							ret = cb;
-						}
-						break;
-					case Options.input_dir:
-					case Options.output_dir:
-						{
-							ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
+					//		cb.DataContext = optionValue.Root;
+					//		Binding bd = new Binding("comm_option." + opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+					//		//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+					//		ret = cb;
+					//	}
+					//	break;
+					//case Options.input_dir:
+					//case Options.output_dir:
+					//	{
+					//		ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
 
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-							//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
-							ret = cb;
-						}
-						break;
-					case Options.input_filter:
-						{
-							Dictionary<string, string> dic = new Dictionary<string, string>()
-							{
-								{ "*[.]sam$", "[.]sam$" }
-								, { "[.]txt$", "[.]txt$"}
-							};
-							ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
-							var e = dic.GetEnumerator();
-							while(e.MoveNext())
-								cb.Items.Add(e.Current.Key);
+					//		cb.DataContext = optionValue.Root;
+					//		Binding bd = new Binding("comm_option." + opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+					//		//cb.SelectionChanged += delegate { ((JValue)optionValue).Value = cb.SelectedItem.ToString(); };
+					//		ret = cb;
+					//	}
+					//	break;
+					//case Options.input_filter:
+					//	{
+					//		Dictionary<string, string> dic = new Dictionary<string, string>()
+					//		{
+					//			{ "*[.]sam$", "[.]sam$" }
+					//			, { "[.]txt$", "[.]txt$"}
+					//		};
+					//		ComboBox cb = new ComboBox() { SelectedIndex = 0, IsEditable = true };
+					//		var e = dic.GetEnumerator();
+					//		while(e.MoveNext())
+					//			cb.Items.Add(e.Current.Key);
 
-							cb.DataContext = optionValue.Root;
-							Binding bd = new Binding("comm_option." + opt.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							cb.SetBinding(ComboBox.TextProperty, bd);
-							ret = cb;
-						}
-						break;
+					//		cb.DataContext = optionValue.Root;
+					//		Binding bd = new Binding("comm_option." + opt.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		cb.SetBinding(ComboBox.TextProperty, bd);
+					//		ret = cb;
+					//	}
+					//	break;
+
 					case Options.no_col:
 					case Options.sid:
 					case Options.delimiter:
 					case Options.skip_header:
 					case Options.record_len:
+					case Options.input_filter:
+					case Options.input_dir:
+					case Options.input_ext:
+					case Options.output_dir:
+					case Options.output_ext:
 					case Options.dir_monitoring_yn:
 					case Options.dir_monitoring_term:
 					case Options.no_access_sentence:
-						
-					//case Options.col_var_item:
-					case Options.item:
-					case Options.column_pos:
-					case Options.wrap_char:
-
-					//case Options.col_fix_item:
-					case Options.start_pos:
-					case Options.size:
-					case Options.col_size:
 						switch(optionValue.Type)
 						{
 							case JTokenType.String:
@@ -360,10 +363,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									bd.Mode = BindingMode.TwoWay;
 									tb.SetBinding(TextBox.TextProperty, bd);
 
-									//tb.TextChanged += delegate
-									//{
-									//	((JValue)optionValue).Value = tb.Text;
-									//};
+									tb.TextChanged += delegate
+									{
+										//((JValue)optionValue).Value = tb.Text;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							case JTokenType.Integer:
@@ -383,10 +387,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									bd.Converter = new OnlyInt64Converter();
 									tb_integer.SetBinding(NumericUpDown.ValueProperty, bd);
 
-									//tb_integer.ValueChanged += delegate
-									//{
-									//	((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
-									//};
+									tb_integer.ValueChanged += delegate
+									{
+										//((JValue)optionValue).Value = (System.Int64)tb_integer.Value;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							case JTokenType.Boolean:
@@ -411,27 +416,39 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 									bd.Mode = BindingMode.TwoWay;
 									bd.Converter = new OnlyBooleanConverter();
 									ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
-									//ts.Checked += delegate
-									//{
-									//	((JValue)optionValue).Value = ts.IsChecked;
-									//};
-									//ts.Unchecked += delegate
-									//{
-									//	((JValue)optionValue).Value = ts.IsChecked;
-									//};
+									ts.Checked += delegate
+									{
+										//((JValue)optionValue).Value = ts.IsChecked;
+										ConfigOptions.bChanged = true;
+									};
+									ts.Unchecked += delegate
+									{
+										//((JValue)optionValue).Value = ts.IsChecked;
+										ConfigOptions.bChanged = true;
+									};
 								}
 								break;
 							default:
 								break;
 						}
 						break;
+
+					//case Options.col_var_item:
+					case Options.item:
+					case Options.column_pos:
+					case Options.wrap_char:
+
+					//case Options.col_fix_item:
+					case Options.start_pos:
+					case Options.size:
+					case Options.col_size:
 					default:
 						break;
 				}
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UserControls.ConfigOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + optionKey.Name + "\" : \"" + optionValue + "\")", "UserControls.ConfigOption.Sam.SamOption.GetUIOptionValue");
 			}
 			if(ret != null)
 			{
@@ -534,6 +551,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 								cb.Foreground = Brushes.Black;
 
 								Console.WriteLine("jprop = " + jprop);
+
+								ConfigOptions.bChanged = true;
 							};
 							cb.Unchecked += delegate
 							{
@@ -546,6 +565,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 								pan_value.IsEnabled = cb.IsChecked.Value;
 								cb.Foreground = Brushes.Gray;
 								Console.WriteLine("jprop = " + jprop);
+
+								ConfigOptions.bChanged = true;
 							};
 							ret = cb;
 						}
@@ -556,7 +577,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "UserControls.ConfigOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + optionKey + ")", "UserControls.ConfigOption.Sam.SamOption.GetUIOptionKey");
 			}
 
 			if(ret != null)

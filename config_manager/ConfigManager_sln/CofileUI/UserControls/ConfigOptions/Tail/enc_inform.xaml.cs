@@ -24,9 +24,19 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 		{
 			InitializeComponent();
 		}
-		string[] _option = new string[] { "item", "enc_pattern", "pattern", "delimiter", "sub_left_len", "sub_right_len", "jumin_check_yn"};
-		string[] detail = new string[] { "암/복호화에 사용할 Item명", "enc_pattern", "감시하고자 하는 pattern, 정규표현식으로 작성", "구분자", "감시한 패턴에서 왼쪽에서 제외할 크기", "감시한 패턴에서 오른쪽에서 제외할 크기", "jumin_check_yn" };
-		object[] initvalue = new object[] {"", "", "", "", (Int64)0, (Int64)0, true};
+		enum Option
+		{
+			item = 0,
+			enc_pattern,
+			pattern,
+			delimiter,
+			sub_left_len,
+			sub_right_len,
+			jumin_check_yn,
+			Length
+		}
+		string[] detail = new string[(int)Option.Length] { "암/복호화에 사용할 Item명", "enc_pattern", "감시하고자 하는 pattern, 정규표현식으로 작성", "구분자", "감시한 패턴에서 왼쪽에서 제외할 크기", "감시한 패턴에서 오른쪽에서 제외할 크기", "jumin_check_yn" };
+		object[] initvalue = new object[(int)Option.Length] {"", "", "", "", (Int64)0, (Int64)0, false};
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
 			JProperty jprop = this.DataContext as JProperty;
@@ -48,8 +58,10 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 			JObject jobj = new JObject();
 			for(int i = 0; i < wa.Value.Length; i++)
-				jobj.Add(new JProperty(_option[i], wa.Value[i]));
+				jobj.Add(new JProperty(((Option)i).ToString(), wa.Value[i]));
 			jarr.Add(jobj);
+
+			ConfigOptions.bChanged = true;
 		}
 		private void OnClickDelete(object sender, RoutedEventArgs e)
 		{
@@ -64,6 +76,8 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				return;
 
 			jarr.Remove(jobj);
+
+			ConfigOptions.bChanged = true;
 		}
 		private void OnClickModify(object sender, RoutedEventArgs e)
 		{
@@ -77,17 +91,14 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			if(jobj == null)
 				return;
 			object[] _initvalue = new object[initvalue.Length];
-			int i=0;
-			foreach(var v in jobj.Children())
+			for(int i = 0; i < _initvalue.Length; i++)
 			{
-				JProperty jp = v as JProperty;
-				if(jp == null)
-					continue;
-				JValue jv = jp.Value as JValue;
-				if(jv == null)
-					continue;
-
-				_initvalue[i++] = jv.Value;
+				string key = ((Option)i).ToString();
+				JValue jval = jobj[key] as JValue;
+				if(jval != null)
+					_initvalue[i] = jval.Value;
+				else
+					_initvalue[i] = initvalue[i];
 			}
 
 			Button btn = sender as Button;
@@ -101,20 +112,26 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			if(wa.ShowDialog() != true)
 				return;
 
-			i = 0;
-			foreach(var v in jobj.Children())
-			{
-				JProperty jp = v as JProperty;
-				if(jp == null)
-					continue;
-				JValue jv = jp.Value as JValue;
-				if(jv == null)
-					continue;
 
-				jv.Value = wa.Value[i++];
+			for(int i = 0; i < wa.Value.Length; i++)
+			{
+				string key = ((Option)i).ToString();
+				JValue jval = jobj[key] as JValue;
+				if(jval == null)
+				{
+					jobj.Add(new JProperty(key, wa.Value[i]));
+
+					jval = jobj[TailOption.StartDisableProperty + key] as JValue;
+					if(jval != null)
+						jobj.Remove(TailOption.StartDisableProperty + key);
+				}
+				else
+					jval.Value = wa.Value[i];
 			}
+
 			DataContext = null;
 			DataContext = jprop;
+			ConfigOptions.bChanged = true;
 		}
 	}
 }

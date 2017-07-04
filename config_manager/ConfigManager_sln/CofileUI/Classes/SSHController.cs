@@ -958,7 +958,7 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigJsonTree.CurRootPathLocal);
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
 			if(remote_configfile_path == null)
 				return false;
 
@@ -1011,7 +1011,7 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigJsonTree.CurRootPathLocal);
+			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
 			if(remote_configfile_path == null)
 				return false;
 
