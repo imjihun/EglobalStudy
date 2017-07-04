@@ -74,15 +74,15 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				, "암/복호화 후 출력 경로"
 				, "암/복호화 후 덧붙일 확장자"
 				, "DB SID 이름"
-				, "cofiletail 암/복호화 방식"
+				, "cofile tail 암/복호화 방식"
 				, "암호화시, 입력 폴더의 감시하는 주기"
-				, "tail_type이 PATTERN일 경우 패턴을 정하는 개수"
-				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, input_ext의 옵션보다 우선순위가 높다)"
+				, "tail type이 PATTERN일 경우 패턴을 정하는 개수"
+				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, input ext의 옵션보다 우선순위가 높다)"
 				, "자식 데몬들을 특정 시간 후 종료할 시간"
 				, "데몬 시작시 파일크기가 0인 파일에 대해서 암/복호화 유/무\n (true면 0byte파일도 감시)"
 				, "no_access_sentence"
-				, "file_reserver_yn"
-				, "reg_yn"
+				, "원본 파일 유지 여부"
+				, "정규표현식 사용 여부"
 				
 				// enc_inform
 				, "암/복호화에 사용할 ITEM 명"
@@ -91,7 +91,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				, "구분자"
 				, "감시한 패턴에서 왼쪽에서 제외할 크기"
 				, "감시한 패턴에서 오른쪽에서 제외할 크기"
-				, "jumin_check_yn"
+				, "주민번호 체크 여부"
 			};
 		enum Options
 		{

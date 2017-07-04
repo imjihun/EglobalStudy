@@ -70,7 +70,10 @@ namespace CofileUI.UserControls
 			// 삭제
 			//treeView_linux_directory.Items.Clear();
 			//listView_linux_files.Items.Clear();
-			Clear();
+			LinuxTreeViewItem.Clear();
+			treeView_linux_directory.Items.Clear();
+			listView_linux_files.Items.Clear();
+			listView_work_files.Items.Clear();
 
 			// 추가
 			//string home_dir = sftp.WorkingDirectory;
@@ -94,7 +97,7 @@ namespace CofileUI.UserControls
 			treeView_linux_directory.Items.Clear();
 			listView_linux_files.Items.Clear();
 			listView_work_files.Items.Clear();
-			textBlock_selected_config_file_name.Text = "Not Selected";
+			SelectedConfigLocalPath = "Not Selected";
 		}
 
 		public void PrintCheckConfigFile()

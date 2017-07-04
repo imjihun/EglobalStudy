@@ -29,6 +29,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				if(!bInit)
 				{
 					ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new FileOption());
+
 					bInit = true;
 				}
 			};

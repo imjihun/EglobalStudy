@@ -372,7 +372,7 @@ namespace CofileUI.UserControls
 		}
 		private void OnClickEnvSetting(object sender, RoutedEventArgs e)
 		{
-			Window_Setting wms = new Window_Setting();
+			Window_EnvSetting wms = new Window_EnvSetting();
 			Point pt = this.PointToScreen(new Point(0, 0));
 			wms.Left = pt.X;
 			wms.Top = pt.Y;

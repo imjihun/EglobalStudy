@@ -215,8 +215,14 @@
     <Compile Include="Windows\Window_SelectJsonFile.xaml.cs">
       <DependentUpon>Window_SelectJsonFile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\Window_Setting.xaml.cs">
-      <DependentUpon>Window_Setting.xaml</DependentUpon>
+    <Compile Include="Windows\Window_EnvSetting.xaml.cs">
+      <DependentUpon>Window_EnvSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_MainSetting.xaml.cs">
+      <DependentUpon>Window_MainSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_ServerSetting.xaml.cs">
+      <DependentUpon>Window_ServerSetting.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Window_ViewFile.xaml.cs">
       <DependentUpon>Window_ViewFile.xaml</DependentUpon>
@@ -344,7 +350,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\Window_Setting.xaml">
+    <Page Include="Windows\Window_EnvSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Window_MainSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Window_ServerSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

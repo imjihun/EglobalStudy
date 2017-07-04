@@ -8,10 +8,7 @@
 						xmlns:UserControls="clr-namespace:CofileUI.UserControls"
 					  
 						xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-						
-						xmlns:Sam="clr-namespace:CofileUI.UserControls.ConfigOptions.Sam"
-						xmlns:File="clr-namespace:CofileUI.UserControls.ConfigOptions.File"
-						xmlns:Tail="clr-namespace:CofileUI.UserControls.ConfigOptions.Tail"
+						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 						
 						mc:Ignorable="d"
 					    TitleCharacterCasing="Normal"
@@ -116,5 +113,10 @@
 			</Controls:MetroAnimatedTabControl>
 			<Label x:Name="label_serverinfo" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"/>
 		</Grid>
+		<!--<Grid Grid.Row="0">
+			<Button Content="{iconPacks:PackIconMaterial Kind=Settings}" Background="White"
+					HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,10,14"
+					Click="Button_Click"/>
+		</Grid>-->
 	</Grid>
 </Controls:MetroWindow>

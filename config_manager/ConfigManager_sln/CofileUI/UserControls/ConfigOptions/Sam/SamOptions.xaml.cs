@@ -109,36 +109,36 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 	class SamOption : IOptions
 	{
-		string[] _options = new string[]
-			{
-			// comm_option
-				"sam_type"
-				, "no_col"
-				, "sid"
-				, "delimiter"
-				, "trim"
-				, "skip_header"
-				, "record_len"
-				, "input_filter"
-				, "input_dir"
-				, "input_ext"
-				, "output_dir"
-				, "output_ext"
-				, "dir_monitoring_yn"
-				, "dir_monitoring_term"
-				, "no_access_sentence"
+		//string[] _options = new string[]
+		//	{
+		//	// comm_option
+		//		"sam_type"
+		//		, "no_col"
+		//		, "sid"
+		//		, "delimiter"
+		//		, "trim"
+		//		, "skip_header"
+		//		, "record_len"
+		//		, "input_filter"
+		//		, "input_dir"
+		//		, "input_ext"
+		//		, "output_dir"
+		//		, "output_ext"
+		//		, "dir_monitoring_yn"
+		//		, "dir_monitoring_term"
+		//		, "no_access_sentence"
 				
-				// col_var
-				, "item"
-				, "column_pos"
-				, "wrap_char"
+		//		// col_var
+		//		, "item"
+		//		, "column_pos"
+		//		, "wrap_char"
 				
-				// col_fix
-				//, "item"
-				, "start_pos"
-				, "size"
-				, "col_size"
-			};
+		//		// col_fix
+		//		//, "item"
+		//		, "start_pos"
+		//		, "size"
+		//		, "col_size"
+		//	};
 		string[] detailOptions = new string[]
 			{
 			// comm_option
@@ -156,7 +156,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				, "암/복호화 후 덧붙일 확장자명"
 				, "폴더 감시 모드 (daemon)"
 				, "폴더 감시 모드일 때, 감시 주기"
+				, "원본 파일 유지 여부"
 				, "no_access_sentence"
+				, "log_file"
 
 				// col_var
 				, "암/복호화에 사용할 Item명"
@@ -185,7 +187,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			, output_ext
 			, dir_monitoring_yn
 			, dir_monitoring_term
+			, file_reserver_yn
 			, no_access_sentence
+			, log_file
 
 			// col_var
 			, item
@@ -198,6 +202,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			, start_pos
 			, size
 			, col_size
+			, Length
 		}
 		class OptionInfo
 		{
@@ -213,11 +218,11 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 		}
 		public void InitDic()
 		{
-			for(int i = 0; i < _options.Length; i++)
+			for(int i = 0; i < (int)Options.Length; i++)
 			{
-				dic_options.Add(_options[i], new OptionInfo()
+				dic_options.Add(((Options)i).ToString(), new OptionInfo()
 				{
-					Key = _options[i]
+					Key = ((Options)i).ToString()
 						,
 					Detail = detailOptions[i]
 						//, Number = GetOption(_options[i])
@@ -401,7 +406,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.output_ext:
 					case Options.dir_monitoring_yn:
 					case Options.dir_monitoring_term:
+					case Options.file_reserver_yn:
 					case Options.no_access_sentence:
+					case Options.log_file:
 						switch(optionValue.Type)
 						{
 							case JTokenType.String:
@@ -542,6 +549,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.output_ext:
 					case Options.dir_monitoring_yn:
 					case Options.dir_monitoring_term:
+					case Options.file_reserver_yn:
 
 					//case Options.col_var_item:
 					case Options.column_pos:
@@ -568,6 +576,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					// Optional
 					case Options.input_filter:
 					case Options.no_access_sentence:
+					case Options.log_file:
 
 					case Options.wrap_char:
 

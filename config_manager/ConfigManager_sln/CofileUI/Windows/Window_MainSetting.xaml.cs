@@ -13,17 +13,33 @@ using System.Windows.Shapes;
 
 namespace CofileUI.Windows
 {
+	public static class MainSettings
+	{
+		private static int sessionTimeOut = 5;
+		public static int SessionTimeOut { get { return sessionTimeOut; } set { sessionTimeOut = value; } }
+
+	}
 	/// <summary>
 	/// Window_Setting.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class Window_Setting : Window
+	public partial class Window_MainSetting : Window
 	{
-		public Window_Setting()
+		public Window_MainSetting()
 		{
 			InitializeComponent();
-			textBox_cohome.KeyDown += TextBox_KeyDown;
-
-			textBox_cohome.Focus();
+			numericUpDown_sessionTimeOut.KeyDown += TextBox_KeyDown;
+			numericUpDown_sessionTimeOut.ValueChanged += delegate
+			{
+				if(numericUpDown_sessionTimeOut.Value < 0)
+					numericUpDown_sessionTimeOut.Value = 0;
+				numericUpDown_sessionTimeOut.Value = Convert.ToInt32(numericUpDown_sessionTimeOut.Value);
+			};
+			numericUpDown_sessionTimeOut.Value = MainSettings.SessionTimeOut;
+			numericUpDown_sessionTimeOut.Focus();
+		}
+		private void SaveVariable()
+		{
+			MainSettings.SessionTimeOut = Convert.ToInt32(numericUpDown_sessionTimeOut.Value);
 		}
 		private void TextBox_KeyDown(object sender, KeyEventArgs e)
 		{

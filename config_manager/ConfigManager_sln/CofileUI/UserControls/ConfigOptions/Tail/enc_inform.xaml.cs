@@ -35,7 +35,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			jumin_check_yn,
 			Length
 		}
-		string[] detail = new string[(int)Option.Length] { "암/복호화에 사용할 Item명", "enc_pattern", "감시하고자 하는 pattern, 정규표현식으로 작성", "구분자", "감시한 패턴에서 왼쪽에서 제외할 크기", "감시한 패턴에서 오른쪽에서 제외할 크기", "jumin_check_yn" };
+		string[] detail = new string[(int)Option.Length] { "암/복호화에 사용할 Item명", "enc_pattern", "감시하고자 하는 pattern, 정규표현식으로 작성", "구분자", "감시한 패턴에서 왼쪽에서 제외할 크기", "감시한 패턴에서 오른쪽에서 제외할 크기", "주민번호 체크 여부" };
 		object[] initvalue = new object[(int)Option.Length] {"", "", "", "", (Int64)0, (Int64)0, false};
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
@@ -50,9 +50,9 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				return;
 
 			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, initvalue);
-			Point pt = btn.PointToScreen(new Point(0, 0));
-			wa.Left = pt.X;
-			wa.Top = pt.Y;
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wa.Left = pt.X + this.ActualWidth / 2 - wa.Width / 2;
+			wa.Top = pt.Y + this.ActualHeight / 2 - wa.Height / 2;
 			if(wa.ShowDialog() != true)
 				return;
 
@@ -106,9 +106,9 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				return;
 
 			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, _initvalue);
-			Point pt = btn.PointToScreen(new Point(0, 0));
-			wa.Left = pt.X;
-			wa.Top = pt.Y;
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wa.Left = pt.X + this.ActualWidth / 2 - wa.Width / 2;
+			wa.Top = pt.Y + this.ActualHeight / 2 - wa.Height / 2;
 			if(wa.ShowDialog() != true)
 				return;
 

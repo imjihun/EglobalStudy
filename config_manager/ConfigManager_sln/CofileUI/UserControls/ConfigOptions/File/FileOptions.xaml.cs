@@ -64,7 +64,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 		//	public const int input_extension = 17;
 		//	public const int output_extension = 18;
 		//}
-		enum Options
+		public enum Options
 		{
 			// comm_option
 			sid = 0
@@ -88,8 +88,10 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			, output_dir
 			, input_extension
 			, output_extension
+
+			, Length
 		}
-		public string[] detailOptions = new string[]
+		public string[] detailOptions = new string[(int)Options.Length]
 			{
 				// comm_option
 				"DB SID 이름"
@@ -167,7 +169,46 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				);
 			}
 		}
+		public enum TestOptions
+		{
+			sid = 0
+			, item
+			, encode_type
+			, log_console_yn
+			, header_file_save_yn
+			, file_reserver_yn
+			, dir_monitoring_yn
+			, dir_monitoring_term
+			, verify_yn
+			, schedule_time
+			, result_log_yn
+			, thread_count
 
+			, Length
+		}
+		public string[] TestdetailOptions = new string[(int)TestOptions.Length]
+			{
+				// comm_option
+				"DB SID 이름"
+				, "암/복호화에 사용할 Item 명"
+				, "암호화 인코딩 타입"
+				, "암/복호화 진행사항을 화면에 출력"
+				, "암호화에 관련된 Header 정보를 파일로 저장"
+				, "암호화시 원본 파일 유지"
+				, "폴더 감시 모드 (daemon)"
+				, "폴더 감시 모드 주기"
+				, "verify_yn"
+				, "schedule_time"
+				, "result_log_yn"
+				, "thread_count"
+			};
+		void MakeUI(Grid grid, JObject root)
+		{
+			for(int i = 0; i < (int)TestOptions.Length; i++)
+			{
+
+			}
+		}
 		public FrameworkElement GetUIOptionValue(JProperty optionKey, JToken optionValue)
 		{
 			FrameworkElement ret = null;
@@ -200,6 +241,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							ret = cb;
 						}
 						break;
+					case Options.sid:
 					case Options.item:
 					case Options.log_console_yn:
 					case Options.header_file_save_yn:

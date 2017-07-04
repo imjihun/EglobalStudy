@@ -80,15 +80,14 @@ namespace CofileUI.Windows
 		{
 			LastInputTime = DateTime.Now;
 		}
-
-		int TimeoutDisconnect_Min = 5;
+		
 		private void DisconnectTimeout_Tick(object sender, EventArgs e)
 		{
 			if(SSHController.IsConnected
-				&& LastInputTime.AddMinutes(TimeoutDisconnect_Min) < DateTime.Now)
+				&& LastInputTime.AddMinutes(MainSettings.SessionTimeOut) < DateTime.Now)
 			//&& LastInputTime.AddSeconds(5) < DateTime.Now)
 			{
-				WindowMain.current.ShowMessageDialog("Session Timeout", TimeoutDisconnect_Min + "분 간 입력이 없어 연결이 종료됩니다.", MessageDialogStyle.Affirmative, DisconnectTimeout);
+				WindowMain.current.ShowMessageDialog("Session Timeout", MainSettings.SessionTimeOut + "분 간 입력이 없어 연결이 종료됩니다.", MessageDialogStyle.Affirmative, DisconnectTimeout);
 			}
 			//Console.WriteLine("LastInputTime = " + LastInputTime);
 		}
@@ -283,6 +282,13 @@ namespace CofileUI.Windows
 
 			if(alwayse_callback != null)
 				alwayse_callback();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			Window_MainSetting wm = new Window_MainSetting();
+			if(wm.ShowDialog() == true)
+				;
 		}
 	}
 }

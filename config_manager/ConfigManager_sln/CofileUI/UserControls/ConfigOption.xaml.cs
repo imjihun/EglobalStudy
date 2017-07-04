@@ -234,11 +234,17 @@ namespace CofileUI.UserControls
 			WindowMain.CallBack afterSave_callback = null;
 			MenuItem mi = sender as MenuItem;
 			if(mi.Header as string == "_File")
-				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File); };
+				afterSave_callback = NewJsonFile_File;
 			if(mi.Header as string == "_Sam")
-				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam); };
+				afterSave_callback = NewJsonFile_Sam;
 			if(mi.Header as string == "_Tail")
-				afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail); };
+				afterSave_callback = NewJsonFile_Tail;
+			//if(mi.Header as string == "_File")
+			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File); };
+			//if(mi.Header as string == "_Sam")
+			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam); };
+			//if(mi.Header as string == "_Tail")
+			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail); };
 
 			ConfirmSave(afterSave_callback);
 		}

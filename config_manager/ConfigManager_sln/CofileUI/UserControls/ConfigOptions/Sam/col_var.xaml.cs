@@ -48,9 +48,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				return;
 
 			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, initvalue);
-			Point pt = btn.PointToScreen(new Point(0, 0));
-			wa.Left = pt.X;
-			wa.Top = pt.Y;
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wa.Left = pt.X + this.ActualWidth / 2 - wa.Width / 2;
+			wa.Top = pt.Y + this.ActualHeight / 2 - wa.Height / 2;
 			if(wa.ShowDialog() != true)
 				return;
 
@@ -104,9 +104,9 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				return;
 
 			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, _initvalue);
-			Point pt = btn.PointToScreen(new Point(0, 0));
-			wa.Left = pt.X;
-			wa.Top = pt.Y;
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wa.Left = pt.X + this.ActualWidth / 2 - wa.Width / 2;
+			wa.Top = pt.Y + this.ActualHeight / 2 - wa.Height / 2;
 			if(wa.ShowDialog() != true)
 				return;
 

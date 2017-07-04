@@ -442,7 +442,7 @@ namespace CofileUI.Classes
 		}
 		public static void EditCoHome()
 		{
-			Window_Setting wms = new Window_Setting();
+			Window_EnvSetting wms = new Window_EnvSetting();
 			if(ServerList.selected_serverinfo_panel != null)
 			{
 				Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
