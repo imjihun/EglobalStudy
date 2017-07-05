@@ -4,8 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CofileUI.UserControls.ConfigOptions.File"
+			 
+			 xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+			 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="600" d:DesignWidth="400">
 	<UserControl.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
@@ -13,7 +16,7 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 	</UserControl.Resources>
-	<Grid x:Name="grid">
+	<Grid x:Name="grid" Background="White">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="{StaticResource GridColumnWidthKey}"/>
 			<ColumnDefinition Width="{StaticResource GridColumnWidthValue}"/>
@@ -37,100 +40,84 @@
 			</Grid.RowDefinitions>
 
 			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="0" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.sam_type}"/>
-			<ComboBox Grid.Row="0" Grid.Column="1" 
-					  Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					  SelectedIndex="{Binding sam_type, Converter={StaticResource OnlyInt64Converter}}">
-				<ComboBoxItem Content="var"/>
-				<ComboBoxItem Content="fixed"/>
-			</ComboBox>
+					   Text="{StaticResource file.comm_option.sid}"/>
+			<TextBox Grid.Row="0" Grid.Column="1"
+					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+					 Text="{Binding Value.sid}"/>
 
 			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="1" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.no_col}"/>
-			<Controls:NumericUpDown Grid.Row="1" Grid.Column="1"
-									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-									Value="{Binding no_col, Converter={StaticResource OnlyInt64Converter}}"/>
+					   Text="{StaticResource file.comm_option.item}"/>
+			<TextBox Grid.Row="1" Grid.Column="1"
+					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+					 Text="{Binding Value.item}"/>
 
 			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="2" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.sid}"/>
-			<TextBox Grid.Row="2" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding sid}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="3" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.delimiter}"/>
-			<TextBox Grid.Row="3" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding delimiter}"/>
-			
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="4" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.trim}"/>
-			<Controls:NumericUpDown Grid.Row="4" Grid.Column="1"
-									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-									Value="{Binding trim, Converter={StaticResource OnlyInt64Converter}}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="5" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.skip_header}"/>
-			<Controls:NumericUpDown Grid.Row="5" Grid.Column="1"
-									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-									Value="{Binding skip_header, Converter={StaticResource OnlyInt64Converter}}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="6" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.record_len}"/>
-			<Controls:NumericUpDown Grid.Row="6" Grid.Column="1"
-									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-									Value="{Binding record_len, Converter={StaticResource OnlyInt64Converter}}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="7" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.input_filter}"/>
-			<ComboBox Grid.Row="7" Grid.Column="1" 
+					   Text="{StaticResource file.comm_option.encode_type}"/>
+			<ComboBox Grid.Row="2" Grid.Column="1" 
 					  Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					  IsEditable="True"
-					  Text="{Binding input_filter}">
-				<ComboBoxItem Content="[.]sam$"/>
+					  SelectedIndex="{Binding Value.encode_type, Converter={StaticResource StringToInt64Converter}}">
+				<ComboBoxItem Content="binary"/>
+				<ComboBoxItem Content="ASCII"/>
 			</ComboBox>
 
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="8" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.input_dir}"/>
-			<TextBox Grid.Row="8" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding input_dir}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="9" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.input_ext}"/>
-			<TextBox Grid.Row="9" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding input_ext}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="10" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.output_dir}"/>
-			<TextBox Grid.Row="10" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding output_dir}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="11" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.output_ext}"/>
-			<TextBox Grid.Row="11" Grid.Column="1"
-					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding output_ext}"/>
-
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="12" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.dir_monitoring_yn}"/>
-			<Controls:ToggleSwitch Grid.Row="12" Grid.Column="1"
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="3" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.log_console_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="3" Grid.Column="1"
 								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-								   IsChecked="{Binding dir_monitoring_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   IsChecked="{Binding Value.log_console_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
+			
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="4" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.header_file_save_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="4" Grid.Column="1"
+								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+								   IsChecked="{Binding Value.header_file_save_yn, Converter={StaticResource OnlyBooleanConverter}}"
 								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
 
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="13" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.dir_monitoring_term}"/>
-			<Controls:NumericUpDown Grid.Row="13" Grid.Column="1"
-									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-									Value="{Binding dir_monitoring_term, Converter={StaticResource OnlyInt64Converter}}"/>
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="5" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.file_reserver_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="5" Grid.Column="1"
+								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+								   IsChecked="{Binding Value.file_reserver_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
 
-			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="14" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
-					   Text="{StaticResource sam.comm_option.no_access_sentence}"/>
-			<TextBox Grid.Row="14" Grid.Column="1"
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="6" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.dir_monitoring_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="6" Grid.Column="1"
+								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+								   IsChecked="{Binding Value.dir_monitoring_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
+
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="7" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.dir_monitoring_term}"/>
+			<Controls:NumericUpDown Grid.Row="7" Grid.Column="1"
+									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+									Value="{Binding Value.dir_monitoring_term, Converter={StaticResource OnlyInt64Converter}}"/>
+
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="8" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.verify_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="8" Grid.Column="1"
+								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+								   IsChecked="{Binding Value.verify_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
+
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="9" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.schedule_time}"/>
+			<TextBox Grid.Row="9" Grid.Column="1"
 					 Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
-					 Text="{Binding no_access_sentence}"/>-->
+					 Text="{Binding Value.schedule_time}"/>
+
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="10" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.result_log_yn}"/>
+			<Controls:ToggleSwitch Grid.Row="10" Grid.Column="1"
+								   Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+								   IsChecked="{Binding Value.result_log_yn, Converter={StaticResource OnlyBooleanConverter}}"
+								   Style="{StaticResource MahApps.Metro.Styles.ToggleSwitch.Win10}"/>
+
+			<TextBlock Margin="{DynamicResource MarginKey}" Grid.Row="11" Grid.Column="0" VerticalAlignment="{StaticResource VerticalAlignmentKey}"
+					   Text="{StaticResource file.comm_option.thread_count}"/>
+			<Controls:NumericUpDown Grid.Row="11" Grid.Column="1"
+									Width="{StaticResource WidthValue}" Height="{StaticResource HeightValue}" VerticalAlignment="{StaticResource VerticalAlignmentValue}" HorizontalAlignment="{StaticResource HorizontalAlignmentValue}"
+									Value="{Binding Value.thread_count, Converter={StaticResource OnlyInt64Converter}}"/>-->
 	</Grid>
 </UserControl>

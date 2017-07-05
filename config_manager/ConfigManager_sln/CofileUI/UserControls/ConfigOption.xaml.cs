@@ -252,7 +252,7 @@ namespace CofileUI.UserControls
 		{
 			ConfigOptionManager.Clear();
 
-			JToken jtok = JsonController.ParseJson(Properties.Resources.file_config_default);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.file_config_default);
 			Refresh(jtok);
 
 			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
@@ -261,7 +261,7 @@ namespace CofileUI.UserControls
 		{
 			ConfigOptionManager.Clear();
 		
-			JToken jtok = JsonController.ParseJson(Properties.Resources.sam_config_default);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.sam_config_default);
 			Refresh(jtok);
 
 			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
@@ -270,7 +270,7 @@ namespace CofileUI.UserControls
 		{
 			ConfigOptionManager.Clear();
 			
-			JToken jtok = JsonController.ParseJson(Properties.Resources.tail_config_default);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.tail_config_default);
 			Refresh(jtok);
 
 			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
@@ -302,7 +302,7 @@ namespace CofileUI.UserControls
 			{
 				Log.PrintConsole(ofd.FileName, "UserControls.ConfigJsonTree.OnClickButtonOpenJsonFile");
 				string json = FileContoller.Read(ofd.FileName);
-				JToken jtok = JsonController.ParseJson(json);
+				JToken jtok = JsonController.ParseJsonUI(json);
 				if(jtok != null)
 				{
 					Refresh(jtok);
@@ -446,7 +446,7 @@ namespace CofileUI.UserControls
 
 			if(w.ShowDialog() == true)
 			{
-				Refresh(JsonController.ParseJson(w.tb_file.Text));
+				Refresh(JsonController.ParseJsonUI(w.tb_file.Text));
 				ConfigOptionManager.bChanged = true;
 			}
 		}
@@ -465,7 +465,7 @@ namespace CofileUI.UserControls
 		private void CalcelJsonFile()
 		{
 			string json = FileContoller.Read(ConfigOptionManager.Path);
-			Refresh(JsonController.ParseJson(json));
+			Refresh(JsonController.ParseJsonUI(json));
 			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion

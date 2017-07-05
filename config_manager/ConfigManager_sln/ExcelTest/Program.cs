@@ -16,36 +16,36 @@ namespace ExcelTest
 	{
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Start");
-			Data d = new Data();
+			//Console.WriteLine("Start");
+			//Data d = new Data();
 
-			Console.WriteLine("Table Loading..");
-			if(d.GetTable(AppDomain.CurrentDomain.BaseDirectory + @"test.db") < 0)
-				return;
+			//Console.WriteLine("Table Loading..");
+			//if(d.GetTable(AppDomain.CurrentDomain.BaseDirectory + @"test.db") < 0)
+			//	return;
 
-			string path = AppDomain.CurrentDomain.BaseDirectory + @"test";
-			Console.WriteLine("Table xls Exporting..");
-			if(d.ExportExcel(true, path + ".xls") == 0)
-			{
-				Console.WriteLine("Table xls Finish");
-				Console.WriteLine();
-			}
+			//string path = AppDomain.CurrentDomain.BaseDirectory + @"test";
+			//Console.WriteLine("Table xls Exporting..");
+			//if(d.ExportExcel(true, path + ".xls") == 0)
+			//{
+			//	Console.WriteLine("Table xls Finish");
+			//	Console.WriteLine();
+			//}
 
-			Console.WriteLine("Table xml Exporting..");
-			if(d.ExportXml(path + ".xml") == 0)
-			{
-				Console.WriteLine("Table xml Finish");
-				Console.WriteLine();
-			}
+			//Console.WriteLine("Table xml Exporting..");
+			//if(d.ExportXml(path + ".xml") == 0)
+			//{
+			//	Console.WriteLine("Table xml Finish");
+			//	Console.WriteLine();
+			//}
 
-			Console.WriteLine("Table csv Exporting..");
-			if(d.ExportCSV(path + ".csv") == 0)
-			{
-				Console.WriteLine("Table csv Finish");
-				Console.WriteLine();
-			}
+			//Console.WriteLine("Table csv Exporting..");
+			//if(d.ExportCSV(path + ".csv") == 0)
+			//{
+			//	Console.WriteLine("Table csv Finish");
+			//	Console.WriteLine();
+			//}
 
-			Console.WriteLine("Finish");
+			//Console.WriteLine("Finish");
 		}
 	}
 

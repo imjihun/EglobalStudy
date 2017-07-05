@@ -34,14 +34,14 @@
 					<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
 						<ScrollViewer>
 							<Grid x:Name="grid1">
-								<local:comm_option DataContext="{Binding comm_option.Parent}"/>
+								<!--<local:comm_option DataContext="{Binding comm_option.Parent}"/>-->
 							</Grid>
 						</ScrollViewer>
 					</TabItem>
 					<TabItem Header="Encrypt" Style="{StaticResource StyleTabItem}">
 						<ScrollViewer>
 							<Grid x:Name="grid2">
-								<local:enc_inform DataContext="{Binding enc_inform.Parent}"/>
+								<!--<local:enc_inform DataContext="{Binding enc_inform.Parent}"/>-->
 							</Grid>
 						</ScrollViewer>
 					</TabItem>

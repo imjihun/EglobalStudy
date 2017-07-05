@@ -388,7 +388,8 @@ namespace CofileUI.Classes
 				string[] split = str_read.Split('\n');
 
 				int offset = split[0].Length;
-				int length = str_read.Length - offset - split[split.Length - 1].Length;
+				//int length = str_read.Length - offset - split[split.Length - 1].Length;
+				int length = split[1].Length;
 				char[] newLines = new char[] {'\n', '\r' };
 
 				string retval = str_read.Substring(offset, length).Trim(newLines);
@@ -429,7 +430,7 @@ namespace CofileUI.Classes
 			}
 
 			if(LoadEnvCoHome() == ReturnValue.Fail.LOAD_CO_HOME)
-				return false;
+				;//return false;
 
 			EditCoHome();
 			//MahApps.Metro.Controls.Dialogs.MetroDialogSettings settings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings()
@@ -1039,6 +1040,9 @@ namespace CofileUI.Classes
 				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 
 				SendCommand(send_cmd);
+				DateTime dt = DateTime.Now.AddSeconds(1);
+				while(dt > DateTime.Now && read_line_ssh.Length <= 0)
+					;
 				//string ret = readCofileMessageBlocking();
 				//string caption = isEncrypt ? "Encrypt" : "Decrypt";
 				//Log.ViewMessage(ret, caption, Status.current.richTextBox_status);

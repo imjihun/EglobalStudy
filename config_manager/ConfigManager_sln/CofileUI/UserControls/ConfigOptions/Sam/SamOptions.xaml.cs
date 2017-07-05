@@ -25,41 +25,21 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 	{
 		bool bInit = false;
 		public static SamOptions current;
+		JObject Root { get; set; }
 		public SamOptions()
 		{
 			current = this;
-			//try
-			//{
-			//	JToken token = JsonController.ParseJson(Properties.Resources.sam_config_default);
-			//	DataContext = token;
-			//}
-			//catch(Exception e)
-			//{ }
 			InitializeComponent();
 			ConfigOptionManager.bChanged = false;
-
-			//JToken token = DataContext as JToken;
-			//if(token == null)
-			//	return;
-
-			//foreach(var v in token.Children())
-			//{
-			//	JProperty jprop = v as JProperty;
-			//	if(jprop == null)
-			//		return;
-
-			//	if(jprop.Name == "col_var" || jprop.Name == "#col_var")
-			//	{
-
-			//	}
-			//}
-			//grid1.Children.Add(new comm_option() { DataContext = token["comm_option"].Parent });
-			//grid2.Children.Add(new col_var() { DataContext = token["col_var"].Parent });
-			//grid3.Children.Add(new col_fix() { DataContext = token["#col_fix"].Parent });
 			this.Loaded += delegate
 			{
 				if(!bInit)
 				{
+					Root = DataContext as JObject;
+					if(Root == null)
+						return;
+
+					grid1.Children.Add(new comm_option(Root["comm_option"] as JObject));
 					ChangeSecondGrid();
 					bInit = true;
 				}
@@ -75,6 +55,10 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				return;
 			JValue jval = jobj["sam_type"] as JValue;
 			if(jval == null)
+				return;
+
+			grid2.Children.Clear();
+			if(root["col_var"] == null)
 				return;
 
 			if(Convert.ToInt64(jval.Value) == 0)
@@ -95,12 +79,12 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 
 			if(root[disableKey] != null)
 			{
-				root[disableKey].Parent.Replace(new JProperty(SamOption.StartDisableProperty + disableKey, root[disableKey]));
+				root[disableKey].Parent.Replace(new JProperty(ConfigOptionManager.StartDisableProperty + disableKey, root[disableKey]));
 			}
 			if(root[enableKey] == null)
 			{
-				if(root[SamOption.StartDisableProperty + enableKey] != null)
-					root[SamOption.StartDisableProperty + enableKey].Parent.Replace(new JProperty(enableKey, root[SamOption.StartDisableProperty + enableKey]));
+				if(root[ConfigOptionManager.StartDisableProperty + enableKey] != null)
+					root[ConfigOptionManager.StartDisableProperty + enableKey].Parent.Replace(new JProperty(enableKey, root[ConfigOptionManager.StartDisableProperty + enableKey]));
 				else
 					root.Add(new JProperty(enableKey, new JArray()));
 			}
@@ -202,6 +186,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			, start_pos
 			, size
 			, col_size
+
 			, Length
 		}
 		class OptionInfo

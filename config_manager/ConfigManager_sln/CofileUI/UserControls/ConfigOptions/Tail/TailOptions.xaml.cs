@@ -24,17 +24,69 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 	/// </summary>
 	public partial class TailOptions : UserControl
 	{
+		bool bInit = false;
+		JObject Root { get; set; }
+		public static TailOptions current;
 		public TailOptions()
 		{
-			//try
-			//{
-			//	JToken token = JsonController.ParseJson(Properties.Resources.tail_config_default);
-			//	DataContext = token;
-			//}
-			//catch(Exception e)
-			//{ }
+			current = this;
 			InitializeComponent();
 			ConfigOptionManager.bChanged = false;
+			this.Loaded += delegate
+			{
+				Root = DataContext as JObject;
+				if(Root == null)
+					return;
+
+				grid1.Children.Add(new comm_option(Root["comm_option"] as JObject));
+				ChangeSecondGrid();
+				bInit = true;
+			};
+		}
+
+		public void ChangeSecondGrid()
+		{
+			JObject root = DataContext as JObject;
+			if(root == null)
+				return;
+			JObject jobj = root["comm_option"] as JObject;
+			if(jobj == null)
+				return;
+			JValue jval = jobj["tail_type"] as JValue;
+			if(jval == null)
+				return;
+
+			grid2.Children.Clear();
+			if(root["enc_inform"] == null)
+				return;
+
+			if(Convert.ToInt64(jval.Value) == 1)
+			{
+				//ChangeBySamType(root, "col_var", "col_fix");
+				grid2.Children.Add(new enc_inform() { DataContext = root["enc_inform"].Parent });
+			}
+			else if(Convert.ToInt64(jval.Value) == 2)
+			{
+				//ChangeBySamType(root, "col_fix", "col_var");
+				grid2.Children.Add(new enc_inform_line(root["enc_inform"][0] as JObject));
+			}
+		}
+		static void ChangeBySamType(JObject root, string enableKey, string disableKey)
+		{
+			if(root == null || enableKey == null || disableKey == null)
+				return;
+
+			if(root[disableKey] != null)
+			{
+				root[disableKey].Parent.Replace(new JProperty(ConfigOptionManager.StartDisableProperty + disableKey, root[disableKey]));
+			}
+			if(root[enableKey] == null)
+			{
+				if(root[ConfigOptionManager.StartDisableProperty + enableKey] != null)
+					root[ConfigOptionManager.StartDisableProperty + enableKey].Parent.Replace(new JProperty(enableKey, root[ConfigOptionManager.StartDisableProperty + enableKey]));
+				else
+					root.Add(new JProperty(enableKey, new JArray()));
+			}
 		}
 	}
 	class TailOption : IOptions

@@ -19,9 +19,38 @@
 	<system:String x:Key="sam.comm_option.dir_monitoring_term">폴더 감시 모드일 때, 감시 주기</system:String>
 	<system:String x:Key="sam.comm_option.no_access_sentence">no_access_sentence</system:String>
 
+	<system:String x:Key="file.comm_option.sid">DB SID 이름</system:String>
+	<system:String x:Key="file.comm_option.item">암/복호화에 사용할 Item 명</system:String>
+	<system:String x:Key="file.comm_option.encode_type">암호화 인코딩 타입</system:String>
+	<system:String x:Key="file.comm_option.log_console_yn">암/복호화 진행사항을 화면에 출력</system:String>
+	<system:String x:Key="file.comm_option.header_file_save_yn">암호화에 관련된 Header 정보를 파일로 저장</system:String>
+	<system:String x:Key="file.comm_option.file_reserver_yn">암호화시 원본 파일 유지</system:String>
+	<system:String x:Key="file.comm_option.dir_monitoring_yn">폴더 감시 모드 (daemon)</system:String>
+	<system:String x:Key="file.comm_option.dir_monitoring_term">폴더 감시 모드 주기</system:String>
+	<system:String x:Key="file.comm_option.verify_yn">verify_yn</system:String>
+	<system:String x:Key="file.comm_option.schedule_time">schedule_time</system:String>
+	<system:String x:Key="file.comm_option.result_log_yn">result_log_yn</system:String>
+	<system:String x:Key="file.comm_option.thread_count">thread_count</system:String>
+	
+	<x:Array x:Key="file.comm_option" Type="sys:String" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:sys="clr-namespace:System;assembly=mscorlib">
+		<sys:String>DB SID 이름</sys:String>
+		<sys:String>암/복호화에 사용할 Item 명</sys:String>
+		<sys:String>암호화 인코딩 타입</sys:String>
+		<sys:String>암/복호화 진행사항을 화면에 출력</sys:String>
+		<sys:String>암호화에 관련된 Header 정보를 파일로 저장</sys:String>
+		<sys:String>암호화시 원본 파일 유지</sys:String>
+		<sys:String>폴더 감시 모드 (daemon)</sys:String>
+		<sys:String>폴더 감시 모드 주기</sys:String>
+		<sys:String>verify_yn</sys:String>
+		<sys:String>schedule_time</sys:String>
+		<sys:String>result_log_yn</sys:String>
+		<sys:String>thread_count</sys:String>
+	</x:Array>
 
 	<local:Int64ToStringConverter x:Key="Int64ToStringConverter"/>
 	<local:OnlyInt64Converter x:Key="OnlyInt64Converter"/>
+	<local:StringToInt64Converter x:Key="StringToInt64Converter"/>
 	<local:OnlyBooleanConverter x:Key="OnlyBooleanConverter"/>
 	<Style x:Key="StyleDataGrid" BasedOn="{StaticResource MetroDataGrid}" TargetType="{x:Type DataGrid}">
 		<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
@@ -35,7 +64,7 @@
 	<GridLength x:Key="GridColumnWidthValue">*</GridLength>
 	<GridLength x:Key="GridRowHeight">35</GridLength>
 	<system:Double x:Key="WidthValue">150</system:Double>
-	<system:Double x:Key="HeightValue">30</system:Double>
+	<system:Double x:Key="HeightValue">25</system:Double>
 	<VerticalAlignment x:Key="VerticalAlignmentValue">Center</VerticalAlignment>
 	<HorizontalAlignment x:Key="HorizontalAlignmentValue">Left</HorizontalAlignment>
 	<VerticalAlignment x:Key="VerticalAlignmentKey">Center</VerticalAlignment>

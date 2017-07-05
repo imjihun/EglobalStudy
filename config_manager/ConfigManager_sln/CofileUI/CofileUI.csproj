@@ -158,6 +158,9 @@
       <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ConfigOptions\ConfigOptionManager.cs" />
+    <Compile Include="UserControls\ConfigOptions\Tail\enc_inform_line.xaml.cs">
+      <DependentUpon>enc_inform_line.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ConfigOptions\Tail\TailOptions.xaml.cs">
       <DependentUpon>TailOptions.xaml</DependentUpon>
     </Compile>
@@ -291,6 +294,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UserControls\ConfigOption.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Tail\enc_inform_line.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

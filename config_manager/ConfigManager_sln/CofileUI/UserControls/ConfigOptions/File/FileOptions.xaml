@@ -35,7 +35,7 @@
 
 						<ScrollViewer>
 							<Grid x:Name="grid1">
-								<local:comm_option DataContext="{Binding comm_option.Parent}"/>
+								<!--<local:comm_option DataContext="{Binding comm_option.Parent}"/>-->
 							</Grid>
 
 						</ScrollViewer>
@@ -44,7 +44,7 @@
 
 						<ScrollViewer>
 							<Grid x:Name="grid2">
-								<local:enc_option DataContext="{Binding enc_option.Parent}"/>
+								<!--<local:enc_option DataContext="{Binding enc_option.Parent}"/>-->
 							</Grid>
 
 						</ScrollViewer>
@@ -52,7 +52,7 @@
 					<TabItem Header="Decrypt" Style="{StaticResource StyleTabItem}">
 						<ScrollViewer>
 							<Grid x:Name="grid3">
-								<local:dec_option DataContext="{Binding dec_option.Parent}"/>
+								<!--<local:dec_option DataContext="{Binding dec_option.Parent}"/>-->
 							</Grid>
 						</ScrollViewer>
 					</TabItem>

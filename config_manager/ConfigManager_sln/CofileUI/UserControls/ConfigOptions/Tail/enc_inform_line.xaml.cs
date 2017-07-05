@@ -16,43 +16,28 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static CofileUI.UserControls.ConfigOptions.ConfigOptionManager;
 
-namespace CofileUI.UserControls.ConfigOptions.File
+namespace CofileUI.UserControls.ConfigOptions.Tail
 {
 	/// <summary>
-	/// dec_option.xaml에 대한 상호 작용 논리
+	/// enc_inform_line.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class dec_option : UserControl
+	public partial class enc_inform_line : UserControl
 	{
 		bool bInit = false;
 		static JObject Root { get; set; }
-		public dec_option(JObject root)
+		public enc_inform_line(JObject root)
 		{
 			Root = root;
 			DataContext = root;
 			InitializeComponent();
 
 			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
-			this.Loaded += delegate
-			{
-				if(!bInit)
-				{
-					//ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new FileOption());
-					bInit = true;
-				}
-			};
 		}
-
-
 
 		public enum Options
 		{
-			input_filter = 0
-			, output_suffix_head
-			, output_suffix_tail
-			, input_dir
-			, output_dir
-			, input_extension
-			, output_extension
+			// comm_option
+			item = 0
 
 			, Length
 		}
@@ -64,25 +49,47 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				Header = new Label() {Content = "Basic" },
 				Arr = new int[]
 				{
-					(int)Options.input_dir,
-					(int)Options.output_dir,
-					(int)Options.input_extension,
-					(int)Options.output_extension,
-					(int)Options.input_filter,
-					(int)Options.output_suffix_head,
-					(int)Options.output_suffix_tail
+					(int)Options.item
 				}
 			}
+			//new Group()
+			//{
+			//	Arr = new int[]
+			//	{
+			//		(int)Options.dir_monitoring_yn
+			//		, (int)Options.dir_monitoring_term
+			//		, (int)Options.verify_yn
+			//		, (int)Options.schedule_time
+			//	}
+			//},
+			//new Group()
+			//{
+			//	Header = new Label() {Content = "Etc" },
+			//	Arr = new int[]
+			//	{
+			//		(int)Options.result_log_yn
+			//		, (int)Options.thread_count
+			//	}
+			//}
 		};
+		//case Options.input_dir:
+		//case Options.input_ext:
+		//case Options.output_dir:
+		//case Options.output_ext:
+		//case Options.sid:
+		//case Options.tail_type:
+		//case Options.interval:
+		//case Options.no_inform:
+		//case Options.input_filter:
+		//case Options.shutdown_time:
+		//case Options.zero_byte_yn:
+		//case Options.no_access_sentence:
+		//case Options.file_reserver_yn:
+		//case Options.reg_yn:
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
-				"암/복호화 할 파일이름 규칙 정보 (정규표현식)"
-				, "암/복호화 후 파일 저장시 머리말"
-				, "암/복호화 후 파일 저장시 꼬릿말"
-				, "암/복호화 할 원본파일 폴더 경로"
-				, "암/복호화 후 저장될 폴더 경로"
-				, "암/복호화 할 파일의 확장자"
-				, "암/복호화 후 덧 붙일 확장자"
+			// comm_option
+				"암/복호화에 사용할 ITEM 명"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -92,13 +99,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				object value = "";
 				switch(opt)
 				{
-					case Options.input_filter:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
-					case Options.input_dir:
-					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
+					case Options.item:
 						value = "";
 						break;
 				}
@@ -137,11 +138,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				switch(option)
 				{
 					// Basical
-					case Options.input_dir:
-					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
-
+					case Options.item:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -149,69 +146,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							};
 
 							ret = tb;
-						}
-						break;
-
-					// Optional
-					case Options.input_filter:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
-						{
-							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
-
-							CheckBox cb = new CheckBox();
-							JProperty jprop = GetJProperty(option, root);
-							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
-							sp.Children.Add(cb);
-							TextBlock tb = new TextBlock()
-							{
-								Text = detail
-							};
-							sp.Children.Add(tb);
-
-							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-							cb.Checked += delegate
-							{
-								try
-								{
-									if(jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
-									{
-										jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
-							};
-							cb.Unchecked += delegate
-							{
-								try
-								{
-									if(jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
-									{
-										jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
-							};
-							ret = sp;
 						}
 						break;
 					default:
@@ -241,13 +175,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			{
 				switch(option)
 				{
-					case Options.input_filter:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
-					case Options.input_dir:
-					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
+					case Options.item:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
@@ -273,7 +201,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					default:
 						break;
 				}
-
 				if(jprop != null && jprop.Name[0] == ConfigOptionManager.StartDisableProperty
 					&& Root[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null
 					&& Root[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent != null)

@@ -13,7 +13,7 @@ namespace CofileUI.Classes
 	{
 		//static string error_message = "";
 		//public static string Error_message { get { return error_message; } }
-		public static JToken ParseJson(string json)
+		public static JToken ParseJsonUI(string json)
 		{
 			if(json == null)
 				return null;
@@ -28,6 +28,24 @@ namespace CofileUI.Classes
 				//error_message = e.Message;
 				Log.PrintError(e.Message, "Classes.JsonController.ParseJson");
 				WindowMain.current.ShowMessageDialog("Json Context Error!!", e.Message, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+			}
+
+			return obj;
+		}
+		public static JToken ParseJson(string json)
+		{
+			if(json == null)
+				return null;
+			JToken obj = null;
+			try
+			{
+				obj = JToken.Parse(json);
+				//Log.Print(obj);
+			}
+			catch(Exception e)
+			{
+				//error_message = e.Message;
+				Log.PrintError(e.Message, "Classes.JsonController.ParseJson");
 			}
 
 			return obj;

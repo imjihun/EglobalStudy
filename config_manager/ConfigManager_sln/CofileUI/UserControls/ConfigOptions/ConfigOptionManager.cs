@@ -21,6 +21,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	}
 	static class ConfigOptionManager
 	{
+		public static char StartDisableProperty = '#';
 		public static JToken Root;
 		private static UserControl current;
 		private static string path;
@@ -53,6 +54,8 @@ namespace CofileUI.UserControls.ConfigOptions
 					WindowMain.current.tabItem_Config.Header = "*" + Application.Current.FindResource("MainTab.Config") as string;
 				else
 					WindowMain.current.tabItem_Config.Header = Application.Current.FindResource("MainTab.Config") as string;
+
+				Console.WriteLine(Root);
 			}
 		}
 		public static void Clear()
@@ -229,6 +232,134 @@ namespace CofileUI.UserControls.ConfigOptions
 			return 0;
 		}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+		public class Group
+		{
+			public FrameworkElement Header { get; set; }
+			public int[] Arr { get; set; }
+		}
+		public delegate FrameworkElement GetUI(int opt, JObject root);
+		const int WIDTH_KEY = 450;
+		public static void MakeUI(Grid grid, JObject root, string[] detailOptions, Group[] groups,
+			GetUI GetUIOptionKey, GetUI GetUIOptionValue)
+		{
+			for(int i = 0; i < groups.Length; i++)
+			{
+				Border bd = new Border() {BorderBrush = Brushes.LightGray, BorderThickness = new Thickness(1) };
+				Grid grid_group = new Grid();
+				grid_group.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+				grid_group.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+				bd.Child = grid_group;
+				grid.Children.Add(bd);
+
+				grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+				Grid.SetRow(bd, grid.RowDefinitions.Count - 1);
+
+				Grid grid_group_body = new Grid();
+				grid_group_body.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(WIDTH_KEY) });
+				grid_group_body.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+				grid_group_body.Margin = new Thickness(15, 0, 0, 0);
+				if(groups[i].Header != null)
+				{
+					grid_group.Children.Add(groups[i].Header);
+					Grid.SetRow(groups[i].Header, 0);
+				}
+
+				grid_group.Children.Add(grid_group_body);
+				Grid.SetRow(grid_group_body, 1);
+
+				for(int j = 0; j < groups[i].Arr.Length; j++)
+				{
+					try
+					{
+						Grid grid_key = new Grid();
+						Grid grid_value = new Grid();
+
+						FrameworkElement ui_key = GetUIOptionKey(groups[i].Arr[j], root);
+						if(ui_key == null)
+							break;
+						StackPanel sp = ui_key as StackPanel;
+						if(sp != null)
+						{
+							CheckBox cb = sp.Children[0] as CheckBox;
+							if(cb != null)
+							{
+								Binding _bd = new Binding("IsChecked") { Source = cb, Mode = BindingMode.OneWay, Converter = new OnlyBooleanConverter() };
+								grid_value.SetBinding(Grid.IsEnabledProperty, _bd);
+								//grid_value.IsEnabled = cb.IsChecked.Value;
+								//cb.Checked += delegate { grid_value.IsEnabled = cb.IsChecked.Value; };
+								//cb.Unchecked += delegate { grid_value.IsEnabled = cb.IsChecked.Value; };
+							}
+						}
+
+						grid_key.Children.Add(ui_key);
+
+						FrameworkElement ui_value = GetUIOptionValue(groups[i].Arr[j], root);
+						if(ui_value == null)
+							break;
+
+						grid_value.Children.Add(ui_value);
+
+						if(groups[i].Header == null)
+						{
+							Grid grid_group_header = new Grid();
+							grid_group_header.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(WIDTH_KEY) });
+							grid_group_header.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+							grid_group.Children.Add(grid_group_header);
+							Grid.SetRow(grid_group_header, 0);
+
+							Grid.SetColumn(grid_key, 0);
+							grid_group_header.Children.Add(grid_key);
+
+							Grid.SetColumn(grid_value, 1);
+							grid_group_header.Children.Add(grid_value);
+
+							groups[i].Header = grid_group_header;
+
+							ToggleSwitch ts = ui_value as ToggleSwitch;
+							if(ts != null)
+							{
+								Binding _bd = new Binding("IsChecked") { Source = ts, Mode = BindingMode.OneWay, Converter = new OnlyBooleanConverter() };
+								grid_group_body.SetBinding(Grid.IsEnabledProperty, _bd);
+								//ts.Checked += delegate { grid_group_body.IsEnabled = true; };
+								//ts.Unchecked += delegate { grid_group_body.IsEnabled = false; };
+							}
+						}
+						else
+						{
+							grid_group_body.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+							int idxRow = grid_group_body.RowDefinitions.Count - 1;
+
+							Grid.SetRow(grid_key, idxRow);
+							Grid.SetColumn(grid_key, 0);
+							grid_group_body.Children.Add(grid_key);
+
+							Grid.SetRow(grid_value, idxRow);
+							Grid.SetColumn(grid_value, 1);
+							grid_group_body.Children.Add(grid_value);
+						}
+					}
+					catch(Exception e)
+					{
+						Console.WriteLine(e.Message);
+						continue;
+					}
+				}
+			}
+		}
+
 	}
 	//class Options
 	//{
@@ -262,12 +393,12 @@ namespace CofileUI.UserControls.ConfigOptions
 	//			, "dir_monitoring_yn"
 	//			, "dir_monitoring_term"
 	//			, "no_access_sentence"
-				
+
 	//			// col_var
 	//			, "item"
 	//			, "column_pos"
 	//			, "wrap_char"
-				
+
 	//			// col_fix
 	//			//, "item"
 	//			, "start_pos"
@@ -441,7 +572,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//						ret = cb;
 	//					}
 	//					break;
-						
+
 	//				case Options.input_ext:
 	//					{
 	//						Dictionary<string, int> dic = new Dictionary<string, int>()
@@ -532,7 +663,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//				case Options.item:
 	//				case Options.column_pos:
 	//				case Options.wrap_char:
-						
+
 	//				//case Options.col_fix_item:
 	//				case Options.start_pos:
 	//				case Options.size:
@@ -797,7 +928,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//			, "schedule_time"
 	//			, "result_log_yn"
 	//			, "thread_count"
-				
+
 	//			// enc_option | dec_option
 	//			, "암/복호화 할 파일이름 규칙 정보 (정규표현식)"
 	//			, "암/복호화 후 파일 저장시 머리말"
@@ -822,7 +953,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//			, "schedule_time"
 	//			, "result_log_yn"
 	//			, "thread_count"
-				
+
 	//			// enc_option | dec_option
 	//			, "input_filter"
 	//			, "output_suffix_head"
@@ -878,7 +1009,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//						var e = dic.GetEnumerator();
 	//						while(e.MoveNext())
 	//							cb.Items.Add(e.Current.Key);
-							
+
 	//						ret = cb;
 	//					}
 	//					break;
@@ -905,7 +1036,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//						var e = dic.GetEnumerator();
 	//						while(e.MoveNext())
 	//							cb.Items.Add(e.Current.Key);
-							
+
 	//						ret = cb;
 	//					}
 	//					break;
@@ -932,7 +1063,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//						var e = dic.GetEnumerator();
 	//						while(e.MoveNext())
 	//							cb.Items.Add(e.Current.Key);
-							
+
 	//						ret = cb;
 	//					}
 	//					break;
@@ -940,7 +1071,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//				case Options.output_dir:
 	//					{
 	//						ComboBox cb = new ComboBox() { Text = optionValue.ToString(), IsEditable = true };
-							
+
 	//						ret = cb;
 	//					}
 	//					break;
@@ -955,7 +1086,7 @@ namespace CofileUI.UserControls.ConfigOptions
 	//						var e = dic.GetEnumerator();
 	//						while(e.MoveNext())
 	//							cb.Items.Add(e.Current.Key);
-							
+
 	//						ret = cb;
 	//					}
 	//					break;
@@ -1223,6 +1354,28 @@ namespace CofileUI.UserControls.ConfigOptions
 
 
 	#region Converter
+	public class MultiBinderConverter : IMultiValueConverter
+	{
+		public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+		{
+			if(values == null)
+				return null;
+
+			int i;
+			for(i = 0; i < values.Length; i++)
+			{
+				if(values[i] != null)
+					break;
+			}
+
+			return System.Convert.ToInt64(values[i]);
+		}
+
+		public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+		{
+			return new object[] { value, value };
+		}
+	}
 	public class OnlyStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -1281,6 +1434,18 @@ namespace CofileUI.UserControls.ConfigOptions
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			return System.Convert.ToString(value);
+		}
+	}
+	public sealed class OnlyInt64TailTypeConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToInt64(value) - 1;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return System.Convert.ToInt64(value) + 1;
 		}
 	}
 
