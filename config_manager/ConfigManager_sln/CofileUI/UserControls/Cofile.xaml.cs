@@ -310,6 +310,34 @@ namespace CofileUI.UserControls
 		}
 		public static string PreviewExtension = "preview_extension_ll";
 		static ulong Idx_Encrypt_File_Open = 0;
+
+		public delegate int Tick();
+		public static void StartCoRoutine(double time_ms, Tick tick, string timeoutTitle, string timeoutMessage)
+		{
+			System.Windows.Threading.DispatcherTimer dt = new System.Windows.Threading.DispatcherTimer()
+			{
+				Interval = new TimeSpan(0,0,0,1)
+			};
+			DateTime timeout = DateTime.Now.AddMilliseconds(time_ms);
+			dt.Tick += delegate 
+			{
+				int? retval = tick?.Invoke();
+				DateTime now = DateTime.Now;
+				if(retval == 0)
+					dt.Stop();
+				else if(timeout < now)
+				{
+					if(timeoutTitle != null && timeoutMessage != null)
+					{
+						//Log.ErrorIntoUI(timeoutMessage, timeoutTitle, Status.current.richTextBox_status);
+						Log.PrintError(timeoutMessage + "(time out)", "UserControls.Cofile.StartCoRoutine");
+					}
+					dt.Stop();
+				}
+			};
+			dt.Start();
+		}
+
 		private int OpenEncryptFile()
 		{
 			if(listView_linux_files.SelectedItems.Count < 1)
@@ -328,47 +356,59 @@ namespace CofileUI.UserControls
 
 			if(SSHController.SendNRecvCofileCommandPreview(listView_linux_files.SelectedItems.Cast<Object>(), false))
 			{
-				if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename))
-				{
-					llvi.LinuxTVI.RefreshChildFromParent();
-					Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
-
-					string url_localfile = root_path + local_filename;
-					string[] split = remote_path.Split('.');
-					string expansion = split[split.Length - 2];
-					if(expansion == "png"
-						|| expansion == "dib"
-						|| expansion == "bmp"
-						|| expansion == "jpg"
-						|| expansion == "jpeg"
-						|| expansion == "jpe"
-						|| expansion == "jfif"
-						|| expansion == "gif"
-						|| expansion == "tif"
-						|| expansion == "tiff"
-						)
+				StartCoRoutine(10000,
+					delegate
 					{
-						Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-						FileContoller.DeleteFile(url_localfile);
+						if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename, 0))
+						{
+							llvi.LinuxTVI.RefreshChildFromParent();
+							Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
 
-						wvi.ShowDialog();
-					}
-					else
-					{
+							string url_localfile = root_path + local_filename;
+							string[] split = remote_path.Split('.');
+							string expansion = split[split.Length - 2];
+							if(expansion == "png"
+								|| expansion == "dib"
+								|| expansion == "bmp"
+								|| expansion == "jpg"
+								|| expansion == "jpeg"
+								|| expansion == "jpe"
+								|| expansion == "jfif"
+								|| expansion == "gif"
+								|| expansion == "tif"
+								|| expansion == "tiff"
+								)
+							{
+								Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
+								FileContoller.DeleteFile(url_localfile);
 
-						string str = FileContoller.Read(url_localfile);
-						FileContoller.DeleteFile(url_localfile);
+								Point pt = this.PointToScreen(new Point(0, 0));
+								wvi.Left = pt.X;
+								wvi.Top = pt.Y;
+								wvi.ShowDialog();
+							}
+							else
+							{
 
-						Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
-						wvf.ShowDialog();
-					}
-					return 0;
-				}
-				else
-				{
-					Log.ErrorIntoUI("Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed", Status.current.richTextBox_status);
-					Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
-				}
+								string str = FileContoller.Read(url_localfile);
+								FileContoller.DeleteFile(url_localfile);
+
+								Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
+
+								Point pt = this.PointToScreen(new Point(0, 0));
+								wvf.Left = pt.X;
+								wvf.Top = pt.Y;
+								wvf.ShowDialog();
+							}
+							return 0;
+						}
+						else
+						{
+							//Log.ErrorIntoUI("Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed", Status.current.richTextBox_status);
+							//Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
+							return -1;
+						}
+					}, "Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed");
 			}
 			return -4;
 		}
@@ -378,23 +418,31 @@ namespace CofileUI.UserControls
 			if(jtok == null)
 				return null;
 
-			if(jtok["dec_option"] == null || jtok["dec_option"]["input_extension"] == null)
+			if(jtok["dec_option"] == null)
 			{
 				Log.ErrorIntoUI("Check the dec_option.input_extension in Cofile Config file", "Decrypt Failed", Status.current.richTextBox_status);
 				return null;
 			}
 
-			JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
+
 			string output_extension = PreviewExtension;
+			if(jtok["dec_option"]["input_extension"] != null)
+			{
+				JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
 
-			string remote_path = remote_path_enc_file;
-			if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1)
-				//&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
-				remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
+				string remote_path = remote_path_enc_file;
+				if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1)
+					//&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
+					remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
 
-			string remote_path_dec_file = remote_path + "." + output_extension;
+				string remote_path_dec_file = remote_path + "." + output_extension;
 
-			return remote_path_dec_file;
+				return remote_path_dec_file;
+			}
+			else
+			{
+				return remote_path_enc_file + "." + output_extension;
+			}
 		}
 		private BitmapImage LoadImage(string uri_ImageFile)
 		{

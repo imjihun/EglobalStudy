@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8682379-697C-4A25-A387-A03DEBE6B2E1}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CofileUI</RootNamespace>
     <AssemblyName>CofileUI</AssemblyName>
@@ -161,6 +161,9 @@
     <Compile Include="UserControls\ConfigOptions\Tail\enc_inform_line.xaml.cs">
       <DependentUpon>enc_inform_line.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\ConfigOptions\Tail\enc_inform_reg.xaml.cs">
+      <DependentUpon>enc_inform_reg.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ConfigOptions\Tail\TailOptions.xaml.cs">
       <DependentUpon>TailOptions.xaml</DependentUpon>
     </Compile>
@@ -233,6 +236,9 @@
     <Compile Include="Windows\Window_ViewImage.xaml.cs">
       <DependentUpon>Window_ViewImage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\Window_Waiting.xaml.cs">
+      <DependentUpon>Window_Waiting.xaml</DependentUpon>
+    </Compile>
     <Page Include="Resources\ConfigOptionResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -298,6 +304,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\ConfigOptions\Tail\enc_inform_line.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\ConfigOptions\Tail\enc_inform_reg.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -374,6 +384,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Window_ViewImage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Window_Waiting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

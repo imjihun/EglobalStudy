@@ -66,23 +66,31 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				{
 					(int)Options.input_dir,
 					(int)Options.output_dir,
-					(int)Options.input_extension,
 					(int)Options.output_extension,
-					(int)Options.input_filter,
 					(int)Options.output_suffix_head,
 					(int)Options.output_suffix_tail
+				}
+			},
+			new Group()
+			{
+				Header = new Label() {Content = "복호화 대상 규칙" },
+				RadioButtonGroupName = "Input",
+				Arr = new int[]
+				{
+					(int)Options.input_extension,
+					(int)Options.input_filter
 				}
 			}
 		};
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
-				"암/복호화 할 파일이름 규칙 정보 (정규표현식)"
-				, "암/복호화 후 파일 저장시 머리말"
-				, "암/복호화 후 파일 저장시 꼬릿말"
-				, "암/복호화 할 원본파일 폴더 경로"
-				, "암/복호화 후 저장될 폴더 경로"
-				, "암/복호화 할 파일의 확장자"
-				, "암/복호화 후 덧 붙일 확장자"
+				"복호화 대상 파일 필터(정규표현식)"
+				, "복호화 후 파일 저장시 머리말"
+				, "복호화 후 파일 저장시 꼬릿말"
+				, "복호화 할 원본파일 폴더 경로"
+				, "복호화 후 저장될 폴더 경로"
+				, "복호화 할 파일의 확장자"
+				, "복호화 후 덧 붙일 확장자"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -139,9 +147,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					// Basical
 					case Options.input_dir:
 					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
-
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -151,9 +156,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							ret = tb;
 						}
 						break;
-
 					// Optional
-					case Options.input_filter:
+					case Options.output_extension:
 					case Options.output_suffix_head:
 					case Options.output_suffix_tail:
 						{
@@ -172,44 +176,38 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
 							cb.Checked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
-									{
-										jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.CheckedKey(ref jprop);
 							};
 							cb.Unchecked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
-									{
-										jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.UncheckedKey(ref jprop);
+							};
+							ret = sp;
+						}
+						break;
+					case Options.input_extension:
+					case Options.input_filter:
+						{
+							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
+
+							RadioButton cb = new RadioButton();
+							JProperty jprop = GetJProperty(option, root);
+							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
+							sp.Children.Add(cb);
+							TextBlock tb = new TextBlock()
+							{
+								Text = detail
+							};
+							sp.Children.Add(tb);
+
+							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+							cb.Checked += delegate
+							{
+								ConfigOptionManager.CheckedKey(ref jprop);
+							};
+							cb.Unchecked += delegate
+							{
+								ConfigOptionManager.UncheckedKey(ref jprop);
 							};
 							ret = sp;
 						}

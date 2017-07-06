@@ -24,7 +24,7 @@
 					<RowDefinition Height="35"/>
 				</Grid.RowDefinitions>
 				<Grid Grid.Row="0">
-					<Label Content="Setting" FontSize="15"
+					<Label Content="Inform" FontSize="15"
 						   HorizontalAlignment="Center"/>
 				</Grid>
 

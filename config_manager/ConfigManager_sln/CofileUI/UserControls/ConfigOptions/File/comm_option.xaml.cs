@@ -138,6 +138,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			},
 			new Group()
 			{
+				RadioButtonGroupName = "Monitoring",
 				Arr = new int[]
 				{
 					(int)Options.dir_monitoring_yn
@@ -150,17 +151,17 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			{
 				// comm_option
 				"DB SID 이름"
-				, "암/복호화에 사용할 Item 명"
+				, "Item 명"
 				, "암호화 인코딩 타입"
-				, "암/복호화 진행사항을 화면에 출력"
-				, "암호화에 관련된 Header 정보를 파일로 저장"
-				, "암호화시 원본 파일 유지"
+				, "로그출력 여부 (True : stdout)"
+				, "header 파일 생성 여부 (True : 생성)"
+				, "원본 파일 유지 여부 (True : 유지)"
 				, "폴더 감시 모드 (daemon)"
-				, "폴더 감시 모드 주기"
-				, "verify_yn"
-				, "schedule_time"
-				, "result_log_yn"
-				, "thread_count"
+				, "폴더 감시 주기 (초)"
+				, "암호화후 데이터 검증 여부 (True : 검증)"
+				, "스케쥴 시간 (00:00 ~ 23:59)"
+				, "로그 결과 저장 여부 (True : 저장)"
+				, "쓰레드 개수"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -231,7 +232,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Options.header_file_save_yn:
 					case Options.file_reserver_yn:
 					case Options.dir_monitoring_yn:
-					case Options.dir_monitoring_term:
 					case Options.verify_yn:
 					case Options.result_log_yn:
 
@@ -246,7 +246,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						break;
 
 					// Optional
-					case Options.schedule_time:
 					case Options.thread_count:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
@@ -264,44 +263,38 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
 							cb.Checked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
-									{
-										jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.CheckedKey(ref jprop);
 							};
 							cb.Unchecked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
-									{
-										jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.UncheckedKey(ref jprop);
+							};
+							ret = sp;
+						}
+						break;
+					case Options.schedule_time:
+					case Options.dir_monitoring_term:
+						{
+							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
+
+							RadioButton cb = new RadioButton();
+							JProperty jprop = GetJProperty(option, root);
+							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
+							sp.Children.Add(cb);
+							TextBlock tb = new TextBlock()
+							{
+								Text = detail
+							};
+							sp.Children.Add(tb);
+
+							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+							cb.Checked += delegate
+							{
+								ConfigOptionManager.CheckedKey(ref jprop);
+							};
+							cb.Unchecked += delegate
+							{
+								ConfigOptionManager.UncheckedKey(ref jprop);
 							};
 							ret = sp;
 						}

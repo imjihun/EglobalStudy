@@ -40,7 +40,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			col_size,
 			Length
 		}
-		string[] detail = new string[(int)Option.Length] { "암/복호화에 사용할 Item명", "암/복호화 대상 컬럼 시작 위치", "암/복호화 대상 컬럼 크기" , "암/복호화 후 데이터 크기" };
+		string[] detail = new string[(int)Option.Length] { "Item명", "암/복호화 대상 컬럼 시작 위치", "암/복호화 대상 컬럼 크기" , "암/복호화 후 데이터 크기" };
 		object[] initvalue = new object[(int)Option.Length] {"", (Int64)0, (Int64)0, (Int64)0 };
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
@@ -54,7 +54,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			if(btn == null)
 				return;
 
-			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, initvalue);
+			object[] _initvalue = initvalue.Clone() as object[];
+			Windows.Window_AddDataGridInConfig wa = new Windows.Window_AddDataGridInConfig(detail, _initvalue);
 			Point pt = this.PointToScreen(new Point(0, 0));
 			wa.Left = pt.X + this.ActualWidth / 2 - wa.Width / 2;
 			wa.Top = pt.Y + this.ActualHeight / 2 - wa.Height / 2;

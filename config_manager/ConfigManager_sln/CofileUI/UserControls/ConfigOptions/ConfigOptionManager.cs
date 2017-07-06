@@ -29,11 +29,11 @@ namespace CofileUI.UserControls.ConfigOptions
 			set {
 				path = value;
 				if(current as ConfigOptions.File.FileOptions != null)
-					((ConfigOptions.File.FileOptions)current).label.Content = "File [ " + FileName + " ]";
+					((ConfigOptions.File.FileOptions)current).textBlock.Text = "File [ " + FileName + " ]";
 				if(current as ConfigOptions.Sam.SamOptions != null)
-					((ConfigOptions.Sam.SamOptions)current).label.Content = "Sam [ " + FileName + " ]";
+					((ConfigOptions.Sam.SamOptions)current).textBlock.Text = "Sam [ " + FileName + " ]";
 				if(current as ConfigOptions.Tail.TailOptions != null)
-					((ConfigOptions.Tail.TailOptions)current).label.Content = "Tail [ " + FileName + " ]";
+					((ConfigOptions.Tail.TailOptions)current).textBlock.Text = "Tail [ " + FileName + " ]";
 			}
 		}
 		private static string FileName {
@@ -67,12 +67,24 @@ namespace CofileUI.UserControls.ConfigOptions
 		}
 		public static UserControl CreateOption(JToken token)
 		{
-			if(token["type"].ToString() == "file")
+			if(token["type"] == null)
+			{
+				Log.PrintError("type = " + "empty", "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
+				WindowMain.current.ShowMessageDialog("Config", "type을 확인 할 수 없습니다.\ntype = " + "empty", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				return null;
+			}
+			else if(token["type"].ToString() == "file")
 				current = new ConfigOptions.File.FileOptions() { DataContext = token };
 			else if(token["type"].ToString() == "sam")
 				current = new ConfigOptions.Sam.SamOptions() { DataContext = token };
 			else if(token["type"].ToString() == "tail")
 				current = new ConfigOptions.Tail.TailOptions() { DataContext = token };
+			else
+			{
+				Log.PrintError("type = " + token["type"].ToString(), "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
+				WindowMain.current.ShowMessageDialog("Config", "type을 확인 할 수 없습니다.\ntype = " + token["type"].ToString(), MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				return null;
+			}
 
 			Root = token;
 			Log.PrintLog("type = " + Root["type"].ToString() , "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
@@ -244,12 +256,80 @@ namespace CofileUI.UserControls.ConfigOptions
 
 
 
-
+		public enum GroupBodyStyle
+		{
+			Basic = 0,
+			Radio
+		}
 		public class Group
 		{
 			public FrameworkElement Header { get; set; }
 			public int[] Arr { get; set; }
+
+			// Key UI 의 CheckBox 보다 우선순위가 높다.
+			private GroupBodyStyle bodyStyle = GroupBodyStyle.Basic;
+			public GroupBodyStyle BodyStyle { get { return bodyStyle; } set { bodyStyle = value; } }
+			public string RadioButtonGroupName { get; set; }
 		}
+
+		private static T Find<T>(FrameworkElement ui) where T: FrameworkElement
+		{
+			T retval = ui as T;
+			if(retval == null)
+			{
+				var list = ui.FindChildren<T>();
+				foreach(var v in list)
+				{
+					retval = v;
+					break;
+				}
+			}
+			return retval;
+		}
+		public static void CheckedKey(ref JProperty jprop)
+		{
+			try
+			{
+				if(jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
+				{
+					if(jprop != jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent)
+						jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
+				}
+				JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
+				jprop.Replace(newJprop);
+				Log.PrintLog(jprop + " -> " + newJprop, "UserControls.ConfigOptions.ConfigOptionManager.CheckedKey");
+				// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+				jprop = newJprop;
+
+			}
+			catch(Exception ex)
+			{
+				Log.PrintError(ex.Message, "UserControls.ConfigOptions.ConfigOptionManager.CheckedKey");
+			}
+			ConfigOptionManager.bChanged = true;
+		}
+		public static void UncheckedKey(ref JProperty jprop)
+		{
+			try
+			{
+				if(jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
+				{
+					if(jprop != jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent)
+						jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
+				}
+				JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
+				jprop.Replace(newJprop);
+				Log.PrintLog(jprop + " -> " + newJprop, "UserControls.ConfigOptions.ConfigOptionManager.UncheckedKey");
+				// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+				jprop = newJprop;
+			}
+			catch(Exception ex)
+			{
+				Log.PrintError(ex.Message, "UserControls.ConfigOptions.ConfigOptionManager.UncheckedKey");
+			}
+			ConfigOptionManager.bChanged = true;
+		}
+
 		public delegate FrameworkElement GetUI(int opt, JObject root);
 		const int WIDTH_KEY = 450;
 		public static void MakeUI(Grid grid, JObject root, string[] detailOptions, Group[] groups,
@@ -279,7 +359,7 @@ namespace CofileUI.UserControls.ConfigOptions
 
 				grid_group.Children.Add(grid_group_body);
 				Grid.SetRow(grid_group_body, 1);
-
+				
 				for(int j = 0; j < groups[i].Arr.Length; j++)
 				{
 					try
@@ -291,7 +371,7 @@ namespace CofileUI.UserControls.ConfigOptions
 						if(ui_key == null)
 							break;
 						StackPanel sp = ui_key as StackPanel;
-						if(sp != null)
+						if(sp != null && sp.Children.Count > 0)
 						{
 							CheckBox cb = sp.Children[0] as CheckBox;
 							if(cb != null)
@@ -301,6 +381,24 @@ namespace CofileUI.UserControls.ConfigOptions
 								//grid_value.IsEnabled = cb.IsChecked.Value;
 								//cb.Checked += delegate { grid_value.IsEnabled = cb.IsChecked.Value; };
 								//cb.Unchecked += delegate { grid_value.IsEnabled = cb.IsChecked.Value; };
+							}
+
+							RadioButton rb = sp.Children[0] as RadioButton;
+							if(rb != null)
+							{
+								rb.GroupName = groups[i].RadioButtonGroupName;
+								Binding _bd = new Binding("IsChecked") { Source = rb, Mode = BindingMode.OneWay, Converter = new OnlyBooleanConverter() };
+								grid_value.SetBinding(Grid.IsEnabledProperty, _bd);
+
+								var rg = grid_group_body.FindChildren<RadioButton>();
+								foreach(var v in rg)
+								{
+									if(v.IsChecked == true)
+									{
+										rb.IsChecked = false;
+										break;
+									}
+								}
 							}
 						}
 
@@ -335,6 +433,14 @@ namespace CofileUI.UserControls.ConfigOptions
 								grid_group_body.SetBinding(Grid.IsEnabledProperty, _bd);
 								//ts.Checked += delegate { grid_group_body.IsEnabled = true; };
 								//ts.Unchecked += delegate { grid_group_body.IsEnabled = false; };
+							}
+
+							ComboBox cb = ui_value as ComboBox;
+							if(cb != null)
+							{
+								Binding _bd = new Binding("SelectedIndex") { Source = cb, Mode = BindingMode.OneWay, Converter = new Int32ToBooleanConverter(),
+									ConverterParameter = Root };
+								grid_group_body.SetBinding(Grid.IsEnabledProperty, _bd);
 							}
 						}
 						else
@@ -1446,6 +1552,38 @@ namespace CofileUI.UserControls.ConfigOptions
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			return System.Convert.ToInt64(value) + 1;
+		}
+	}
+
+	public sealed class Int32ToBooleanConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			JToken jtok = parameter as JToken;
+			if(jtok == null || jtok["type"] == null)
+				return false;
+
+			if(jtok["type"].ToString() == "sam")
+			{
+				if(System.Convert.ToInt32(value) == 0)
+					return true;
+				else
+					return false;
+			}
+			else if(jtok["type"].ToString() == "tail")
+			{
+				if(System.Convert.ToInt32(value) == 1)
+					return true;
+				else
+					return false;
+			}
+
+			return false;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return 0;
 		}
 	}
 

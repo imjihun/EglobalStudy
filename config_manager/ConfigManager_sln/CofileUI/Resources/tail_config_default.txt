@@ -15,7 +15,8 @@
 	"zero_byte_yn": true,
 	"#no_access_sentence":"Encrypted",
 	"file_reserver_yn": false,
-	"reg_yn": true
+	"reg_yn": true,
+	"daemon_yn": true
   },
   "enc_inform": [
 	{

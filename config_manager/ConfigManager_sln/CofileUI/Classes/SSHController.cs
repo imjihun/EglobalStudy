@@ -213,7 +213,7 @@ namespace CofileUI.Classes
 			}
 			return remote_file_path;
 		}
-		public static bool DownloadFile(string local_path_folder, string remote_path_file, string local_file_name = null, string remote_filename = null)
+		public static bool DownloadFile(string local_path_folder, string remote_path_file, string local_file_name = null, string remote_filename = null, bool bLog = true)
 		{
 			//LinuxTreeViewItem.ReconnectServer();
 			//LinuxTreeViewItem.ReConnect();
@@ -245,20 +245,50 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.ErrorIntoUI(e.Message, "downloadFile", Status.current.richTextBox_status);
+				if(bLog)
+				{
+					Log.ErrorIntoUI(e.Message, "downloadFile", Status.current.richTextBox_status);
+				}
 				Log.PrintError(e.Message, "Classes.SSHController.DownloadFile");
 				return false;
 			}
 			return true;
 		}
-		public static bool MoveFileToLocal(string local_path_folder, string remote_path_file, string local_file_name = null)
+		public static bool MoveFileToLocal(string local_path_folder, string remote_path_file, string local_file_name, double try_time_out_ms)
 		{
-			if(!DownloadFile(local_path_folder, remote_path_file, local_file_name))
-				return false;
-			ssh.RunCommand("rm -rf " + remote_path_file);
-			//SendCommand("rm -rf " + remote_path_file);
+			bool retval = false;
+			if(try_time_out_ms != 0)
+			{
+				DateTime timeout = DateTime.Now.AddMilliseconds(try_time_out_ms);
+				while(timeout > DateTime.Now && retval == false)
+				{
+					tick();
+					retval = DownloadFile(local_path_folder, remote_path_file, local_file_name, bLog: false);
+					//if(!DownloadFile(local_path_folder, remote_path_file, local_file_name, bLog: false))
+					//	return false;
+				}
+				if(retval == false)
+				{
+					Log.ErrorIntoUI(remote_path_file + " -> " + local_path_folder, "MoveFileToLocal", Status.current.richTextBox_status);
+					Log.PrintError(remote_path_file + " -> " + local_path_folder, "Classes.SSHController.MoveFileToLocal");
+					return retval;
+				}
+				ssh.RunCommand("rm -rf " + remote_path_file);
+				//SendCommand("rm -rf " + remote_path_file);
 
-			return true;
+				return true;
+			}
+			else
+			{
+				tick();
+				retval = DownloadFile(local_path_folder, remote_path_file, local_file_name, bLog: false);
+				if(retval == true)
+				{
+					ssh.RunCommand("rm -rf " + remote_path_file);
+				}
+				return retval;
+			}
+
 		}
 		public static bool DownloadDirectory(string local_folder_path, string remote_directory_path, Regex filter_file = null, Regex filter_except_dir = null)
 		{
@@ -456,6 +486,19 @@ namespace CofileUI.Classes
 				EnvCoHome = wms.textBox_cohome.Text;
 			}
 		}
+		public static void test()
+		{
+			try
+			{
+				System.Threading.Thread t = new System.Threading.Thread(delegate (){ ReConnect(timeout_connect_ms); });
+				t.Start();
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+		}
+		delegate void test2();
 		public static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
 			if(ServerList.selected_serverinfo_panel == null)
@@ -485,8 +528,18 @@ namespace CofileUI.Classes
 				string password = wl.Password;
 				ServerList.selected_serverinfo_panel.Serverinfo.id = id;
 				timeout_connect_ms = timeout_ms;
+				
+				Windows.Window_Waiting ww = new Window_Waiting("연결 중입니다..");
+				Point _pt = WindowMain.current.PointToScreen(new Point(0, 0));
+				ww.Left = _pt.X + WindowMain.current.ActualWidth / 2 - ww.Width / 2;
+				ww.Top = _pt.Y + WindowMain.current.ActualHeight / 2 - ww.Height / 2;
+				ww.Show();
 				if(!Connect(ip, port, id, password))
+				{
+					ww.Close();
 					return false;
+				}
+				ww.Close();
 
 				if(!InitConnected())
 					return false;
@@ -717,6 +770,10 @@ namespace CofileUI.Classes
 		}
 
 		private static void Shell_stream_read_timer_Tick(object sender, EventArgs e)
+		{
+			tick();
+		}
+		private static void tick()
 		{
 			if(shell_stream_reader != null)
 			{
@@ -993,7 +1050,7 @@ namespace CofileUI.Classes
 				send_cmd = MakeCommandRunCofile(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 				//SendCommandOnce(send_cmd);
 				if(!is_tail_deamon)
-					send_cmd += send_cmd + " -1";
+					send_cmd += " -1";
 
 				SendCommand(send_cmd);
 				//string ret = readMessageBlocking(send_cmd);
@@ -1040,9 +1097,22 @@ namespace CofileUI.Classes
 				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 
 				SendCommand(send_cmd);
-				DateTime dt = DateTime.Now.AddSeconds(1);
-				while(dt > DateTime.Now && read_line_ssh.Length <= 0)
-					;
+				//Console.WriteLine();
+				//Console.WriteLine();
+				//Console.WriteLine("read_line_ssh = " + read_line_ssh);
+				//Console.WriteLine();
+				//Console.WriteLine();
+				//read_line_ssh = "";
+				//DateTime dt = DateTime.Now.AddSeconds(5);
+				//while(dt > DateTime.Now && read_line_ssh.Length <= 0)
+				//	yield return null;
+				//Console.WriteLine();
+				//Console.WriteLine();
+				//Console.WriteLine("read_line_ssh = " + read_line_ssh);
+				//Console.WriteLine();
+				//Console.WriteLine();
+
+
 				//string ret = readCofileMessageBlocking();
 				//string caption = isEncrypt ? "Encrypt" : "Decrypt";
 				//Log.ViewMessage(ret, caption, Status.current.richTextBox_status);

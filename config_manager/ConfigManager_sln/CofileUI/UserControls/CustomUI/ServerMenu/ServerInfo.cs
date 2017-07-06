@@ -558,8 +558,6 @@ namespace CofileUI.UserControls
 				//Cofile.current.Refresh();
 				if(WindowMain.current != null)
 					WindowMain.current.Refresh(selected_serverinfo_panel.Serverinfo.name);
-
-				//WindowMain.current.initTest();
 			}
 		}
 		protected override void OnSelectionChanged(SelectionChangedEventArgs e)

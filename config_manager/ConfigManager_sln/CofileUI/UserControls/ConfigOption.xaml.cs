@@ -187,7 +187,7 @@ namespace CofileUI.UserControls
 						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
-				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "Debug");
+				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigOption.CurRootPathLocal");
 				return curRootPathLocal;
 			}
 		}
@@ -204,13 +204,14 @@ namespace CofileUI.UserControls
 		{
 			if(SSHController.ReConnect())
 			{
-				//if(RemoveConfigFile(CurRootPathLocal) != 0)
-				//	return -2;
+				int retval = 0;
+				if(RemoveConfigFile(CurRootPathLocal) != 0)
+					retval = -2;
 
 				if(SSHController.GetConfig(CurRootPathLocal) == null)
 					return -1;
 
-				return 0;
+				return retval;
 			}
 			return -3;
 		}
@@ -227,6 +228,8 @@ namespace CofileUI.UserControls
 
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
+			if(!SSHController.ReConnect())
+				return;
 			if(ConfigOptionManager.Path != null)
 			{
 				;

@@ -21,7 +21,7 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="0">
-				<Label x:Name="label" Content="File"/>
+				<TextBlock x:Name="textBlock" Text="File" VerticalAlignment="Center"/>
 				<Border BorderBrush="LightGray" BorderThickness="0,0,0,2"/>
 			</Grid>
 			<Grid Grid.Row="1">
@@ -32,8 +32,7 @@
 										  TabStripPlacement="Left">
 
 					<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
-
-						<ScrollViewer>
+						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
 							<Grid x:Name="grid1">
 								<!--<local:comm_option DataContext="{Binding comm_option.Parent}"/>-->
 							</Grid>
@@ -41,8 +40,7 @@
 						</ScrollViewer>
 					</TabItem>
 					<TabItem Header="Encrypt" Style="{StaticResource StyleTabItem}">
-
-						<ScrollViewer>
+						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
 							<Grid x:Name="grid2">
 								<!--<local:enc_option DataContext="{Binding enc_option.Parent}"/>-->
 							</Grid>
@@ -50,7 +48,7 @@
 						</ScrollViewer>
 					</TabItem>
 					<TabItem Header="Decrypt" Style="{StaticResource StyleTabItem}">
-						<ScrollViewer>
+						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
 							<Grid x:Name="grid3">
 								<!--<local:dec_option DataContext="{Binding dec_option.Parent}"/>-->
 							</Grid>

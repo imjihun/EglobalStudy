@@ -29,8 +29,8 @@
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="item" Binding="{Binding item, Mode=TwoWay}">
 				</DataGridTextColumn>
-				<Controls:DataGridNumericUpDownColumn Header="column_pos" Binding="{Binding column_pos, Mode=TwoWay, Converter={StaticResource Int64ToStringConverter}}"/>
-				<DataGridTextColumn Header="wrap_char" Binding="{Binding wrap_char, Mode=TwoWay}"/>
+				<Controls:DataGridNumericUpDownColumn Header="column pos" Binding="{Binding column_pos, Mode=TwoWay, Converter={StaticResource Int64ToStringConverter}}"/>
+				<DataGridTextColumn Header="wrap char" Binding="{Binding wrap_char, Mode=TwoWay}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 		<Grid Grid.Row="1">

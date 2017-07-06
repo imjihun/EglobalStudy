@@ -84,28 +84,31 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				Header = new Label() {Content = "Basic" },
 				Arr = new int[]
 				{
-					(int)Options.no_col
-					, (int)Options.sid
-					, (int)Options.trim
-					, (int)Options.skip_header
-					, (int)Options.record_len
-					, (int)Options.input_dir
-					, (int)Options.output_dir
-					, (int)Options.output_ext
-					, (int)Options.file_reserver_yn
-					, (int)Options.no_access_sentence
-					, (int)Options.log_file
+					(int)Options.no_col,
+					(int)Options.sid,
+					(int)Options.trim,
+					(int)Options.skip_header,
+					(int)Options.record_len,
+					(int)Options.input_dir,
+					(int)Options.output_dir,
+					(int)Options.output_ext,
+					(int)Options.file_reserver_yn,
+					(int)Options.no_access_sentence,
+					//(int)Options.log_file
 				}
-			},new Group()
+			},
+			new Group()
 			{
 				Arr = new int[]
 				{
 					(int)Options.dir_monitoring_yn,
 					(int)Options.dir_monitoring_term
 				}
-			},new Group()
+			},
+			new Group()
 			{
-				Header = new Label() {Content = "Basic" },
+				Header = new Label() {Content = "암/복호화 대상 규칙" },
+				RadioButtonGroupName = "Input",
 				Arr = new int[]
 				{
 					(int)Options.input_filter,
@@ -154,20 +157,20 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			// comm_option
 				"SAM file type"
 				, "암호화 대상 컬럼 수"
-				, "암호화 대상 DB SID"
+				, "DB SID 이름"
 				, "Column 구분자"
 				, "공백제거 사용 유무"
 				, "암/복호화 제외 라인 수"
 				, "New Line 구분이 없을 때 라인 길이"
-				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, '암/복호화 할 대상 확장자명' 옵션보다 우선순위가 높다)"
+				, "암/복호화 대상 파일 필터 (정규표현식)"
 				, "암/복호화 할 대상 폴더"
 				, "암/복호화 할 대상 확장자명"
 				, "암/복호화 후 저장할 폴더"
 				, "암/복호화 후 덧붙일 확장자명"
 				, "폴더 감시 모드 (daemon)"
-				, "폴더 감시 모드일 때, 감시 주기"
+				, "폴더 감시 주기 (초)"
 				, "원본 파일 유지 여부"
-				, "no_access_sentence"
+				, "복호화 권한이 없을 때, 출력 문구"
 				, "log_file"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
@@ -245,7 +248,6 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.skip_header:
 					case Options.record_len:
 					case Options.input_dir:
-					case Options.input_ext:
 					case Options.output_dir:
 					case Options.output_ext:
 					case Options.dir_monitoring_yn:
@@ -262,7 +264,6 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 						break;
 
 					// Optional
-					case Options.input_filter:
 					case Options.no_access_sentence:
 					case Options.log_file:
 						{
@@ -281,44 +282,38 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
 							cb.Checked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
-									{
-										jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.CheckedKey(ref jprop);
 							};
 							cb.Unchecked += delegate
 							{
-								try
-								{
-									if(jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
-									{
-										jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.UncheckedKey(ref jprop);
+							};
+							ret = sp;
+						}
+						break;
+					case Options.input_filter:
+					case Options.input_ext:
+						{
+							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
+
+							RadioButton cb = new RadioButton();
+							JProperty jprop = GetJProperty(option, root);
+							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
+							sp.Children.Add(cb);
+							TextBlock tb = new TextBlock()
+							{
+								Text = detail
+							};
+							sp.Children.Add(tb);
+
+							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+							cb.Checked += delegate
+							{
+								ConfigOptionManager.CheckedKey(ref jprop);
+							};
+							cb.Unchecked += delegate
+							{
+								ConfigOptionManager.UncheckedKey(ref jprop);
 							};
 							ret = sp;
 						}

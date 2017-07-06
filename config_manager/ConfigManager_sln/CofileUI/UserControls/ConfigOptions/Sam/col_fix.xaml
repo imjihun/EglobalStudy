@@ -26,9 +26,9 @@
 				  Style="{StaticResource StyleDataGrid}">
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="item" Binding="{Binding item}"/>
-				<Controls:DataGridNumericUpDownColumn Header="start_pos" Binding="{Binding start_pos, Converter={StaticResource Int64ToStringConverter}}"/>
+				<Controls:DataGridNumericUpDownColumn Header="start pos" Binding="{Binding start_pos, Converter={StaticResource Int64ToStringConverter}}"/>
 				<Controls:DataGridNumericUpDownColumn Header="size" Binding="{Binding size, Converter={StaticResource Int64ToStringConverter}}"/>
-				<Controls:DataGridNumericUpDownColumn Header="col_size" Binding="{Binding col_size, Converter={StaticResource Int64ToStringConverter}}"/>
+				<Controls:DataGridNumericUpDownColumn Header="col size" Binding="{Binding col_size, Converter={StaticResource Int64ToStringConverter}}"/>
 			</DataGrid.Columns>
 		</DataGrid>
 		<Grid Grid.Row="1">

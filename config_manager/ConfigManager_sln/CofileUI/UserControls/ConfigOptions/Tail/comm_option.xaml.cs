@@ -60,6 +60,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			, no_access_sentence
 			, file_reserver_yn
 			, reg_yn
+			, daemon_yn
 
 			, Length
 		}
@@ -80,12 +81,10 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				Header = new Label() {Content = "Basic" },
 				Arr = new int[]
 				{
-					(int)Options.input_dir
+					(int)Options.sid
+					,(int)Options.input_dir
 					,(int)Options.output_dir
 					,(int)Options.output_ext
-					,(int)Options.sid
-					,(int)Options.interval
-					,(int)Options.shutdown_time
 					,(int)Options.zero_byte_yn
 					,(int)Options.no_access_sentence
 					,(int)Options.file_reserver_yn
@@ -93,11 +92,21 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			},
 			new Group()
 			{
-				Header = new Label() {Content = "Basic" },
+				Header = new Label() {Content = "암/복호화 대상 규칙" },
+				RadioButtonGroupName = "Input",
 				Arr = new int[]
 				{
 					(int)Options.input_ext
 					,(int)Options.input_filter
+				}
+			},
+			new Group()
+			{
+				Arr = new int[]
+				{
+					(int)Options.daemon_yn
+					,(int)Options.interval
+					,(int)Options.shutdown_time
 				}
 			}
 			//new Group()
@@ -137,20 +146,21 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
 			// comm_option
-				"암/복호화 할 입력 로그 파일이 위치하는 경로"
+				"암/복호화 할 대상 폴더"
 				, "암/복호화 할 입력 로그파일의 확장자"
 				, "암/복호화 후 출력 경로"
 				, "암/복호화 후 덧붙일 확장자"
 				, "DB SID 이름"
-				, "cofile tail 암/복호화 방식"
-				, "암호화시, 입력 폴더의 감시하는 주기"
-				, "tail type이 PATTERN일 경우 패턴을 정하는 개수"
-				, "암/복호화 할 파일에 대한 패턴\n (정규표현식 지원, input ext의 옵션보다 우선순위가 높다)"
-				, "자식 데몬들을 특정 시간 후 종료할 시간"
-				, "데몬 시작시 파일크기가 0인 파일에 대해서 암/복호화 유/무\n (true면 0byte파일도 감시)"
-				, "no_access_sentence"
-				, "원본 파일 유지 여부"
-				, "정규표현식 사용 여부"
+				, "Tail Type"
+				, "폴더의 감시 주기"
+				, "패턴 개수"
+				, "암/복호화 대상 파일 필터 (정규표현식)"
+				, "자식 데몬 자동 종료 시간 (시간)"
+				, "파일 크기가 0인 파일에 대한 암/복호화 유무 (true : 감시)"
+				, "복호화 권한이 없을 때, 출력 문구"
+				, "원본 파일 유지 여부 (true : 유지)"
+				, "정규표현식 사용 여부 (true : 사용)"
+				, "데몬 모드 여부 (true : 데몬모드)"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -172,6 +182,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.zero_byte_yn:
 					case Options.file_reserver_yn:
 					case Options.reg_yn:
+					case Options.daemon_yn:
 						value = false;
 						break;
 					case Options.tail_type:
@@ -217,7 +228,6 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				{
 					// Basical
 					case Options.input_dir:
-					case Options.input_ext:
 					case Options.output_dir:
 					case Options.output_ext:
 					case Options.sid:
@@ -227,6 +237,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.zero_byte_yn:
 					case Options.file_reserver_yn:
 					case Options.reg_yn:
+					case Options.daemon_yn:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -238,7 +249,6 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 						break;
 
 					// Optional
-					case Options.input_filter:
 					case Options.shutdown_time:
 					case Options.no_access_sentence:
 						{
@@ -257,46 +267,38 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
 							cb.Checked += delegate
 							{
-								try
-								{
-									if(jprop.Parent != null 
-										&& jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)] != null)
-									{
-										jprop.Parent[jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty)].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(jprop.Name.TrimStart(ConfigOptionManager.StartDisableProperty), jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.CheckedKey(ref jprop);
 							};
 							cb.Unchecked += delegate
 							{
-								try
-								{
-									if(jprop.Parent != null
-										&& jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name] != null)
-									{
-										jprop.Parent[ConfigOptionManager.StartDisableProperty + jprop.Name].Parent.Remove();
-									}
-									JProperty newJprop = new JProperty(ConfigOptionManager.StartDisableProperty + jprop.Name, jprop.Value);
-									jprop.Replace(newJprop);
-									Log.PrintConsole(jprop + " -> " + newJprop, "Debug");
-									// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-									jprop = newJprop;
-								}
-								catch(Exception ex)
-								{
-									Log.PrintError(ex.Message, "UserControls.ConfigOptions.File.comm_option.GetUIOptionKey");
-								}
-								ConfigOptionManager.bChanged = true;
+								ConfigOptionManager.UncheckedKey(ref jprop);
+							};
+							ret = sp;
+						}
+						break;
+					case Options.input_filter:
+					case Options.input_ext:
+						{
+							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
+
+							RadioButton cb = new RadioButton();
+							JProperty jprop = GetJProperty(option, root);
+							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
+							sp.Children.Add(cb);
+							TextBlock tb = new TextBlock()
+							{
+								Text = detail
+							};
+							sp.Children.Add(tb);
+
+							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
+							cb.Checked += delegate
+							{
+								ConfigOptionManager.CheckedKey(ref jprop);
+							};
+							cb.Unchecked += delegate
+							{
+								ConfigOptionManager.UncheckedKey(ref jprop);
 							};
 							ret = sp;
 						}
@@ -387,7 +389,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 						break;
 					case Options.zero_byte_yn:
 					case Options.file_reserver_yn:
-					case Options.reg_yn:
+					case Options.daemon_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
 							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
@@ -420,6 +422,44 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 							{
 								//((JValue)optionValue).Value = ts.IsChecked;
 								ConfigOptionManager.bChanged = true;
+							};
+						}
+						break;
+					case Options.reg_yn:
+						{
+							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
+							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							ts.HorizontalAlignment = HorizontalAlignment.Left;
+
+							ts.FontSize = 13;
+							ts.OffLabel = "False";
+							ts.OnLabel = "True";
+							ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+
+							//if(panelDetailOption.RowDefinitions.Count > 0)
+							//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
+							//Grid.SetColumn(ts, 1);
+							ret = ts;
+
+							ts.DataContext = jprop.Parent;
+							Binding bd = new Binding(option.ToString());
+							bd.Mode = BindingMode.TwoWay;
+							bd.Converter = new OnlyBooleanConverter();
+							ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
+
+							ts.IsChecked = Convert.ToBoolean(jprop.Value);
+
+							ts.Checked += delegate
+							{
+								//((JValue)optionValue).Value = ts.IsChecked;
+								ConfigOptionManager.bChanged = true;
+								TailOptions.current.ChangeSecondGrid();
+							};
+							ts.Unchecked += delegate
+							{
+								//((JValue)optionValue).Value = ts.IsChecked;
+								ConfigOptionManager.bChanged = true;
+								TailOptions.current.ChangeSecondGrid();
 							};
 						}
 						break;

@@ -203,7 +203,7 @@ namespace CofileUI.UserControls
 						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
-				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "Debug");
+				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigJsonTree.CurRootPathLocal");
 				return curRootPathLocal;
 			}
 		}

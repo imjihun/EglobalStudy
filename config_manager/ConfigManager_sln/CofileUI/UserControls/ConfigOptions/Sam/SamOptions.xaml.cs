@@ -58,17 +58,19 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				return;
 
 			grid2.Children.Clear();
-			if(root["col_var"] == null)
-				return;
 
 			if(Convert.ToInt64(jval.Value) == 0)
 			{
 				ChangeBySamType(root, "col_var", "col_fix");
+				if(root["col_var"] == null)
+					return;
 				grid2.Children.Add(new col_var() { DataContext = root["col_var"].Parent });
 			}
 			else if(Convert.ToInt64(jval.Value) == 1)
 			{
 				ChangeBySamType(root, "col_fix", "col_var");
+				if(root["col_fix"] == null)
+					return;
 				grid2.Children.Add(new col_fix() { DataContext = root["col_fix"].Parent });
 			}
 		}
@@ -80,6 +82,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			if(root[disableKey] != null)
 			{
 				root[disableKey].Parent.Replace(new JProperty(ConfigOptionManager.StartDisableProperty + disableKey, root[disableKey]));
+				ConfigOptionManager.bChanged = true;
 			}
 			if(root[enableKey] == null)
 			{
@@ -87,6 +90,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					root[ConfigOptionManager.StartDisableProperty + enableKey].Parent.Replace(new JProperty(enableKey, root[ConfigOptionManager.StartDisableProperty + enableKey]));
 				else
 					root.Add(new JProperty(enableKey, new JArray()));
+				ConfigOptionManager.bChanged = true;
 			}
 		}
 	}

@@ -54,20 +54,24 @@ namespace CofileUI.Windows
 				if(InitValue[i].GetType() == typeof(bool)
 					|| (InitValue[i] as JValue != null && ((JValue)InitValue[i]).Type == JTokenType.Boolean))
 				{
-					CheckBox cb = new CheckBox()
+					ToggleSwitch ts = new ToggleSwitch()
 					{
 						IsChecked = Convert.ToBoolean(InitValue[i]),
 						Margin = new Thickness(0, i * HEIGHT_ROW + 5, 5, 5),
 						VerticalAlignment = VerticalAlignment.Top,
 						HorizontalAlignment = HorizontalAlignment.Stretch,
-						Height = HEIGHT_ROW
+						Height = HEIGHT_ROW,
+						FontSize = 13,
+						OffLabel = "False",
+						OnLabel = "True",
+						Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"]
 					};
 					Binding bd = new Binding("Value[" + i + "]");
 					bd.Converter = new OnlyBooleanConverter();
-					cb.SetBinding(CheckBox.IsCheckedProperty, bd);
+					ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
 
-					grid.Children.Add(cb);
-					Grid.SetColumn(cb, 1);
+					grid.Children.Add(ts);
+					Grid.SetColumn(ts, 1);
 				}
 				else if(InitValue[i].GetType() == typeof(Int64)
 					|| (InitValue[i] as JValue != null && ((JValue)InitValue[i]).Type == JTokenType.Integer))

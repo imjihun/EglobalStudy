@@ -13,7 +13,8 @@
 						mc:Ignorable="d"
 					    TitleCharacterCasing="Normal"
 						Title="{StaticResource AppName}" Height="756" Width="1024"
-						ToolBarTray.IsLocked="True">
+						ToolBarTray.IsLocked="True"
+						GlowBrush="{DynamicResource AccentColorBrush}">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>

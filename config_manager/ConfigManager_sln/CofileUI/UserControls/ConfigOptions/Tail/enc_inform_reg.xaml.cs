@@ -17,11 +17,11 @@ using System.Windows.Shapes;
 namespace CofileUI.UserControls.ConfigOptions.Tail
 {
 	/// <summary>
-	/// enc_inform.xaml에 대한 상호 작용 논리
+	/// enc_inform_reg.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public partial class enc_inform : UserControl
+	public partial class enc_inform_reg : UserControl
 	{
-		public enc_inform()
+		public enc_inform_reg()
 		{
 			InitializeComponent();
 		}
@@ -39,17 +39,19 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 		public enum Option
 		{
 			item = 0,
-			enc_pattern,
+			pattern,
 			delimiter,
-			jumin_check_yn,
+			sub_left_len,
+			sub_right_len,
 			Length
 		}
 		string[] detail = new string[(int)Option.Length] {
 			"Item명",
-			"패턴(ASCII)",
+			"패턴(정규표현식)",
 			"구분자",
-			"주민번호 체크 여부" };
-		object[] initvalue = new object[(int)Option.Length] {"", "", "", false};
+			"감시한 패턴에서 왼쪽에서 제외할 크기",
+			"감시한 패턴에서 오른쪽에서 제외할 크기"};
+		object[] initvalue = new object[(int)Option.Length] {"", "", "", (Int64)0, (Int64)0};
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
 			JProperty jprop = this.DataContext as JProperty;
