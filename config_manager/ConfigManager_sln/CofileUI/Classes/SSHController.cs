@@ -419,12 +419,24 @@ namespace CofileUI.Classes
 
 				int offset = split[0].Length;
 				//int length = str_read.Length - offset - split[split.Length - 1].Length;
-				int length = split[1].Length;
-				char[] newLines = new char[] {'\n', '\r' };
+				if(split.Length > cnt_read_outputline)
+				{
+					//int length = split[1].Length;
+					int length = 0;
+					for(int i = 1; i < cnt_read_outputline + 1; i++)
+					{
+						length += split[i].Length + 1;
+					}
+					if(length > 0)
+						length--;
 
-				string retval = str_read.Substring(offset, length).Trim(newLines);
-				Log.PrintLog(retval, "Classes.SSHController.ReadLinesBlocking");
-				return retval;
+					char[] newLines = new char[] {'\n', '\r' };
+
+					string retval = str_read.Substring(offset, length).Trim(newLines);
+					Log.PrintLog(retval, "Classes.SSHController.ReadLinesBlocking");
+					return retval;
+				}
+				return null;
 
 			}
 			catch(Exception e)
