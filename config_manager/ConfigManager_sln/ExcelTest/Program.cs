@@ -14,8 +14,24 @@ namespace ExcelTest
 {
 	class Program
 	{
+		static IEnumerable<int> test()
+		{
+			Console.WriteLine("test Start");
+			for(int i = 0; i < 100; i++)
+			{
+				yield return i;
+			}
+			Console.WriteLine("test Finish");
+			yield break;
+		}
 		static void Main(string[] args)
 		{
+			Console.WriteLine("Start");
+
+			var v = test();
+			foreach(var _v in v)
+				Console.WriteLine(_v);
+			Console.WriteLine("Finish");
 			//Console.WriteLine("Start");
 			//Data d = new Data();
 

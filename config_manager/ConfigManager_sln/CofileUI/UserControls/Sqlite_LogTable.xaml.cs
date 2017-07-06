@@ -596,14 +596,16 @@ namespace CofileUI.UserControls
 					}
 					sb.Append(newLine);
 				}
-				FileContoller.Write(path, sb.ToString());
+				if(FileContoller.Write(path, sb.ToString()))
+					return 0;
+				else
+					return -3;
 			}
 			catch(Exception e)
 			{
 				Log.PrintError(e.Message, "UserControls.Sqlite_LogTable.ExportCSV");
 				return -2;
 			}
-			return 0;
 		}
 
 		private int ExportExcel(bool captions, string path, DataTable table)
