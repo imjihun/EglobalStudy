@@ -15,28 +15,35 @@
 	"zero_byte_yn": true,
 	"#no_access_sentence":"Encrypted",
 	"file_reserver_yn": false,
-	"reg_yn": true
+	"reg_yn": true,
+	"daemon_yn": true
   },
   "enc_inform": [
 	{
 	  "item": "ARIA256CBC",
+	  "#enc_pattern":"nnnnnn-nnnnnnn",
 	  "#pattern":"([0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[1,2][0-9]|3[0,1]))-[1-4][0-9]{6}",
-	  "pattern": "[=:'\"][0-9]{13},",
 	  "delimiter": "$$",
 	  "sub_left_len": 1,
-	  "sub_right_len": 1
-	},
-	{
-	  "item": "ARIA256CBC",
-	  "#pattern": "[96543][0-9]{3}-[0-9]{4}-[0-9]{4}-[0-9]{4}",
-	  "pattern": "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}",
-	  "delimiter": "@@"
+	  "sub_right_len": 1,
+	  "#jumin_check_yn": true
 	},
 	{
 	  "item": "ARIA256CBC",
 	  "#enc_pattern":"nnnnnn-nnnnnnn",
+	  "pattern": "[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}",
+	  "delimiter": "@@",
+	  "sub_left_len": 1,
+	  "sub_right_len": 1,
+	  "#jumin_check_yn": true
+	},
+	{
+	  "item": "ARIA256CBC",
 	  "enc_pattern":"nnnnnnnnnnnnn",
+	  "#pattern": "[96543][0-9]{3}-[0-9]{4}-[0-9]{4}-[0-9]{4}",
 	  "delimiter": "$$",
+	  "#sub_left_len": 1,
+	  "#sub_right_len": 1,
 	  "jumin_check_yn": true
 	}
   ]

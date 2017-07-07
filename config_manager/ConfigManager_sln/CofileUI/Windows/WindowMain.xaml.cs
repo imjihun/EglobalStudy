@@ -284,9 +284,12 @@ namespace CofileUI.Windows
 				alwayse_callback();
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e)
+		private void OnClickMainSetting(object sender, RoutedEventArgs e)
 		{
 			Window_MainSetting wm = new Window_MainSetting();
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wm.Left = pt.X + this.ActualWidth / 2 - wm.Width / 2;
+			wm.Top = pt.Y + this.ActualHeight / 2 - wm.Height / 2;
 			if(wm.ShowDialog() == true)
 				;
 		}

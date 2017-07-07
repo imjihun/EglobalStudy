@@ -46,12 +46,14 @@ namespace CofileUI.Windows
 			if(e.Key != Key.Enter)
 				return;
 
+			SaveVariable();
 			this.DialogResult = true;
 			this.Close();
 		}
 
 		private void OnButtonClickOk(object sender, RoutedEventArgs e)
 		{
+			SaveVariable();
 			this.DialogResult = true;
 			this.Close();
 		}

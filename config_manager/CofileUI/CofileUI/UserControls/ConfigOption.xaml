@@ -1,0 +1,69 @@
+﻿<UserControl x:Class="CofileUI.UserControls.ConfigOption"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CofileUI.UserControls"
+			 
+			 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+			 xmlns:jlinq ="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+			 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="600">
+	<UserControl.Resources>
+		<DataTemplate DataType="{x:Type jlinq:JProperty}">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Text="{Binding Path=Name, Mode=OneWay}"
+						   Margin="5,0,5,0"/>
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.Resources>
+	<Grid>
+		<DockPanel>
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="_File">
+					<MenuItem Header="_New" Icon="{iconPacks:PackIconFontAwesome Kind=Folder}">
+						<MenuItem Header="_File" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Sam" Click="OnClickButtonNewJsonFile" />
+						<MenuItem Header="_Tail" Click="OnClickButtonNewJsonFile" />
+					</MenuItem>
+					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile" Icon="{iconPacks:PackIconFontAwesome Kind=FolderOpen}"/>
+					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSave}"/>
+					<MenuItem Header="_Other Save" Click="OnClickButtonOtherSaveJsonFile" Icon="{iconPacks:PackIconMaterial Kind=ContentSaveAll}"/>
+					<!--<MenuItem Header="_New" Click="OnClickButtonNewJsonFile"/>
+					<MenuItem Header="_Open" Click="OnClickButtonOpenJsonFile"/>
+					<MenuItem Header="_Save" Click="OnClickButtonSaveJsonFile"/>
+					<MenuItem Header="_다른이름으로 저장" Click="OnClickButtonOtherSaveJsonFile"/>-->
+				</MenuItem>
+				<MenuItem Header="_ViewFile" Click="OnClickButtonViewJsonFile"/>
+			</Menu>
+			<Grid x:Name="grid">
+				<!--<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<Grid Grid.Column="0">
+						<Border BorderBrush="LightGray" BorderThickness="2"/>
+						<Grid x:Name="panelOptionMenu" Margin="2">
+							<TreeView Margin="3" Name="treeView"
+						  SelectedItemChanged="treeView_SelectedItemChanged">
+								<TreeView.ItemContainerStyle>
+									<Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource MetroTreeViewItem}">
+										<Setter Property="IsExpanded" Value="True" />
+									</Style>
+								</TreeView.ItemContainerStyle>
+							</TreeView>
+							-->
+				<!--<TreeView x:Name="treeView">
+				</TreeView>-->
+				<!--
+						</Grid>
+					</Grid>
+					<ScrollViewer Grid.Column="1">
+						<Grid x:Name="panel_DetailOption">
+						</Grid>
+					</ScrollViewer>-->
+			</Grid>
+		</DockPanel>
+	</Grid>
+</UserControl>

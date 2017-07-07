@@ -80,15 +80,14 @@ namespace CofileUI.Windows
 		{
 			LastInputTime = DateTime.Now;
 		}
-
-		int TimeoutDisconnect_Min = 5;
+		
 		private void DisconnectTimeout_Tick(object sender, EventArgs e)
 		{
 			if(SSHController.IsConnected
-				&& LastInputTime.AddMinutes(TimeoutDisconnect_Min) < DateTime.Now)
+				&& LastInputTime.AddMinutes(MainSettings.SessionTimeOut) < DateTime.Now)
 			//&& LastInputTime.AddSeconds(5) < DateTime.Now)
 			{
-				WindowMain.current.ShowMessageDialog("Session Timeout", TimeoutDisconnect_Min + "분 간 입력이 없어 연결이 종료됩니다.", MessageDialogStyle.Affirmative, DisconnectTimeout);
+				WindowMain.current.ShowMessageDialog("Session Timeout", MainSettings.SessionTimeOut + "분 간 입력이 없어 연결이 종료됩니다.", MessageDialogStyle.Affirmative, DisconnectTimeout);
 			}
 			//Console.WriteLine("LastInputTime = " + LastInputTime);
 		}
@@ -168,6 +167,21 @@ namespace CofileUI.Windows
 		{
 			if(e.Source != tabControl)
 				return;
+
+			if(idx_tab_before_change == 1 && tabControl.SelectedIndex != 1)
+				UserControls.ConfigOption.current.ConfirmSave();
+			//Console.WriteLine("tabControl.SelectedIndex = " + tabControl.SelectedIndex);
+			//Console.WriteLine("\te.OriginalSource = " + e.OriginalSource);
+			//if(tabControl.SelectedIndex != 1)
+			//{
+			//	UserControls.ConfigOption.current.ConfirmSave();
+			//	if(UserControls.ConfigOptions.ConfigOptions.bChanged)
+			//	{
+			//		tabControl.SelectedIndex = idx_tab_before_change;
+			//		return;
+			//	}
+			//}
+
 			TabUpdate();
 			idx_tab_before_change = tabControl.SelectedIndex;
 		}
@@ -189,9 +203,9 @@ namespace CofileUI.Windows
 					UserControls.DataBaseInfo.RefreshUi();
 					bUpdateDataBase = true;
 				}
-				if(!bUpdateConfigFile && UserControls.ConfigJsonTree.current != null && tabControl.SelectedIndex == 1)
+				if(!bUpdateConfigFile && UserControls.ConfigOption.current != null && tabControl.SelectedIndex == 1)
 				{
-					UserControls.ConfigJsonTree.current.Refresh();
+					UserControls.ConfigOption.current.Clear();
 					bUpdateConfigFile = true;
 				}
 			}
@@ -232,8 +246,8 @@ namespace CofileUI.Windows
 		{
 			if(Cofile.current != null)
 				Cofile.current.Clear();
-			if(ConfigJsonTree.current != null)
-				ConfigJsonTree.current.Clear();
+			if(ConfigOption.current != null)
+				ConfigOption.current.Clear();
 			if(Sqlite_LogTable.current != null)
 				Sqlite_LogTable.current.Clear();
 			if(Sqlite_StatusTable.current != null)
@@ -268,6 +282,13 @@ namespace CofileUI.Windows
 
 			if(alwayse_callback != null)
 				alwayse_callback();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			Window_MainSetting wm = new Window_MainSetting();
+			if(wm.ShowDialog() == true)
+				;
 		}
 	}
 }

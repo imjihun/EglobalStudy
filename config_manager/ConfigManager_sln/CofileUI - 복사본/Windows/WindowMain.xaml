@@ -8,11 +8,13 @@
 						xmlns:UserControls="clr-namespace:CofileUI.UserControls"
 					  
 						xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+						xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
 						
 						mc:Ignorable="d"
 					    TitleCharacterCasing="Normal"
 						Title="{StaticResource AppName}" Height="756" Width="1024"
-						ToolBarTray.IsLocked="True">
+						ToolBarTray.IsLocked="True"
+						GlowBrush="{DynamicResource AccentColorBrush}">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
@@ -78,7 +80,7 @@
 				</TabItem>-->
 				<!--<TabItem Header="{StaticResource MainTab.Config}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
-						<UserControls:EditConfig DataContext="{Binding}"/>
+						<Tail:TailOptions/>
 					</Grid>
 				</TabItem>-->
 				<TabItem Header="{StaticResource MainTab.Cofile}">
@@ -87,9 +89,9 @@
 						<UserControls:Cofile DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem Header="{StaticResource MainTab.Config}">
+				<TabItem x:Name="tabItem_Config" Header="{StaticResource MainTab.Config}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
-						<UserControls:ConfigJsonTree DataContext="{Binding}"/>
+						<UserControls:ConfigOption DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
 				<TabItem Header="{StaticResource MainTab.Log}">
@@ -112,5 +114,10 @@
 			</Controls:MetroAnimatedTabControl>
 			<Label x:Name="label_serverinfo" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"/>
 		</Grid>
+		<!--<Grid Grid.Row="0">
+			<Button Content="{iconPacks:PackIconMaterial Kind=Settings}" Background="White"
+					HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,10,14"
+					Click="Button_Click"/>
+		</Grid>-->
 	</Grid>
 </Controls:MetroWindow>

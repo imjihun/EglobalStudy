@@ -23,6 +23,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using CofileUI.UserControls.ConfigOptions;
 
 namespace CofileUI.UserControls
 {
@@ -37,7 +38,152 @@ namespace CofileUI.UserControls
 			current = this;
 			InitializeComponent();
 			InitJsonFileView();
+
 		}
+		#region
+
+		JToken Root { get; set; }
+		private void Refresh(JToken root)
+		{
+			if(root == null)
+				return;
+			Clear();
+
+			Root = root;
+			if(root["type"].ToString() == "file")
+				grid.Children.Add(new ConfigOptions.File.FileOptions() { DataContext = Root });
+			else if(root["type"].ToString() == "sam")
+				grid.Children.Add(new ConfigOptions.Sam.SamOptions() { DataContext = Root });
+			else if(root["type"].ToString() == "tail")
+				grid.Children.Add(new ConfigOptions.Tail.TailOptions() { DataContext = Root });
+
+			//if(root as JObject != null)
+			//	treeView.ItemsSource = root.Children();
+		}
+		////private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		////{
+		////	TreeView tv = sender as TreeView;
+		////	if(tv == null)
+		////		return;
+
+		////	JProperty jprop_optionMenu = tv.SelectedItem as JProperty;
+		////	if(jprop_optionMenu == null)
+		////		return;
+
+		////	panel_DetailOption.Children.Clear();
+		////	panel_DetailOption.RowDefinitions.Clear();
+
+		////	AddItem(panel_DetailOption, jprop_optionMenu);
+		////}
+		//Options options = null;
+		//public int AddItem(Grid panel, JProperty root)
+		//{
+		//	string type = Convert.ToString(root.Root["type"]);
+		//	if(type == "file")
+		//		options = new ConfigOptions.FileOptions();
+		//	else if(type == "sam")
+		//		options = new ConfigOptions.SamOptions();
+		//	else if(type == "tail")
+		//		options = new ConfigOptions.FileOptions();
+		//	else return -1;
+
+		//	if(root.Value.Type == JTokenType.Object)
+		//	{
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+		//		return AddItemValueIsObject(panel, root, root);
+		//	}
+		//	else if(root.Value.Type == JTokenType.Array)
+		//	{
+		//		string key = root.Name.TrimStart('#');
+		//		UIElement ui = null;
+		//		switch(key)
+		//		{
+		//			case "col_var":
+		//				ui = new ConfigOptions.Sam.col_var() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
+		//				break;
+		//			case "col_fix":
+		//				ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
+		//				//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
+		//				break;
+		//			case "enc_inform":
+		//				ui = new ConfigOptions.Tail.enc_inform() { DataContext = root };
+		//				//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
+		//				break;
+		//			default:
+		//				break;
+		//		}
+		//		if(ui != null)
+		//		{
+		//			//ui.ItemsSource = root.Value;
+		//			panel.Children.Add(ui);
+		//		}
+
+		//		return 0;
+		//	}
+		//	else
+		//		return -1;
+		//}
+		//private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
+		//{
+		//	foreach(var v in cur_jtok.Children())
+		//	{
+		//		JProperty jprop = cur_jprop_optionMenu;
+		//		Panel pan = cur_panel_DetailOption;
+		//		switch(v.Type)
+		//		{
+		//			case JTokenType.Boolean:
+		//			case JTokenType.Integer:
+		//			case JTokenType.String:
+		//				{
+		//					FrameworkElement ui = options.GetUIOptionValue(jprop, v);
+		//					if(ui == null)
+		//						break;
+
+		//					pan.Children.Add(ui);
+		//				}
+		//				break;
+
+		//			case JTokenType.Property:
+		//				{
+		//					Grid grid_key = new Grid();
+		//					Grid grid_value = new Grid();
+		//					FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
+		//					if(ui == null)
+		//						break;
+
+		//					((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+		//					int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
+
+		//					Grid.SetRow(grid_key, idxRow);
+		//					Grid.SetColumn(grid_key, 0);
+		//					pan.Children.Add(grid_key);
+
+		//					Grid.SetRow(grid_value, idxRow);
+		//					Grid.SetColumn(grid_value, 1);
+		//					pan.Children.Add(grid_value);
+
+		//					grid_key.Children.Add(ui);
+
+		//					jprop = (JProperty)v;
+		//					pan = grid_value;
+		//				}
+		//				break;
+		//			case JTokenType.Array:
+		//			case JTokenType.Object:
+		//			case JTokenType.Raw:
+		//			default:
+		//				break;
+		//		}
+
+		//		AddItemValueIsObject(pan, jprop, v);
+		//	}
+		//	return 0;
+		//}
+
+		#endregion
 		#region Json Tree Area
 		static string DIR = @"config\";
 		private static string root_path_local = AppDomain.CurrentDomain.BaseDirectory + DIR;
@@ -57,7 +203,7 @@ namespace CofileUI.UserControls
 						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
-				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "Debug");
+				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigJsonTree.CurRootPathLocal");
 				return curRootPathLocal;
 			}
 		}
@@ -74,8 +220,8 @@ namespace CofileUI.UserControls
 		{
 			if(SSHController.ReConnect())
 			{
-				if(RemoveConfigFile(CurRootPathLocal) != 0)
-					return -2;
+				//if(RemoveConfigFile(CurRootPathLocal) != 0)
+				//	return -2;
 
 				if(SSHController.GetConfig(CurRootPathLocal) == null)
 					return -1;
@@ -84,11 +230,11 @@ namespace CofileUI.UserControls
 			}
 			return -3;
 		}
-		public void Refresh()
-		{
-			Clear();
-			InitOpenFile();
-		}
+		//public void Refresh()
+		//{
+		//	Clear();
+		//	//InitOpenFile();
+		//}
 		public void Clear()
 		{
 			//if(JsonTreeViewItem.Path != null)
@@ -96,38 +242,41 @@ namespace CofileUI.UserControls
 			//	JsonTreeViewItem.Clear();
 			//	json_tree_view.Items.Clear();
 			//}
-			JsonTreeViewItem.Clear();
-			json_tree_view.Items.Clear();
+			//JsonTreeViewItem.Clear();
+			//json_tree_view.Items.Clear();
+			grid.Children.Clear();
+			//treeView.ItemsSource = null;
+			//treeView.Items.Clear();
 		}
-		public void refreshJsonTree(JToken jtok_root)
-		{
-			// 변환
-			JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
-			if(root_jtree == null)
-				return;
+		//public void refreshJsonTree(JToken jtok_root)
+		//{
+		//	// 변환
+		//	JsonTreeViewItem root_jtree = JsonTreeViewItem.convertToTreeViewItem(jtok_root);
+		//	if(root_jtree == null)
+		//		return;
 
-			// 삭제
-			string path = JsonTreeViewItem.Path;
-			Clear();
-			JsonTreeViewItem.Path = path;
+		//	// 삭제
+		//	string path = JsonTreeViewItem.Path;
+		//	Clear();
+		//	JsonTreeViewItem.Path = path;
 
-			// 추가
-			//TextBlock tblock = new TextBlock();
-			//tblock.Text = JsonInfo.current.Filename;
-			//root_jtree.Header.Children.Insert(0, tblock);
-			//json_tree_view.Items.Add(root_jtree);
+		//	// 추가
+		//	//TextBlock tblock = new TextBlock();
+		//	//tblock.Text = JsonInfo.current.Filename;
+		//	//root_jtree.Header.Children.Insert(0, tblock);
+		//	//json_tree_view.Items.Add(root_jtree);
 
-			// 추가
-			Label label = new Label();
-			label.VerticalAlignment = VerticalAlignment.Center;
-			label.Content = JsonTreeViewItem.Filename;
-			root_jtree.Header.Children.Insert(0, label);
-			int MAX_WIDTH_TREE = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX + JsonTreeViewItemSize.WIDTH_VALUEPANEL + 50;
-			root_jtree.Header.Width = MAX_WIDTH_TREE;
-			json_tree_view.Items.Add(root_jtree);
+		//	// 추가
+		//	Label label = new Label();
+		//	label.VerticalAlignment = VerticalAlignment.Center;
+		//	label.Content = JsonTreeViewItem.Filename;
+		//	root_jtree.Header.Children.Insert(0, label);
+		//	int MAX_WIDTH_TREE = JsonTreeViewItemSize.WIDTH_TEXTBOX + JsonTreeViewItemSize.MARGIN_TEXTBOX + JsonTreeViewItemSize.WIDTH_VALUEPANEL + 50;
+		//	root_jtree.Header.Width = MAX_WIDTH_TREE;
+		//	json_tree_view.Items.Add(root_jtree);
 
-			JsonTreeViewItem.Root = root_jtree;
-		}
+		//	JsonTreeViewItem.Root = root_jtree;
+		//}
 
 		private void OnClickButtonNewJsonFile(object sender, RoutedEventArgs e)
 		{
@@ -159,20 +308,20 @@ namespace CofileUI.UserControls
 			//	}
 			//}
 			//JsonInfo.current.Jtok_root = new JObject();
-			JToken jtok = JsonController.ParseJson(Properties.Resources.file_config_default);
-			refreshJsonTree(jtok);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.file_config_default);
+			Refresh(jtok);
 		}
 		private void NewJsonFile_Sam()
 		{
 			JsonTreeViewItem.Clear();
-			JToken jtok = JsonController.ParseJson(Properties.Resources.sam_config_default);
-			refreshJsonTree(jtok);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.sam_config_default);
+			Refresh(jtok);
 		}
 		private void NewJsonFile_Tail()
 		{
 			JsonTreeViewItem.Clear();
-			JToken jtok = JsonController.ParseJson(Properties.Resources.tail_config_default);
-			refreshJsonTree(jtok);
+			JToken jtok = JsonController.ParseJsonUI(Properties.Resources.tail_config_default);
+			Refresh(jtok);
 		}
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
@@ -203,10 +352,10 @@ namespace CofileUI.UserControls
 			{
 				Log.PrintConsole(ofd.FileName, "UserControls.ConfigJsonTree.OnClickButtonOpenJsonFile");
 				string json = FileContoller.Read(ofd.FileName);
-				JToken jtok = JsonController.ParseJson(json);
+				JToken jtok = JsonController.ParseJsonUI(json);
 				if(jtok != null)
 				{
-					refreshJsonTree(jtok);
+					Refresh(jtok);
 				}
 				JsonTreeViewItem.Path = ofd.FileName;
 				//refreshJsonTree(JsonController.parseJson(json));
@@ -271,11 +420,15 @@ namespace CofileUI.UserControls
 		}
 		private bool CheckJson()
 		{
+			//// 로드된 오브젝트가 없으면 실행 x
+			//if(json_tree_view.Items.Count < 1)
+			//	return false;
+			//JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
+			//if(root == null)
+			//	return false;
+
 			// 로드된 오브젝트가 없으면 실행 x
-			if(json_tree_view.Items.Count < 1)
-				return false;
-			JsonTreeViewItem root = json_tree_view.Items[0] as JsonTreeViewItem;
-			if(root == null)
+			if(grid.Children.Count < 1)
 				return false;
 
 			return true;
@@ -285,7 +438,8 @@ namespace CofileUI.UserControls
 			if(!CheckJson())
 				return -1;
 
-			JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
+			//JToken Jtok_root = JsonTreeViewItem.convertToJToken(json_tree_view.Items[0] as JsonTreeViewItem);
+			JToken Jtok_root = Root;
 			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
 			{
 				string path_remote;
@@ -305,6 +459,7 @@ namespace CofileUI.UserControls
 					WindowMain.current.ShowMessageDialog("Save", message);
 					Log.PrintLog(message, "UserControls.ConfigJsonTree.SaveFile");
 
+					ConfigOptions.ConfigOptionManager.bChanged = false;
 					return 0;
 				}
 			}
@@ -333,7 +488,7 @@ namespace CofileUI.UserControls
 
 			if(w.ShowDialog() == true)
 			{
-				refreshJsonTree(JsonController.ParseJson(w.tb_file.Text));
+				Refresh(JsonController.ParseJsonUI(w.tb_file.Text));
 			}
 		}
 		private void OnClickButtonCancelJsonFile(object sender, RoutedEventArgs e)
@@ -351,9 +506,21 @@ namespace CofileUI.UserControls
 		private void CalcelJsonFile()
 		{
 			string json = FileContoller.Read(JsonTreeViewItem.Path);
-			refreshJsonTree(JsonController.ParseJson(json));
+			Refresh(JsonController.ParseJsonUI(json));
 			WindowMain.current.ShowMessageDialog("Cancel", "변경사항을 되돌렸습니다.", MessageDialogStyle.Affirmative);
 		}
 		#endregion
 	}
+	//public sealed class Int64ToStringConverter : IValueConverter
+	//{
+	//	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+	//	{
+	//		return System.Convert.ToString(value);
+	//	}
+
+	//	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	//	{
+	//		return System.Convert.ToInt64(value);
+	//	}
+	//}
 }

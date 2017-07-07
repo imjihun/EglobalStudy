@@ -15,6 +15,14 @@
 						Title="{StaticResource AppName}" Height="756" Width="1024"
 						ToolBarTray.IsLocked="True"
 						GlowBrush="{DynamicResource AccentColorBrush}">
+
+	<Controls:MetroWindow.RightWindowCommands>
+		<Controls:WindowCommands ShowLastSeparator="False">
+			<Button Content="{iconPacks:PackIconMaterial Kind=Settings}"
+					ToolTip="Settings"
+					Click="OnClickMainSetting"/>
+		</Controls:WindowCommands>
+	</Controls:MetroWindow.RightWindowCommands>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
@@ -114,10 +122,5 @@
 			</Controls:MetroAnimatedTabControl>
 			<Label x:Name="label_serverinfo" VerticalAlignment="Top" HorizontalAlignment="Right" FontSize="20"/>
 		</Grid>
-		<!--<Grid Grid.Row="0">
-			<Button Content="{iconPacks:PackIconMaterial Kind=Settings}" Background="White"
-					HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,6,10,14"
-					Click="Button_Click"/>
-		</Grid>-->
 	</Grid>
 </Controls:MetroWindow>

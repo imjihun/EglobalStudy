@@ -29,17 +29,19 @@ using System.Globalization;
 using System.Windows.Controls.Primitives;
 using Newtonsoft.Json.Linq;
 using MahApps.Metro.Controls.Dialogs;
+using CofileUI.UserControls.ConfigOptions;
 
 namespace CofileUI.UserControls
 {
 	/// <summary>
 	/// Cofile.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public enum CofileOption
+	public enum CofileType
 	{
-		file = 0,
-		sam,
-		tail
+		undefined = 0
+		, file
+		, sam
+		, tail
 	}
 	public partial class Cofile : UserControl
 	{
@@ -50,8 +52,150 @@ namespace CofileUI.UserControls
 			InitializeComponent();
 			InitLinuxDirectory();
 		}
+		#region Common
 
-		#region Linux Directory
+		static string DIR = @"tmp\";
+		string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
+
+		public int Refresh()
+		{
+			if(WindowMain.current == null)
+				return -1;
+
+			//if(ssh != null && ssh.IsConnected)
+			//	ssh.Disconnect();
+			//if(sftp != null && sftp.IsConnected)
+			//	sftp.Disconnect();
+
+			// 삭제
+			//treeView_linux_directory.Items.Clear();
+			//listView_linux_files.Items.Clear();
+			LinuxTreeViewItem.Clear();
+			treeView_linux_directory.Items.Clear();
+			listView_linux_files.Items.Clear();
+			listView_work_files.Items.Clear();
+
+			// 추가
+			//string home_dir = sftp.WorkingDirectory;
+			// root 의 path 는 null 로 초기화
+			string working_dir = SSHController.WorkingDirectory;
+			if(working_dir == null)
+				return -1;
+
+			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
+			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
+			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
+			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
+			Log.PrintLog("[refresh]", "UserControls.Cofile.Refresh");
+
+			return 0;
+			//LinuxTreeViewItem.ReconnectServer();
+		}
+		public void Clear()
+		{
+			LinuxTreeViewItem.Clear();
+			treeView_linux_directory.Items.Clear();
+			listView_linux_files.Items.Clear();
+			listView_work_files.Items.Clear();
+			SelectedConfigLocalPath = "Not Selected";
+		}
+
+		public void PrintCheckConfigFile()
+		{
+			Status.current.Clear();
+
+			Log.ErrorIntoUI("Check the Config file [path = " + selectedConfigLocalPath + "]"
+				, "Config Error", Status.current.richTextBox_status);
+
+			string message = "Check the Config file" + Environment.NewLine + "path = " + selectedConfigLocalPath;
+			WindowMain.current.ShowMessageDialog("Config Error", message);
+		}
+		private string selectedConfigLocalPath = null;
+		public string SelectedConfigLocalPath
+		{
+			get
+			{
+				if(selectedConfigLocalPath == null)
+				{
+					PrintCheckConfigFile();
+				}
+				return selectedConfigLocalPath;
+			}
+			set
+			{
+				selectedConfigLocalPath = value;
+				string[] splited = selectedConfigLocalPath.Split('\\');
+				textBlock_selected_config_file_name.Text = splited[splited.Length - 1];
+			}
+		}
+		public CofileType GetSelectedType()
+		{
+			CofileType type = CofileType.undefined;
+
+			JToken jtok = GetSelectedConfigFile();
+			if(jtok != null)
+			{
+				try
+				{
+					type = (CofileType)Enum.Parse(typeof(CofileType), jtok["type"].ToString(), true);
+				}
+				catch(Exception e)
+				{
+					string message = "Check the Config type" + Environment.NewLine + e.Message;
+					Log.PrintError(message, "UserControls.Cofile.SelectedType");
+					WindowMain.current.ShowMessageDialog("Config Error", message);
+				}
+			}
+			return type;
+		}
+
+		public JToken GetSelectedConfigFile()
+		{
+			string path = SelectedConfigLocalPath;
+			if(path == null)
+				return null;
+
+			JToken jtok = JsonController.ParseJson(FileContoller.Read(path));
+			if(jtok == null)
+			{
+				PrintCheckConfigFile();
+			}
+			return jtok;
+		}
+		private void OnClickSelectConfigFile(object sender, EventArgs e)
+		{
+			//SftpFileTree root = SSHController.GetListConfigFile();
+			//if(root == null)
+			//	return;
+
+			//Window_SelectJsonFile ws = new Window_SelectJsonFile(root);
+			//if(ws.ShowDialog() == true)
+			//	Selected_config_file_path = ws.FilePathRemote;
+
+			if(ConfigOption.current.InitOpenFile() != 0)
+				return;
+
+			OpenFileDialog ofd = new OpenFileDialog();
+			// 초기경로 지정
+			ofd.InitialDirectory = ConfigOption.CurRootPathLocal;
+
+			if(ConfigOptionManager.Path != null)
+			{
+				string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
+				DirectoryInfo d = new DirectoryInfo(dir_path);
+				if(d.Exists)
+					ofd.InitialDirectory = dir_path;
+			}
+
+			// 파일 열기
+			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
+			if(ofd.ShowDialog() == true)
+				SelectedConfigLocalPath = ofd.FileName;
+		}
+
+		#endregion
+
+		#region Linux Directory View
 
 		static bool bool_show_hidden = false;
 		public static bool Bool_show_hidden
@@ -63,7 +207,6 @@ namespace CofileUI.UserControls
 				LinuxTreeViewItem.Filter(LinuxTreeViewItem.root, Filter_string, bool_show_hidden);
 			}
 		}
-
 		static string filter_string = "";
 		public static string Filter_string
 		{
@@ -75,7 +218,8 @@ namespace CofileUI.UserControls
 				LinuxTreeViewItem.Filter(LinuxTreeViewItem.root, filter_string, Bool_show_hidden);
 			}
 		}
-		void InitLinuxDirectory()
+
+		private void InitLinuxDirectory()
 		{
 			textBox_linux_directory_filter.TextChanged += delegate { Filter_string = textBox_linux_directory_filter.Text; RefreshListView(cur_LinuxTreeViewItem); };
 			checkBox_hidden.Checked += delegate { Bool_show_hidden = true; RefreshListView(cur_LinuxTreeViewItem); };
@@ -85,33 +229,36 @@ namespace CofileUI.UserControls
 			checkBox_linux_detail.IsChecked = true;
 			checkBox_work_detail.IsChecked = true;
 		}
+		public void RefreshListView(LinuxTreeViewItem cur)
+		{
+			if(cur == null)
+				return;
 
-		private void CheckBox_Checked(object sender, RoutedEventArgs e)
-		{
-			if(sender == checkBox_linux_detail)
+			cur_LinuxTreeViewItem = cur;
+			comboBox_listView_linuxpath.Text = cur.Path;
+
+			list_LinuxListViewItem.Clear();
+			LinuxListViewItem llvi = new LinuxListViewItem() { BindingName = "..", IsDirectory = true, LinuxTVI = cur.Parent as LinuxTreeViewItem };
+			list_LinuxListViewItem.Add(llvi);
+			for(int i = 0; i < cur.Items.Count; i++)
 			{
-				listView_linux_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Detail"] as ItemsPanelTemplate;
-				listView_linux_files.View = Resources["GridView_ListViewLinux_Detail"] as GridView;
+				LinuxTreeViewItem ltvi = cur.Items[i] as LinuxTreeViewItem;
+				if(ltvi == null)
+					continue;
+				llvi = new LinuxListViewItem() { BindingName = ltvi.Header.Text, IsDirectory = ltvi.IsDirectory, LinuxTVI = ltvi };
+				list_LinuxListViewItem.Add(llvi);
 			}
-			else if(sender == checkBox_work_detail)
+
+			listView_linux_files.Items.Clear();
+			for(int i = 0; i < list_LinuxListViewItem.Count; i++)
 			{
-				listView_work_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Detail"] as ItemsPanelTemplate;
-				listView_work_files.View = Resources["GridView_ListViewWork_Detail"] as GridView;
-			}
-		}
-		private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
-		{
-			if(sender == checkBox_linux_detail)
-			{
-				listView_linux_files.View = null;
-				listView_linux_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Icon"] as ItemsPanelTemplate;
-			}
-			else if(sender == checkBox_work_detail)
-			{
-				listView_work_files.View = null;
-				listView_work_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Icon"] as ItemsPanelTemplate;
+				if(list_LinuxListViewItem[i].LinuxTVI != null && list_LinuxListViewItem[i].LinuxTVI.Visibility == Visibility.Visible)
+				{
+					listView_linux_files.Items.Add(list_LinuxListViewItem[i]);
+				}
 			}
 		}
+
 		private void OnMouseMoveLinuxFile(object sender, MouseEventArgs e)
 		{
 			if(e.LeftButton == MouseButtonState.Pressed
@@ -123,8 +270,6 @@ namespace CofileUI.UserControls
 			}
 		}
 
-		static string DIR = @"tmp\";
-		string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
 		private void OnMouseDoubleClickLinuxFile(object sender, MouseButtonEventArgs e)
 		{
 			if(e.LeftButton == MouseButtonState.Pressed)
@@ -163,94 +308,140 @@ namespace CofileUI.UserControls
 			}
 			return 0;
 		}
-
 		public static string PreviewExtension = "preview_extension_ll";
 		static ulong Idx_Encrypt_File_Open = 0;
-		string FindDecryptFile(string remote_path_enc_file)
+
+		public delegate int Tick();
+		public static void StartCoRoutine(double time_ms, Tick tick, string timeoutTitle, string timeoutMessage)
 		{
-			JToken jtok = JsonController.ParseJson(FileContoller.Read(current.Selected_config_file_path));
-			if(jtok == null)
+			System.Windows.Threading.DispatcherTimer dt = new System.Windows.Threading.DispatcherTimer()
 			{
-				Log.ErrorIntoUI("Check Config File", "Decrypt", Status.current.richTextBox_status);
-				return null;
-			}
-
-			if(jtok["dec_option"] == null || jtok["dec_option"]["input_extension"] == null)
+				Interval = new TimeSpan(0,0,0,1)
+			};
+			DateTime timeout = DateTime.Now.AddMilliseconds(time_ms);
+			dt.Tick += delegate 
 			{
-				Log.ErrorIntoUI("Check the dec_option.input_extension in Cofile Config file", "Decrypt Failed", Status.current.richTextBox_status);
-				return null;
-			}
-
-			JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
-			string output_extension = PreviewExtension;
-
-			string remote_path = remote_path_enc_file;
-			if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1)
-				//&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
-				remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
-
-			string remote_path_dec_file = remote_path + "." + output_extension;
-
-			return remote_path_dec_file;
+				int? retval = tick?.Invoke();
+				DateTime now = DateTime.Now;
+				if(retval == 0)
+					dt.Stop();
+				else if(timeout < now)
+				{
+					if(timeoutTitle != null && timeoutMessage != null)
+					{
+						//Log.ErrorIntoUI(timeoutMessage, timeoutTitle, Status.current.richTextBox_status);
+						Log.PrintError(timeoutMessage + "(time out)", "UserControls.Cofile.StartCoRoutine");
+					}
+					dt.Stop();
+				}
+			};
+			dt.Start();
 		}
-		void OpenEncryptFile()
+
+		private int OpenEncryptFile()
 		{
 			if(listView_linux_files.SelectedItems.Count < 1)
-				return;
+				return -1;
 
 			LinuxListViewItem llvi = listView_linux_files.SelectedItems[0] as LinuxListViewItem;
 			if(llvi == null)
-				return;
+				return -2;
 
 			string remote_path = llvi.LinuxTVI.Path;
 
 			string local_filename = "temp" + Idx_Encrypt_File_Open++;
 			string remote_path_dec_file  = FindDecryptFile(remote_path);
 			if(remote_path_dec_file == null)
-				return;
+				return -3;
 
 			if(SSHController.SendNRecvCofileCommandPreview(listView_linux_files.SelectedItems.Cast<Object>(), false))
 			{
-				if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename))
-				{
-					llvi.LinuxTVI.RefreshChildFromParent();
-					Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
-
-					string url_localfile = root_path + local_filename;
-					string[] split = remote_path.Split('.');
-					string expansion = split[split.Length - 2];
-					if(expansion == "png"
-						|| expansion == "dib"
-						|| expansion == "bmp"
-						|| expansion == "jpg"
-						|| expansion == "jpeg"
-						|| expansion == "jpe"
-						|| expansion == "jfif"
-						|| expansion == "gif"
-						|| expansion == "tif"
-						|| expansion == "tiff"
-						)
+				StartCoRoutine(10000,
+					delegate
 					{
-						Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
-						FileContoller.DeleteFile(url_localfile);
+						if(SSHController.MoveFileToLocal(root_path, remote_path_dec_file, local_filename, 0))
+						{
+							llvi.LinuxTVI.RefreshChildFromParent();
+							Cofile.current.RefreshListView(Cofile.cur_LinuxTreeViewItem);
 
-						wvi.ShowDialog();
-					}
-					else
-					{
+							string url_localfile = root_path + local_filename;
+							string[] split = remote_path.Split('.');
+							string expansion = split[split.Length - 2];
+							if(expansion == "png"
+								|| expansion == "dib"
+								|| expansion == "bmp"
+								|| expansion == "jpg"
+								|| expansion == "jpeg"
+								|| expansion == "jpe"
+								|| expansion == "jfif"
+								|| expansion == "gif"
+								|| expansion == "tif"
+								|| expansion == "tiff"
+								)
+							{
+								Window_ViewImage wvi = new Window_ViewImage(LoadImage(url_localfile), llvi.LinuxTVI.FileInfo.Name);
+								FileContoller.DeleteFile(url_localfile);
 
-						string str = FileContoller.Read(url_localfile);
-						FileContoller.DeleteFile(url_localfile);
+								Point pt = this.PointToScreen(new Point(0, 0));
+								wvi.Left = pt.X;
+								wvi.Top = pt.Y;
+								wvi.ShowDialog();
+							}
+							else
+							{
 
-						Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
-						wvf.ShowDialog();
-					}
-				}
-				else
-				{
-					Log.ErrorIntoUI("Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed", Status.current.richTextBox_status);
-					Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
-				}
+								string str = FileContoller.Read(url_localfile);
+								FileContoller.DeleteFile(url_localfile);
+
+								Window_ViewFile wvf = new Window_ViewFile(str, llvi.LinuxTVI.FileInfo.Name);
+
+								Point pt = this.PointToScreen(new Point(0, 0));
+								wvf.Left = pt.X;
+								wvf.Top = pt.Y;
+								wvf.ShowDialog();
+							}
+							return 0;
+						}
+						else
+						{
+							//Log.ErrorIntoUI("Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed", Status.current.richTextBox_status);
+							//Log.PrintError("Cant Download Decrypt File", "UserControls.Cofile.OpenEncryptFile");
+							return -1;
+						}
+					}, "Check the Cofile Config File or Check File To Decrypt", "Decrypt Failed");
+			}
+			return -4;
+		}
+		string FindDecryptFile(string remote_path_enc_file)
+		{
+			JToken jtok = GetSelectedConfigFile();
+			if(jtok == null)
+				return null;
+
+			if(jtok["dec_option"] == null)
+			{
+				Log.ErrorIntoUI("Check the dec_option.input_extension in Cofile Config file", "Decrypt Failed", Status.current.richTextBox_status);
+				return null;
+			}
+
+
+			string output_extension = PreviewExtension;
+			if(jtok["dec_option"]["input_extension"] != null)
+			{
+				JValue jval_input_extansion = jtok["dec_option"]["input_extension"] as JValue;
+
+				string remote_path = remote_path_enc_file;
+				if(remote_path.Length > jval_input_extansion.Value.ToString().Length + 1)
+					//&& remote_path.Substring(remote_path.Length - jval_input_extansion.Value.ToString().Length) == jval_input_extansion.Value.ToString())
+					remote_path = remote_path.Substring(0, remote_path.Length - jval_input_extansion.Value.ToString().Length - 1);
+
+				string remote_path_dec_file = remote_path + "." + output_extension;
+
+				return remote_path_dec_file;
+			}
+			else
+			{
+				return remote_path_enc_file + "." + output_extension;
 			}
 		}
 		private BitmapImage LoadImage(string uri_ImageFile)
@@ -270,395 +461,17 @@ namespace CofileUI.UserControls
 			}
 			return myRetVal;
 		}
-		private void OnDropWorkFile(object sender, DragEventArgs e)
+
+		private void OnKeyDownLinuxPath(object sender, KeyEventArgs e)
 		{
-			// If the DataObject contains string data, extract it.
-			if(e.Data.GetDataPresent("Object"))
+			if(e.Key == Key.Enter)
 			{
-				Object data_obj = (Object)e.Data.GetData("Object");
-
-				ObservableCollection<object> list_llvi = data_obj as ObservableCollection<object>;
-				List<LinuxTreeViewItem> list_ltvi = data_obj as List<LinuxTreeViewItem>;
-
-				if(list_ltvi != null)
-				{
-					for(int i = 0; i < list_ltvi.Count; i++)
-					{
-						// 중복 체크
-						int idx_dup;
-						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
-						{
-							LinuxListViewItem llvi = listView_work_files.Items[idx_dup] as LinuxListViewItem;
-							if(llvi.LinuxTVI.Path == list_ltvi[i].Path)
-								break;
-						}
-						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
-							continue;
-
-						listView_work_files.Items.Add(new LinuxListViewItem() { BindingName = list_ltvi[i].Header.Text, IsDirectory = list_ltvi[i].IsDirectory, LinuxTVI = list_ltvi[i] });
-					}
-				}
-				else if(list_llvi != null)
-				{
-					for(int i = 0; i < list_llvi.Count; i++)
-					{
-						LinuxListViewItem llvi = list_llvi[i] as LinuxListViewItem;
-
-						// 중복 체크
-						int idx_dup;
-						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
-						{
-							LinuxListViewItem llvi_for_dup_check = listView_work_files.Items[idx_dup] as LinuxListViewItem;
-							if(llvi_for_dup_check.LinuxTVI.Path == llvi.LinuxTVI.Path)
-								break;
-						}
-						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
-							continue;
-
-						// 상위폴더 체크
-						if(llvi.BindingName == "..")
-						{
-							llvi = new LinuxListViewItem() { BindingName = llvi.LinuxTVI.Header.Text, IsDirectory = llvi.IsDirectory, LinuxTVI = llvi.LinuxTVI };
-						}
-
-						listView_work_files.Items.Add(llvi);
-					}
-				}
+				LinuxTreeViewItem.root.RefreshChild(comboBox_listView_linuxpath.Text, false);
+				RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			}
 		}
 
-		public int Refresh()
-		{
-			if(WindowMain.current == null)
-				return -1;
-
-			//if(ssh != null && ssh.IsConnected)
-			//	ssh.Disconnect();
-			//if(sftp != null && sftp.IsConnected)
-			//	sftp.Disconnect();
-
-			// 삭제
-			//treeView_linux_directory.Items.Clear();
-			//listView_linux_files.Items.Clear();
-			Clear();
-
-			// 추가
-			//string home_dir = sftp.WorkingDirectory;
-			// root 의 path 는 null 로 초기화
-			string working_dir = SSHController.WorkingDirectory;
-			if(working_dir == null)
-				return -1;
-
-			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
-			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
-			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
-			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
-			Log.PrintLog("[refresh]", "UserControls.Cofile.Refresh");
-
-			return 0;
-			//LinuxTreeViewItem.ReconnectServer();
-		}
-		private string selected_config_file_path = null;
-		public string Selected_config_file_path
-		{
-			get { return selected_config_file_path; }
-			set
-			{
-				selected_config_file_path = value;
-				string[] splited = selected_config_file_path.Split('\\');
-				textBlock_selected_config_file_name.Text = splited[splited.Length - 1];
-			}
-		}
-		private void OnClickButtonSelectConfigFile(object sender, EventArgs e)
-		{
-			//SftpFileTree root = SSHController.GetListConfigFile();
-			//if(root == null)
-			//	return;
-
-			//Window_SelectJsonFile ws = new Window_SelectJsonFile(root);
-			//if(ws.ShowDialog() == true)
-			//	Selected_config_file_path = ws.FilePathRemote;
-
-			if(ConfigJsonTree.current.InitOpenFile() != 0)
-				return;
-
-			OpenFileDialog ofd = new OpenFileDialog();
-			// 초기경로 지정
-			ofd.InitialDirectory = ConfigJsonTree.CurRootPathLocal;
-
-			if(JsonTreeViewItem.Path != null)
-			{
-				string dir_path = JsonTreeViewItem.Path.Substring(0, JsonTreeViewItem.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					ofd.InitialDirectory = dir_path;
-			}
-
-			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
-			if(ofd.ShowDialog() == true)
-				Selected_config_file_path = ofd.FileName;
-		}
-		private void OnChangeComboBoxCofileType(object sender, SelectionChangedEventArgs e)
-		{
-			SSHController.selected_type = (CofileOption)comboBox_cofile_type.SelectedIndex;
-			e.Handled = true;
-		}
-		#endregion
-
-		public class LinuxListViewItem
-		{
-			private string bindingName = "";
-			public string BindingName { get { return bindingName; } set { bindingName = value; } }
-			private bool isDirectory = false;
-			public bool IsDirectory { get { return isDirectory; } set { isDirectory = value; } }
-			private static string[] STR_UNITS = new string[] {"Bytes", "KB", "MB", "GB", "TB", "max" };
-			public string Size {
-				get
-				{
-					if(bindingName == "..")
-						return null;
-
-					float size = 0;
-					string str_unit = STR_UNITS[0];
-
-					// FileInfo == null 이면 '/' 인 최상루트 디렉토리
-					if(linuxTVI.FileInfo != null)
-					{
-						size = linuxTVI.FileInfo.Length;
-						float _size;
-						int i;
-						for(i = 0; i < STR_UNITS.Length; i++)
-						{
-							_size = size / 1024;
-							if(_size < 1)
-								break;
-							size = _size;
-						}
-						str_unit = STR_UNITS[i];
-					}
-					return string.Format("{0} {1}", Math.Round(size), str_unit);
-					//return string.Format("{0:N2} {1}", size, str_unit);
-				}
-			}
-			public string LastWriteTime {
-				get
-				{
-					if(bindingName == "..")
-						return null;
-
-					string str = "";
-					if(linuxTVI.FileInfo != null)
-					{
-						str = linuxTVI.FileInfo.LastWriteTime.ToString();
-					}
-					return str;
-				}
-			}
-			public string Type {
-				get
-				{
-					if(isDirectory)
-						return "Directory";
-					else
-					{
-						return "File";
-					}
-				}
-			}
-			//public string Owner
-			//{
-			//	get
-			//	{
-			//		string str = "";
-
-			//		return str;
-			//	}
-			//}
-
-			private LinuxTreeViewItem linuxTVI = null;
-			public LinuxTreeViewItem LinuxTVI { get { return linuxTVI; } set { linuxTVI = value; } }
-		}
-
-		static List<LinuxListViewItem> list_LinuxListViewItem = new List<LinuxListViewItem>();
-		public static LinuxTreeViewItem cur_LinuxTreeViewItem = null;
-		public void RefreshListView(LinuxTreeViewItem cur)
-		{
-			if(cur == null)
-				return;
-
-			cur_LinuxTreeViewItem = cur;
-			comboBox_listView_linuxpath.Text = cur.Path;
-
-			list_LinuxListViewItem.Clear();
-			LinuxListViewItem llvi = new LinuxListViewItem() { BindingName = "..", IsDirectory = true, LinuxTVI = cur.Parent as LinuxTreeViewItem };
-			list_LinuxListViewItem.Add(llvi);
-			for(int i = 0; i < cur.Items.Count; i++)
-			{
-				LinuxTreeViewItem ltvi = cur.Items[i] as LinuxTreeViewItem;
-				if(ltvi == null)
-					continue;
-				llvi = new LinuxListViewItem() { BindingName = ltvi.Header.Text, IsDirectory = ltvi.IsDirectory, LinuxTVI = ltvi };
-				list_LinuxListViewItem.Add(llvi);
-			}
-
-			listView_linux_files.Items.Clear();
-			for(int i = 0; i < list_LinuxListViewItem.Count; i++)
-			{
-				if(list_LinuxListViewItem[i].LinuxTVI != null && list_LinuxListViewItem[i].LinuxTVI.Visibility == Visibility.Visible)
-				{
-					listView_linux_files.Items.Add(list_LinuxListViewItem[i]);
-				}
-			}
-		}
-
-		private void OnClickLinuxFileEncrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_linux_files.SelectedItems.Cast<Object>(), true);
-		}
-		private void OnClickLinuxFileDecrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_linux_files.SelectedItems.Cast<Object>(), false);
-		}
-
-		private void OnClickWorkFileDelete(object sender, RoutedEventArgs e)
-		{
-			WorkFileDelete();
-		}
-		private void OnKeyDownWorkFiles(object sender, KeyEventArgs e)
-		{
-			if(e.Key == Key.Delete)
-			{
-				WorkFileDelete();
-			}
-		}
-		private void WorkFileDelete()
-		{
-			var sel_items = listView_work_files.SelectedItems;
-			LinuxListViewItem llit;
-			for(int i = sel_items.Count - 1; i >= 0; i--)
-			{
-				llit = sel_items[i] as LinuxListViewItem;
-				if(llit == null)
-					continue;
-
-				listView_work_files.Items.Remove(llit);
-			}
-		}
-		private void OnClickWorkFileAllEncrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_work_files.Items.Cast<Object>(), true);
-		}
-		private void OnClickWorkFileAllDecrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_work_files.Items.Cast<Object>(), false);
-		}
-		private void OnClickWorkFileSelectedEncrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_work_files.SelectedItems.Cast<Object>(), true);
-		}
-		private void OnClickWorkFileSelectedDecrypt(object sender, RoutedEventArgs e)
-		{
-			ConfirmEncDec(listView_work_files.SelectedItems.Cast<Object>(), false);
-		}
-		bool CheckHaveDirectory(IEnumerable<Object> selected_list)
-		{
-			var enumerator = selected_list.GetEnumerator();
-			bool haveDirectory = true;
-			for(int i = 0; haveDirectory = enumerator.MoveNext(); i++)
-			{
-				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
-
-				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
-				if(llvi != null)
-					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
-
-				if(ltvi == null)
-					break;
-
-				if(ltvi.IsDirectory)
-					break;
-			}
-
-			return haveDirectory;
-		}
-		string GetFileListString(IEnumerable<Object> selected_list)
-		{
-			string str = "";
-			var enumerator = selected_list.GetEnumerator();
-			for(int i = 0; enumerator.MoveNext(); i++)
-			{
-				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
-
-				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
-				if(llvi != null)
-					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
-
-				if(ltvi == null)
-					break;
-
-				str += ltvi.Path + "\n";
-			}
-			return str;
-		}
-
-		public void ConfirmEncDec(IEnumerable<Object> selected_list, bool isEncrypt)
-		{
-			string title = "", message = "";
-			MessageDialogStyle dialog_style = MessageDialogStyle.AffirmativeAndNegative;
-			WindowMain.CallBack affirmative_callback = delegate
-			{
-				//TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
-				//txt.Text = "";
-				SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, true);
-				//LinuxTreeViewItem.Refresh();
-			};
-			WindowMain.CallBack negative_callback = null;
-			MetroDialogSettings settings = null;
-
-			message += GetFileListString(selected_list);
-			message += "\n";
-
-			if(isEncrypt 
-				&& SSHController.selected_type == CofileOption.tail 
-				&& !CheckHaveDirectory(selected_list))
-			{
-				SSHController.view_message_caption = "Encrypt";
-				title += Resources["String.MainDialog.Encrypt.Title"];
-				message += Resources["String.MainDialog.Encrypt.Message.Tail"];
-
-				dialog_style = MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary;
-				negative_callback = delegate
-				{
-					SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, false);
-				};
-				settings = new MetroDialogSettings()
-				{
-					AffirmativeButtonText = "Yes"
-					, NegativeButtonText = "No"
-					, FirstAuxiliaryButtonText = "Cancel"
-					//, ColorScheme = MetroDialogOptions.ColorScheme
-				};
-			}
-			else if(isEncrypt)
-			{
-				SSHController.view_message_caption = "Encrypt";
-				title += Resources["String.MainDialog.Encrypt.Title"];
-				message += Resources["String.MainDialog.Encrypt.Message"];
-			}
-			else
-			{
-				SSHController.view_message_caption = "Decrypt";
-				title += Resources["String.MainDialog.Decrypt.Title"];
-				message += Resources["String.MainDialog.Decrypt.Message"];
-			}
-			message += "\n [ Type = " + SSHController.selected_type.ToString().ToUpper() + " ]";
-
-			WindowMain.current.ShowMessageDialog(title, message, dialog_style, affirmative_callback, negative_callback, settings: settings);
-			
-		}
-
-		private void OnButtonClickRefresh(object sender, RoutedEventArgs e)
+		private void OnClickRefresh(object sender, RoutedEventArgs e)
 		{
 			if(LinuxTreeViewItem.root == null)
 				Refresh();
@@ -677,24 +490,6 @@ namespace CofileUI.UserControls
 					RefreshListView(LinuxTreeViewItem.Last_Refresh);
 				}
 			}
-		}
-
-		private void OnKeyDownLinuxPath(object sender, KeyEventArgs e)
-		{
-			if(e.Key == Key.Enter)
-			{
-				LinuxTreeViewItem.root.RefreshChild(comboBox_listView_linuxpath.Text, false);
-				RefreshListView(LinuxTreeViewItem.Last_Refresh);
-			}
-		}
-
-		public void Clear()
-		{
-			LinuxTreeViewItem.Clear();
-			treeView_linux_directory.Items.Clear();
-			listView_linux_files.Items.Clear();
-			listView_work_files.Items.Clear();
-			textBlock_selected_config_file_name.Text = "Not Selected";
 		}
 
 		DateTime LastKeyDonwTime = DateTime.Now;
@@ -722,7 +517,7 @@ namespace CofileUI.UserControls
 					}
 					break;
 				default:
-					if((e.Key >= Key.A && e.Key <= Key.Z )
+					if((e.Key >= Key.A && e.Key <= Key.Z)
 						|| e.Key == Key.OemPeriod)
 					{
 						if(LastKeyDonwTime.AddSeconds(SecKeyDownInterval) < DateTime.Now)
@@ -801,6 +596,324 @@ namespace CofileUI.UserControls
 			ScrollViewer scv = (ScrollViewer)sender;
 			scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
 			e.Handled = true;
+		}
+
+		#endregion
+
+		#region Work View
+
+		private void OnDropWorkFile(object sender, DragEventArgs e)
+		{
+			// If the DataObject contains string data, extract it.
+			if(e.Data.GetDataPresent("Object"))
+			{
+				Object data_obj = (Object)e.Data.GetData("Object");
+
+				ObservableCollection<object> list_llvi = data_obj as ObservableCollection<object>;
+				List<LinuxTreeViewItem> list_ltvi = data_obj as List<LinuxTreeViewItem>;
+
+				if(list_ltvi != null)
+				{
+					for(int i = 0; i < list_ltvi.Count; i++)
+					{
+						// 중복 체크
+						int idx_dup;
+						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
+						{
+							LinuxListViewItem llvi = listView_work_files.Items[idx_dup] as LinuxListViewItem;
+							if(llvi.LinuxTVI.Path == list_ltvi[i].Path)
+								break;
+						}
+						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
+							continue;
+
+						listView_work_files.Items.Add(new LinuxListViewItem() { BindingName = list_ltvi[i].Header.Text, IsDirectory = list_ltvi[i].IsDirectory, LinuxTVI = list_ltvi[i] });
+					}
+				}
+				else if(list_llvi != null)
+				{
+					for(int i = 0; i < list_llvi.Count; i++)
+					{
+						LinuxListViewItem llvi = list_llvi[i] as LinuxListViewItem;
+
+						// 중복 체크
+						int idx_dup;
+						for(idx_dup = 0; idx_dup < listView_work_files.Items.Count; idx_dup++)
+						{
+							LinuxListViewItem llvi_for_dup_check = listView_work_files.Items[idx_dup] as LinuxListViewItem;
+							if(llvi_for_dup_check.LinuxTVI.Path == llvi.LinuxTVI.Path)
+								break;
+						}
+						if(listView_work_files.Items.Count > 0 && idx_dup != listView_work_files.Items.Count)
+							continue;
+
+						// 상위폴더 체크
+						if(llvi.BindingName == "..")
+						{
+							llvi = new LinuxListViewItem() { BindingName = llvi.LinuxTVI.Header.Text, IsDirectory = llvi.IsDirectory, LinuxTVI = llvi.LinuxTVI };
+						}
+
+						listView_work_files.Items.Add(llvi);
+					}
+				}
+			}
+		}
+
+		private void OnClickWorkFileDelete(object sender, RoutedEventArgs e)
+		{
+			WorkFileDelete();
+		}
+		private void OnKeyDownWorkFiles(object sender, KeyEventArgs e)
+		{
+			if(e.Key == Key.Delete)
+			{
+				WorkFileDelete();
+			}
+		}
+		private void WorkFileDelete()
+		{
+			var sel_items = listView_work_files.SelectedItems;
+			LinuxListViewItem llit;
+			for(int i = sel_items.Count - 1; i >= 0; i--)
+			{
+				llit = sel_items[i] as LinuxListViewItem;
+				if(llit == null)
+					continue;
+
+				listView_work_files.Items.Remove(llit);
+			}
+		}
+		private void OnClickWorkFileAllEncrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_work_files.Items.Cast<Object>(), true);
+		}
+		private void OnClickWorkFileAllDecrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_work_files.Items.Cast<Object>(), false);
+		}
+		private void OnClickWorkFileSelectedEncrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_work_files.SelectedItems.Cast<Object>(), true);
+		}
+		private void OnClickWorkFileSelectedDecrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_work_files.SelectedItems.Cast<Object>(), false);
+		}
+
+		#endregion
+
+		public class LinuxListViewItem
+		{
+			private string bindingName = "";
+			public string BindingName { get { return bindingName; } set { bindingName = value; } }
+			private bool isDirectory = false;
+			public bool IsDirectory { get { return isDirectory; } set { isDirectory = value; } }
+			private static string[] STR_UNITS = new string[] {"Bytes", "KB", "MB", "GB", "TB", "max" };
+			public string Size
+			{
+				get
+				{
+					if(bindingName == "..")
+						return null;
+
+					float size = 0;
+					string str_unit = STR_UNITS[0];
+
+					// FileInfo == null 이면 '/' 인 최상루트 디렉토리
+					if(linuxTVI.FileInfo != null)
+					{
+						size = linuxTVI.FileInfo.Length;
+						float _size;
+						int i;
+						for(i = 0; i < STR_UNITS.Length; i++)
+						{
+							_size = size / 1024;
+							if(_size < 1)
+								break;
+							size = _size;
+						}
+						str_unit = STR_UNITS[i];
+					}
+					return string.Format("{0} {1}", Math.Round(size), str_unit);
+					//return string.Format("{0:N2} {1}", size, str_unit);
+				}
+			}
+			public string LastWriteTime
+			{
+				get
+				{
+					if(bindingName == "..")
+						return null;
+
+					string str = "";
+					if(linuxTVI.FileInfo != null)
+					{
+						str = linuxTVI.FileInfo.LastWriteTime.ToString();
+					}
+					return str;
+				}
+			}
+			public string Type
+			{
+				get
+				{
+					if(isDirectory)
+						return "Directory";
+					else
+					{
+						return "File";
+					}
+				}
+			}
+			//public string Owner
+			//{
+			//	get
+			//	{
+			//		string str = "";
+
+			//		return str;
+			//	}
+			//}
+
+			private LinuxTreeViewItem linuxTVI = null;
+			public LinuxTreeViewItem LinuxTVI { get { return linuxTVI; } set { linuxTVI = value; } }
+		}
+
+		private void OnCheckedDetail(object sender, RoutedEventArgs e)
+		{
+			if(sender == checkBox_linux_detail)
+			{
+				listView_linux_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Detail"] as ItemsPanelTemplate;
+				listView_linux_files.View = Resources["GridView_ListViewLinux_Detail"] as GridView;
+			}
+			else if(sender == checkBox_work_detail)
+			{
+				listView_work_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Detail"] as ItemsPanelTemplate;
+				listView_work_files.View = Resources["GridView_ListViewWork_Detail"] as GridView;
+			}
+		}
+		private void OnUncheckedDetail(object sender, RoutedEventArgs e)
+		{
+			if(sender == checkBox_linux_detail)
+			{
+				listView_linux_files.View = null;
+				listView_linux_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Icon"] as ItemsPanelTemplate;
+			}
+			else if(sender == checkBox_work_detail)
+			{
+				listView_work_files.View = null;
+				listView_work_files.ItemsPanel = Resources["ItemsPanelTemplate_ListView_Icon"] as ItemsPanelTemplate;
+			}
+		}
+		
+		static List<LinuxListViewItem> list_LinuxListViewItem = new List<LinuxListViewItem>();
+		public static LinuxTreeViewItem cur_LinuxTreeViewItem = null;
+		private void OnClickLinuxFileEncrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_linux_files.SelectedItems.Cast<Object>(), true);
+		}
+		private void OnClickLinuxFileDecrypt(object sender, RoutedEventArgs e)
+		{
+			ConfirmEncDec(listView_linux_files.SelectedItems.Cast<Object>(), false);
+		}
+		
+		bool CheckHaveDirectory(IEnumerable<Object> selected_list)
+		{
+			var enumerator = selected_list.GetEnumerator();
+			bool haveDirectory = true;
+			for(int i = 0; haveDirectory = enumerator.MoveNext(); i++)
+			{
+				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
+
+				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
+				if(llvi != null)
+					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
+
+				if(ltvi == null)
+					break;
+
+				if(ltvi.IsDirectory)
+					break;
+			}
+
+			return haveDirectory;
+		}
+		string GetFileListString(IEnumerable<Object> selected_list)
+		{
+			string str = "";
+			var enumerator = selected_list.GetEnumerator();
+			for(int i = 0; enumerator.MoveNext(); i++)
+			{
+				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
+
+				CofileUI.UserControls.Cofile.LinuxListViewItem llvi = enumerator.Current as CofileUI.UserControls.Cofile.LinuxListViewItem;
+				if(llvi != null)
+					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
+
+				if(ltvi == null)
+					break;
+
+				str += ltvi.Path + "\n";
+			}
+			return str;
+		}
+		public void ConfirmEncDec(IEnumerable<Object> selected_list, bool isEncrypt)
+		{
+			string title = "", message = "";
+			MessageDialogStyle dialog_style = MessageDialogStyle.AffirmativeAndNegative;
+			WindowMain.CallBack affirmative_callback = delegate
+			{
+				//TextRange txt = new TextRange(Status.current.richTextBox_status.Document.ContentStart, Status.current.richTextBox_status.Document.ContentEnd);
+				//txt.Text = "";
+				SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, true);
+				//LinuxTreeViewItem.Refresh();
+			};
+			WindowMain.CallBack negative_callback = null;
+			MetroDialogSettings settings = null;
+
+			message += GetFileListString(selected_list);
+			message += "\n";
+			CofileType cofileType = this.GetSelectedType();
+			if(cofileType == CofileType.undefined)
+				return;
+
+			if(isEncrypt 
+				&& cofileType == CofileType.tail 
+				&& !CheckHaveDirectory(selected_list))
+			{
+				SSHController.view_message_caption = "Encrypt";
+				title += Resources["String.MainDialog.Encrypt.Title"];
+				message += Resources["String.MainDialog.Encrypt.Message.Tail"];
+
+				dialog_style = MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary;
+				negative_callback = delegate
+				{
+					SSHController.SendNRecvCofileCommand(selected_list, isEncrypt, false);
+				};
+				settings = new MetroDialogSettings()
+				{
+					AffirmativeButtonText = "Yes"
+					, NegativeButtonText = "No"
+					, FirstAuxiliaryButtonText = "Cancel"
+					//, ColorScheme = MetroDialogOptions.ColorScheme
+				};
+			}
+			else if(isEncrypt)
+			{
+				SSHController.view_message_caption = "Encrypt";
+				title += Resources["String.MainDialog.Encrypt.Title"];
+				message += Resources["String.MainDialog.Encrypt.Message"];
+			}
+			else
+			{
+				SSHController.view_message_caption = "Decrypt";
+				title += Resources["String.MainDialog.Decrypt.Title"];
+				message += Resources["String.MainDialog.Decrypt.Message"];
+			}
+			message += "\n [ Type = " + cofileType.ToString().ToUpper() + " ]";
+
+			WindowMain.current.ShowMessageDialog(title, message, dialog_style, affirmative_callback, negative_callback, settings: settings);
+			
 		}
 	}
 }

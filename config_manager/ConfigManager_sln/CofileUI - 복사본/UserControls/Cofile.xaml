@@ -23,7 +23,7 @@
 			<ObjectDataProvider x:Key="enumValues_cofileOptions"
 								MethodName="GetValues" ObjectType="{x:Type System:Enum}">
 				<ObjectDataProvider.MethodParameters>
-					<x:Type TypeName="local:CofileOption"/>
+					<x:Type TypeName="local:CofileType"/>
 				</ObjectDataProvider.MethodParameters>
 			</ObjectDataProvider>
 
@@ -121,22 +121,18 @@
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0">
 			<Border Style="{StaticResource StyleBolderSplitter}"/>
-			<!--<TextBlock Text="Possible Input Pattern"
-											   Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"
-											   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_linux_directory_filter, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
-			<TextBox x:Name="textBox_linux_directory_filter" Text="" Background="{x:Null}"
-					 Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" Controls:TextBoxHelper.Watermark="{DynamicResource String.TextBox.Filter}"/>
-			<CheckBox x:Name="checkBox_hidden" Content="{DynamicResource String.CheckBox.HiddenFile}" Margin="210,0,0,0" HorizontalAlignment="Left"/>
 
-			<ComboBox x:Name="comboBox_cofile_type"
-					  Margin="0, 0, 320, 0" Width="100" Height="25" HorizontalAlignment="Right" SelectionChanged="OnChangeComboBoxCofileType"
-					  ItemsSource="{Binding Source={StaticResource enumValues_cofileOptions}}"
-					  SelectedIndex="0"/>
-			<Button Content="{DynamicResource String.Button.SelectConfig}"
-					Margin="0,0,210,0" Width="100" Height="25" VerticalAlignment="Center" HorizontalAlignment="Right"
-					Click="OnClickButtonSelectConfigFile"/>
-			<TextBlock x:Name="textBlock_selected_config_file_name" Text="{DynamicResource String.TextBlock.SelectConfig.NotSelect}" Background="{x:Null}"
-					   Margin="0,0,0,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+			<Grid Margin="5,0,5,0">
+				<!--<ComboBox x:Name="comboBox_cofile_type"
+						  Margin="0, 0, 320, 0" Width="100" Height="25" HorizontalAlignment="Right" SelectionChanged="OnChangeComboBoxCofileType"
+						  ItemsSource="{Binding Source={StaticResource enumValues_cofileOptions}}"
+						  SelectedIndex="0"/>-->
+				<Button Content="{DynamicResource String.Button.SelectConfig}"
+						Margin="0,0,0,0" Width="100" Height="25" VerticalAlignment="Center" HorizontalAlignment="Left"
+						Click="OnClickSelectConfigFile"/>
+				<TextBlock x:Name="textBlock_selected_config_file_name" Text="{DynamicResource String.TextBlock.SelectConfig.NotSelect}" Background="{x:Null}"
+						   Margin="110,0,0,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+			</Grid>
 		</Grid>
 		<Grid Grid.Row="1">
 			<Grid.ColumnDefinitions>
@@ -145,20 +141,33 @@
 			</Grid.ColumnDefinitions>
 			<Grid Grid.Column="0">
 				<Grid.RowDefinitions>
-					<RowDefinition Height="30"/>
+					<RowDefinition Height="60"/>
 					<RowDefinition Height="100"/>
 					<RowDefinition Height="5*"/>
 				</Grid.RowDefinitions>
 
 				<Grid Grid.Row="0" Margin="0,0,0,0">
 					<Border Style="{StaticResource StyleBolderSplitter}"/>
-					<ComboBox x:Name="comboBox_listView_linuxpath" Text="{DynamicResource String.ComboBox.LinuxPath.Init}"
-							  Height="25" Margin="0,0,120,0" HorizontalAlignment="Stretch" IsEditable="True" KeyDown="OnKeyDownLinuxPath">
-					</ComboBox>
-					<Button Content="{DynamicResource String.Button.Refresh}" Background="White" Click="OnButtonClickRefresh"
-							Height="25" Width="55" Margin="0,0,65,0" HorizontalAlignment="Right"/>
-					<CheckBox x:Name="checkBox_linux_detail" Content="{DynamicResource String.CheckBox.DetailListView}" 
-							  Width="60" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+					<Grid Margin="0,0,5,0">
+						<Grid Height="30" VerticalAlignment="Top">
+							<ComboBox x:Name="comboBox_listView_linuxpath" Text="{DynamicResource String.ComboBox.LinuxPath.Init}"
+									  Height="25" Margin="0,0,120,0" HorizontalAlignment="Stretch" IsEditable="True" KeyDown="OnKeyDownLinuxPath">
+							</ComboBox>
+							<Button Content="{DynamicResource String.Button.Refresh}" Background="White" Click="OnClickRefresh"
+									Height="25" Width="55" Margin="0,0,60,0" HorizontalAlignment="Right"/>
+							<CheckBox x:Name="checkBox_linux_detail" Content="{DynamicResource String.CheckBox.DetailListView}" 
+									  Margin="0,0,0,0" HorizontalAlignment="Right" Checked="OnCheckedDetail" Unchecked="OnUncheckedDetail"/>
+						</Grid>
+						<Grid Height="30" VerticalAlignment="Bottom">
+							<!--<TextBlock Text="Possible Input Pattern"
+													   Margin="0,0,20,0" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left"
+													   Foreground="LightSteelBlue" Visibility="{Binding ElementName=textBox_linux_directory_filter, Path=Text.IsEmpty, Converter={StaticResource MyBoolToVisibilityConverter}}" FontStyle="Italic" TextDecorations="{x:Null}"/>-->
+							<TextBox x:Name="textBox_linux_directory_filter" Text="" Background="{x:Null}"
+									 Margin="0,0,120,0" VerticalAlignment="Center" HorizontalAlignment="Stretch" Controls:TextBoxHelper.Watermark="{DynamicResource String.TextBox.Filter}"/>
+							<CheckBox x:Name="checkBox_hidden" Content="{DynamicResource String.CheckBox.HiddenFile}" 
+									  Margin="0,0,0,0" HorizontalAlignment="Right"/>
+						</Grid>
+					</Grid>
 				</Grid>
 				<Grid Grid.Row="1">
 					<TreeView x:Name="treeView_linux_directory"/>
@@ -198,7 +207,8 @@
 				<Grid Grid.Row="0" Margin="0,0,3,0">
 					<Border Style="{StaticResource StyleBolderSplitter}"/>
 					<Label x:Name="label_listView_work" Content="{DynamicResource String.Label.ListViewWork}" HorizontalAlignment="Left"/>
-					<CheckBox x:Name="checkBox_work_detail" Content="{DynamicResource String.CheckBox.DetailListView}" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+					<CheckBox x:Name="checkBox_work_detail" Content="{DynamicResource String.CheckBox.DetailListView}" HorizontalAlignment="Right" 
+							  Checked="OnCheckedDetail" Unchecked="OnUncheckedDetail"/>
 				</Grid>
 				<Grid Grid.Row="1">
 					<ListView x:Name="listView_work_files" Style="{StaticResource StyleListView}"

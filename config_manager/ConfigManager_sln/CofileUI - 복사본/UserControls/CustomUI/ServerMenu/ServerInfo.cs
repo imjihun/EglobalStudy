@@ -302,6 +302,7 @@ namespace CofileUI.UserControls
 		public static ServerInfoPanel selected_serverinfo_panel;
 		public static ServerInfoPanel connected_serverinfo_panel;
 		MenuItem Disconnect;
+		MenuItem Setting;
 		private void InitContextMenu()
 		{
 			this.ContextMenu = new ContextMenu();
@@ -362,7 +363,24 @@ namespace CofileUI.UserControls
 			};
 			this.ContextMenu.Items.Add(item);
 
+			//Setting = new MenuItem();
+			//Setting.Click += OnClickEnvSetting;
+			//Setting.Header = "Env Setting";
+			//this.ContextMenu.Items.Add(Setting);
+
 			this.ContextMenu.Opened += ContextMenu_Opened;
+		}
+		private void OnClickEnvSetting(object sender, RoutedEventArgs e)
+		{
+			Window_EnvSetting wms = new Window_EnvSetting();
+			Point pt = this.PointToScreen(new Point(0, 0));
+			wms.Left = pt.X;
+			wms.Top = pt.Y;
+			wms.textBox_cohome.Text = SSHController.EnvCoHome;
+			if(wms.ShowDialog() == true)
+			{
+				SSHController.EnvCoHome = wms.textBox_cohome.Text;
+			}
 		}
 		private void ContextMenu_Opened(object sender, RoutedEventArgs e)
 		{
@@ -372,6 +390,13 @@ namespace CofileUI.UserControls
 					Disconnect.IsEnabled = true;
 				else
 					Disconnect.IsEnabled = false;
+			}
+			if(Setting != null)
+			{
+				if(selected_serverinfo_panel != null && selected_serverinfo_panel.IsConnected)
+					Setting.IsEnabled = true;
+				else
+					Setting.IsEnabled = false;
 			}
 		}
 
@@ -533,8 +558,6 @@ namespace CofileUI.UserControls
 				//Cofile.current.Refresh();
 				if(WindowMain.current != null)
 					WindowMain.current.Refresh(selected_serverinfo_panel.Serverinfo.name);
-
-				//WindowMain.current.initTest();
 			}
 		}
 		protected override void OnSelectionChanged(SelectionChangedEventArgs e)
