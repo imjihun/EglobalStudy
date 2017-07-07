@@ -3,7 +3,7 @@
                     xmlns:local="clr-namespace:CofileUI.UserControls.ConfigOptions"
 					xmlns:system="clr-namespace:System;assembly=mscorlib" >
 
-	<system:String x:Key="sam.comm_option.sam_type">SAM file type</system:String>
+	<!--<system:String x:Key="sam.comm_option.sam_type">SAM file type</system:String>
 	<system:String x:Key="sam.comm_option.no_col">암호화 대상 컬럼 수?</system:String>
 	<system:String x:Key="sam.comm_option.sid">암호화 대상 DB SID</system:String>
 	<system:String x:Key="sam.comm_option.delimiter">Column 구분자</system:String>
@@ -46,7 +46,7 @@
 		<sys:String>schedule_time</sys:String>
 		<sys:String>result_log_yn</sys:String>
 		<sys:String>thread_count</sys:String>
-	</x:Array>
+	</x:Array>-->
 
 	<local:Int64ToStringConverter x:Key="Int64ToStringConverter"/>
 	<local:OnlyInt64Converter x:Key="OnlyInt64Converter"/>
@@ -62,13 +62,13 @@
 
 	<GridLength x:Key="GridColumnWidthKey">Auto</GridLength>
 	<GridLength x:Key="GridColumnWidthValue">*</GridLength>
-	<GridLength x:Key="GridRowHeight">35</GridLength>
+	<!--<GridLength x:Key="GridRowHeight">35</GridLength>
 	<system:Double x:Key="WidthValue">150</system:Double>
 	<system:Double x:Key="HeightValue">25</system:Double>
 	<VerticalAlignment x:Key="VerticalAlignmentValue">Center</VerticalAlignment>
 	<HorizontalAlignment x:Key="HorizontalAlignmentValue">Left</HorizontalAlignment>
 	<VerticalAlignment x:Key="VerticalAlignmentKey">Center</VerticalAlignment>
-	<Thickness x:Key="MarginKey">5,0,10,0</Thickness>
+	<Thickness x:Key="MarginKey">5,0,10,0</Thickness>-->
 	<!--<Style x:Key="StyleDataGrid" BasedOn="{StaticResource DataGridTextColumn}" TargetType="{x:Type DataGridTextColumn}">
 		<Setter Property="AlternatingRowBackground" Value="{DynamicResource GrayBrush10}" />
 		<Setter Property="AutoGenerateColumns" Value="False" />

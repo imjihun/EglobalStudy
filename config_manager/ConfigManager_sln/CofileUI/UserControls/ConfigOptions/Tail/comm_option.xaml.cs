@@ -23,26 +23,22 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 	/// </summary>
 	public partial class comm_option : UserControl
 	{
-		bool bInit = false;
 		static JObject Root { get; set; }
 		public comm_option(JObject root)
 		{
-			Root = root;
-			DataContext = root;
 			InitializeComponent();
 
-			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
-			this.Loaded += delegate
+			if(root == null)
 			{
-				if(!bInit)
-				{
-					//ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new TailOption());
-					bInit = true;
-				}
-			};
+				Log.PrintLog("NotFound Tail.comm_option", "UserControls.ConfigOptions.Tail.comm_option.comm_option");
+				return;
+			}
+
+			Root = root;
+			DataContext = root;
+			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
 		}
-
-
+		
 		public enum Options
 		{
 			// comm_option
@@ -64,6 +60,26 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 
 			, Length
 		}
+		public static string[] detailOptions = new string[(int)Options.Length]
+			{
+			// comm_option
+				"암/복호화 할 대상 폴더"
+				, "암/복호화 할 입력 로그파일의 확장자"
+				, "암/복호화 후 출력 경로"
+				, "암/복호화 후 덧붙일 확장자"
+				, "DB SID 이름"
+				, "Tail Type"
+				, "폴더의 감시 주기"
+				, "패턴 개수"
+				, "암/복호화 대상 파일 필터 (정규표현식)"
+				, "자식 데몬 자동 종료 시간 (시간)"
+				, "파일 크기가 0인 파일에 대한 암/복호화 유무 (true : 감시)"
+				, "복호화 권한이 없을 때, 출력 문구"
+				, "원본 파일 유지 여부 (true : 유지)"
+				, "정규표현식 사용 여부 (true : 사용)"
+				, "데몬 모드 여부 (true : 데몬모드)"
+			};
+
 		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
 		Group[] groups = new Group[]
 		{
@@ -109,96 +125,52 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					,(int)Options.shutdown_time
 				}
 			}
-			//new Group()
-			//{
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.dir_monitoring_yn
-			//		, (int)Options.dir_monitoring_term
-			//		, (int)Options.verify_yn
-			//		, (int)Options.schedule_time
-			//	}
-			//},
-			//new Group()
-			//{
-			//	Header = new Label() {Content = "Etc" },
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.result_log_yn
-			//		, (int)Options.thread_count
-			//	}
-			//}
 		};
-					//case Options.input_dir:
-					//case Options.input_ext:
-					//case Options.output_dir:
-					//case Options.output_ext:
-					//case Options.sid:
-					//case Options.tail_type:
-					//case Options.interval:
-					//case Options.no_inform:
-					//case Options.input_filter:
-					//case Options.shutdown_time:
-					//case Options.zero_byte_yn:
-					//case Options.no_access_sentence:
-					//case Options.file_reserver_yn:
-					//case Options.reg_yn:
-		public static string[] detailOptions = new string[(int)Options.Length]
-			{
-			// comm_option
-				"암/복호화 할 대상 폴더"
-				, "암/복호화 할 입력 로그파일의 확장자"
-				, "암/복호화 후 출력 경로"
-				, "암/복호화 후 덧붙일 확장자"
-				, "DB SID 이름"
-				, "Tail Type"
-				, "폴더의 감시 주기"
-				, "패턴 개수"
-				, "암/복호화 대상 파일 필터 (정규표현식)"
-				, "자식 데몬 자동 종료 시간 (시간)"
-				, "파일 크기가 0인 파일에 대한 암/복호화 유무 (true : 감시)"
-				, "복호화 권한이 없을 때, 출력 문구"
-				, "원본 파일 유지 여부 (true : 유지)"
-				, "정규표현식 사용 여부 (true : 사용)"
-				, "데몬 모드 여부 (true : 데몬모드)"
-			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
-			JProperty retval;
-			if(root[(opt).ToString()] == null)
+			JProperty retval = null;
+			try
 			{
-				object value = "";
-				switch(opt)
+				if(root[(opt).ToString()] == null)
 				{
-					case Options.input_dir:
-					case Options.input_ext:
-					case Options.output_dir:
-					case Options.output_ext:
-					case Options.sid:
-					case Options.input_filter:
-					case Options.no_access_sentence:
-						value = "";
-						break;
-					case Options.zero_byte_yn:
-					case Options.file_reserver_yn:
-					case Options.reg_yn:
-					case Options.daemon_yn:
-						value = false;
-						break;
-					case Options.tail_type:
-					case Options.interval:
-					case Options.no_inform:
-					case Options.shutdown_time:
-						value = (Int64)0;
-						break;
-				}
-				if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
-				{
-					JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
-					if(jprop != null)
+					object value = "";
+					switch(opt)
 					{
-						retval = jprop;
-						//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						case Options.input_dir:
+						case Options.input_ext:
+						case Options.output_dir:
+						case Options.output_ext:
+						case Options.sid:
+						case Options.input_filter:
+						case Options.no_access_sentence:
+							value = "";
+							break;
+						case Options.zero_byte_yn:
+						case Options.file_reserver_yn:
+						case Options.reg_yn:
+						case Options.daemon_yn:
+							value = false;
+							break;
+						case Options.tail_type:
+						case Options.interval:
+						case Options.no_inform:
+						case Options.shutdown_time:
+							value = (Int64)0;
+							break;
+					}
+					if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+					{
+						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
+						if(jprop != null)
+						{
+							retval = jprop;
+							//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						}
+						else
+						{
+							retval = new JProperty((opt).ToString(), value);
+							root.Add(retval);
+						}
 					}
 					else
 					{
@@ -207,14 +179,12 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					}
 				}
 				else
-				{
-					retval = new JProperty((opt).ToString(), value);
-					root.Add(retval);
-				}
+					retval = root[(opt).ToString()].Parent as JProperty;
 			}
-			else
-				retval = root[(opt).ToString()].Parent as JProperty;
-
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + " (" + opt.ToString() + ")", "UserControls.ConfigOption.Tail.comm_option.GetJProperty");
+			}
 			return retval;
 		}
 		static FrameworkElement GetUIOptionKey(int opt, JObject root)
@@ -309,7 +279,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.Tail.comm_option.GetUIOptionKey");
 			}
 
 			if(ret != null)
@@ -367,7 +337,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.no_access_sentence:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
-							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb.HorizontalAlignment = HorizontalAlignment.Left;
 							ret = tb;
 
@@ -392,7 +362,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.daemon_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							ts.Width = ConfigOptionSize.WIDTH_VALUE;
 							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
 							ts.FontSize = 13;
@@ -428,7 +398,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.reg_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							ts.Width = ConfigOptionSize.WIDTH_VALUE;
 							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
 							ts.FontSize = 13;
@@ -468,7 +438,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.shutdown_time:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
-							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
 							//if(panelDetailOption.RowDefinitions.Count > 0)
@@ -504,7 +474,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.Tail.comm_option.GetUIOptionValue");
 			}
 
 			if(ret != null)

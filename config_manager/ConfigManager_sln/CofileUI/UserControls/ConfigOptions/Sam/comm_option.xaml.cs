@@ -24,25 +24,20 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 	/// </summary>
 	public partial class comm_option : UserControl
 	{
-		bool bInit = false;
 		static JObject Root { get; set; }
 		public comm_option(JObject root)
 		{
-			Root = root;
-			DataContext = root;
 			InitializeComponent();
 
-			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
-
-			this.Loaded += delegate
+			if(root == null)
 			{
-				if(!bInit)
-				{
-					//ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new SamOption());
+				Log.PrintLog("NotFound Sam.comm_option", "UserControls.ConfigOptions.Sam.comm_option.comm_option");
+				return;
+			}
 
-					bInit = true;
-				}
-			};
+			Root = root;
+			DataContext = root;
+			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
 		}
 
 
@@ -115,43 +110,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					(int)Options.input_ext
 				}
 			}
-			//new Group()
-			//{
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.dir_monitoring_yn
-			//		, (int)Options.dir_monitoring_term
-			//		, (int)Options.verify_yn
-			//		, (int)Options.schedule_time
-			//	}
-			//},
-			//new Group()
-			//{
-			//	Header = new Label() {Content = "Etc" },
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.result_log_yn
-			//		, (int)Options.thread_count
-			//	}
-			//}
 		};
-					//case Options.sam_type:
-					//case Options.no_col:
-					//case Options.sid:
-					//case Options.delimiter:
-					//case Options.trim:
-					//case Options.skip_header:
-					//case Options.record_len:
-					//case Options.input_filter:
-					//case Options.input_dir:
-					//case Options.input_ext:
-					//case Options.output_dir:
-					//case Options.output_ext:
-					//case Options.dir_monitoring_yn:
-					//case Options.dir_monitoring_term:
-					//case Options.file_reserver_yn:
-					//case Options.no_access_sentence:
-					//case Options.log_file:
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
 			// comm_option
@@ -175,43 +134,51 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
-			JProperty retval;
-			if(root[(opt).ToString()] == null)
+			JProperty retval = null;
+			try
 			{
-				object value = "";
-				switch(opt)
+				if(root[(opt).ToString()] == null)
 				{
-					case Options.sid:
-					case Options.delimiter:
-					case Options.input_filter:
-					case Options.input_dir:
-					case Options.input_ext:
-					case Options.output_dir:
-					case Options.output_ext:
-					case Options.no_access_sentence:
-					case Options.log_file:
-						value = "";
-						break;
-					case Options.dir_monitoring_yn:
-					case Options.file_reserver_yn:
-						value = false;
-						break;
-					case Options.sam_type:
-					case Options.no_col:
-					case Options.trim:
-					case Options.skip_header:
-					case Options.record_len:
-					case Options.dir_monitoring_term:
-						value = (Int64)0;
-						break;
-				}
-				if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
-				{
-					JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
-					if(jprop != null)
+					object value = "";
+					switch(opt)
 					{
-						retval = jprop;
-						//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						case Options.sid:
+						case Options.delimiter:
+						case Options.input_filter:
+						case Options.input_dir:
+						case Options.input_ext:
+						case Options.output_dir:
+						case Options.output_ext:
+						case Options.no_access_sentence:
+						case Options.log_file:
+							value = "";
+							break;
+						case Options.dir_monitoring_yn:
+						case Options.file_reserver_yn:
+							value = false;
+							break;
+						case Options.sam_type:
+						case Options.no_col:
+						case Options.trim:
+						case Options.skip_header:
+						case Options.record_len:
+						case Options.dir_monitoring_term:
+							value = (Int64)0;
+							break;
+					}
+					if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+					{
+						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
+						if(jprop != null)
+						{
+							retval = jprop;
+							//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						}
+						else
+						{
+							retval = new JProperty((opt).ToString(), value);
+							root.Add(retval);
+						}
 					}
 					else
 					{
@@ -220,13 +187,13 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					}
 				}
 				else
-				{
-					retval = new JProperty((opt).ToString(), value);
-					root.Add(retval);
-				}
+					retval = root[(opt).ToString()].Parent as JProperty;
+
 			}
-			else
-				retval = root[(opt).ToString()].Parent as JProperty;
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + " (" + opt.ToString() + ")", "UserControls.ConfigOption.Sam.comm_option.GetJProperty");
+			}
 
 			return retval;
 		}
@@ -324,7 +291,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.Sam.comm_option.GetUIOptionKey");
 			}
 
 			if(ret != null)
@@ -414,7 +381,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.log_file:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
-							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb.HorizontalAlignment = HorizontalAlignment.Left;
 							ret = tb;
 
@@ -438,7 +405,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.file_reserver_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							ts.Width = ConfigOptionSize.WIDTH_VALUE;
 							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
 							ts.FontSize = 13;
@@ -477,7 +444,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.dir_monitoring_term:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
-							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
 							//if(panelDetailOption.RowDefinitions.Count > 0)
@@ -514,7 +481,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.Sam.comm_option.GetUIOptionValue");
 			}
 
 			if(ret != null)

@@ -34,8 +34,6 @@ namespace CofileUI.UserControls
 		{
 			current = this;
 			InitializeComponent();
-			InitJsonFileView();
-
 		}
 		#region
 		
@@ -45,127 +43,10 @@ namespace CofileUI.UserControls
 				return;
 			grid.Children.Clear();
 
-			//UserControl retval = null;
-			//if(root["type"].ToString() == "file")
-			//	retval = new ConfigOptions.File.FileOptions() { DataContext = root };
-			//else if(root["type"].ToString() == "sam")
-			//	retval = new ConfigOptions.Sam.SamOptions() { DataContext = root };
-			//else if(root["type"].ToString() == "tail")
-			//	retval = new ConfigOptions.Tail.TailOptions() { DataContext = root };
-			//grid.Children.Add(retval);
-
 			UserControl ui = ConfigOptionManager.CreateOption(root);
 			if(ui != null)
 				grid.Children.Add(ui);
 		}
-		//Options options = null;
-		//public int AddItem(Grid panel, JProperty root)
-		//{
-		//	string type = Convert.ToString(root.Root["type"]);
-		//	if(type == "file")
-		//		options = new ConfigOptions.FileOptions();
-		//	else if(type == "sam")
-		//		options = new ConfigOptions.SamOptions();
-		//	else if(type == "tail")
-		//		options = new ConfigOptions.FileOptions();
-		//	else return -1;
-
-		//	if(root.Value.Type == JTokenType.Object)
-		//	{
-		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
-		//		panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-
-		//		return AddItemValueIsObject(panel, root, root);
-		//	}
-		//	else if(root.Value.Type == JTokenType.Array)
-		//	{
-		//		string key = root.Name.TrimStart('#');
-		//		UIElement ui = null;
-		//		switch(key)
-		//		{
-		//			case "col_var":
-		//				ui = new ConfigOptions.Sam.col_var() { DataContext = root };
-		//				//ui = Resources["DataGridResourceSamColVar"] as DataGrid;
-		//				break;
-		//			case "col_fix":
-		//				ui = new ConfigOptions.Sam.col_fix() { DataContext = root };
-		//				//ui = Resources["DataGridResourceSamColFix"] as DataGrid;
-		//				break;
-		//			case "enc_inform":
-		//				ui = new ConfigOptions.Tail.enc_inform() { DataContext = root };
-		//				//ui = Resources["DataGridResourceTailEncInform"] as DataGrid;
-		//				break;
-		//			default:
-		//				break;
-		//		}
-		//		if(ui != null)
-		//		{
-		//			//ui.ItemsSource = root.Value;
-		//			panel.Children.Add(ui);
-		//		}
-
-		//		return 0;
-		//	}
-		//	else
-		//		return -1;
-		//}
-		//private int AddItemValueIsObject(Panel cur_panel_DetailOption, JProperty cur_jprop_optionMenu, JToken cur_jtok)
-		//{
-		//	foreach(var v in cur_jtok.Children())
-		//	{
-		//		JProperty jprop = cur_jprop_optionMenu;
-		//		Panel pan = cur_panel_DetailOption;
-		//		switch(v.Type)
-		//		{
-		//			case JTokenType.Boolean:
-		//			case JTokenType.Integer:
-		//			case JTokenType.String:
-		//				{
-		//					FrameworkElement ui = options.GetUIOptionValue(jprop, v);
-		//					if(ui == null)
-		//						break;
-
-		//					pan.Children.Add(ui);
-		//				}
-		//				break;
-
-		//			case JTokenType.Property:
-		//				{
-		//					Grid grid_key = new Grid();
-		//					Grid grid_value = new Grid();
-		//					FrameworkElement ui = options.GetUIOptionKey((JProperty)v, grid_value);
-		//					if(ui == null)
-		//						break;
-
-		//					((Grid)pan).RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-		//					int idxRow = ((Grid)pan).RowDefinitions.Count - 1;
-
-		//					Grid.SetRow(grid_key, idxRow);
-		//					Grid.SetColumn(grid_key, 0);
-		//					pan.Children.Add(grid_key);
-
-		//					Grid.SetRow(grid_value, idxRow);
-		//					Grid.SetColumn(grid_value, 1);
-		//					pan.Children.Add(grid_value);
-
-		//					grid_key.Children.Add(ui);
-
-		//					jprop = (JProperty)v;
-		//					pan = grid_value;
-		//				}
-		//				break;
-		//			case JTokenType.Array:
-		//			case JTokenType.Object:
-		//			case JTokenType.Raw:
-		//			default:
-		//				break;
-		//		}
-
-		//		AddItemValueIsObject(pan, jprop, v);
-		//	}
-		//	return 0;
-		//}
-
 		#endregion
 		#region Json Tree Area
 		static string DIR = @"config\";
@@ -187,15 +68,11 @@ namespace CofileUI.UserControls
 						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
 				}
 
-				Log.PrintError("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigOption.CurRootPathLocal");
+				Log.PrintLog("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigOption.CurRootPathLocal");
 				return curRootPathLocal;
 			}
 		}
-
-		bool InitJsonFileView()
-		{
-			return FileContoller.CreateDirectory(CurRootPathLocal);
-		}
+		
 		int RemoveConfigFile(string path)
 		{
 			return FileContoller.DeleteDirectory(path);
@@ -242,12 +119,6 @@ namespace CofileUI.UserControls
 				afterSave_callback = NewJsonFile_Sam;
 			if(mi.Header as string == "_Tail")
 				afterSave_callback = NewJsonFile_Tail;
-			//if(mi.Header as string == "_File")
-			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_File); };
-			//if(mi.Header as string == "_Sam")
-			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Sam); };
-			//if(mi.Header as string == "_Tail")
-			//	afterSave_callback = delegate { WindowMain.current.ShowMessageDialog("New File Config", "새로만드시겠습니까?", MessageDialogStyle.AffirmativeAndNegative, NewJsonFile_Tail); };
 
 			ConfirmSave(afterSave_callback);
 		}
@@ -278,6 +149,7 @@ namespace CofileUI.UserControls
 
 			UserControls.ConfigOptions.ConfigOptionManager.bChanged = true;
 		}
+
 		private void OnClickButtonOpenJsonFile(object sender, RoutedEventArgs e)
 		{
 			ConfirmSave(OpenJsonFile);

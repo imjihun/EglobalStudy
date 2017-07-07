@@ -457,6 +457,13 @@ namespace CofileUI.Classes
 		}
 		private static bool InitConnected()
 		{
+			if(shell_stream_read_timer == null)
+			{
+				shell_stream_read_timer = new DispatcherTimer();
+				shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+				shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
+			}
+
 			if(WindowMain.current != null)
 				WindowMain.current.Clear();
 
@@ -498,19 +505,7 @@ namespace CofileUI.Classes
 				EnvCoHome = wms.textBox_cohome.Text;
 			}
 		}
-		public static void test()
-		{
-			try
-			{
-				System.Threading.Thread t = new System.Threading.Thread(delegate (){ ReConnect(timeout_connect_ms); });
-				t.Start();
-			}
-			catch(Exception e)
-			{
-				Console.WriteLine(e.Message);
-			}
-		}
-		delegate void test2();
+
 		public static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
 			if(ServerList.selected_serverinfo_panel == null)
@@ -525,7 +520,7 @@ namespace CofileUI.Classes
 			{
 				if(!InitConnecting())
 					return false;
-				
+
 				Window_LogIn wl = new Window_LogIn();
 				if(ServerList.selected_serverinfo_panel != null)
 				{
@@ -541,18 +536,78 @@ namespace CofileUI.Classes
 				ServerList.selected_serverinfo_panel.Serverinfo.id = id;
 				timeout_connect_ms = timeout_ms;
 				
-				Windows.Window_Waiting ww = new Window_Waiting("연결 중입니다..");
-				Point _pt = WindowMain.current.PointToScreen(new Point(0, 0));
-				ww.Left = _pt.X + WindowMain.current.ActualWidth / 2 - ww.Width / 2;
-				ww.Top = _pt.Y + WindowMain.current.ActualHeight / 2 - ww.Height / 2;
-				ww.Show();
-				if(!Connect(ip, port, id, password))
+				System.Threading.Thread th_popup = new System.Threading.Thread(delegate(object obj)
 				{
-					ww.Close();
-					return false;
+					try
+					{
+						Windows.Window_Waiting ww = new Window_Waiting("연결 중입니다..");
+						double[] arr = obj as double[];
+						if(arr != null && arr.Length >= 2)
+						{
+							ww.Left = arr[0] - ww.Width / 2;
+							ww.Top = arr[1] - ww.Height / 2;
+						}
+						ww.Topmost = true;
+						ww.Show();
+						System.Windows.Threading.Dispatcher.Run();
+					}
+					catch(Exception ex)
+					{
+						Log.PrintError(ex.Message, "Classes.SSHController.ReConnect.th_popup");
+					}
 				}
-				ww.Close();
+				);
+				th_popup.SetApartmentState(System.Threading.ApartmentState.STA);
+				th_popup.IsBackground = true;
+				Point _pt = WindowMain.current.PointToScreen(new Point(0, 0));
+				th_popup.Start(new double[] { _pt.X + WindowMain.current.ActualWidth / 2, _pt.Y + WindowMain.current.ActualHeight / 2 });
 
+				System.Threading.AutoResetEvent resetEvent_connect = new System.Threading.AutoResetEvent(false);
+				System.ComponentModel.BackgroundWorker bw_connect = new System.ComponentModel.BackgroundWorker();
+				bw_connect.DoWork += delegate (object sender, System.ComponentModel.DoWorkEventArgs e) {
+					try
+					{
+						ssh = new SshClient(ip, port, id, password);
+						if(timeout_connect_ms != NO_TIMEOUT)
+							ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
+						ssh.Connect();
+						sftp = new SftpClient(ip, port, id, password);
+						if(timeout_connect_ms != NO_TIMEOUT)
+							sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
+						sftp.Connect();
+
+						if(ssh.IsConnected)
+						{
+							shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 4096);
+							shell_stream_reader = new StreamReader(shell_stream);
+							shell_stream_writer = new StreamWriter(shell_stream);
+						}
+
+						Log.PrintLog("ip = " + ip + ", port = " + port, "Classes.SSHController.ReConnect.bw_connect");
+						Log.PrintConsole("id = " + id, "Classes.SSHController.ReConnect.bw_connect");
+					}
+					catch(Exception ex)
+					{
+						Log.PrintError(ex.Message, "Classes.SSHController.ReConnect.bw_connect");
+						//Log.ErrorIntoUI(ex.Message, "ReConnect", Status.current.richTextBox_status);
+						e.Result = ex.Message;
+					}
+					resetEvent_connect.Set();
+					return;
+				};
+				bw_connect.RunWorkerCompleted += delegate (object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+				{
+					if(e.Result as string != null)
+					{
+						Log.ErrorIntoUI(e.Result as string, "ReConnect", Status.current.richTextBox_status);
+					}
+				};
+				bw_connect.RunWorkerAsync("MyName");
+				resetEvent_connect.WaitOne();
+				th_popup.Abort();
+
+				if(!IsConnected)
+					return false;
 				if(!InitConnected())
 					return false;
 

@@ -23,28 +23,22 @@ namespace CofileUI.UserControls.ConfigOptions.File
 	/// </summary>
 	public partial class dec_option : UserControl
 	{
-		bool bInit = false;
 		static JObject Root { get; set; }
 		public dec_option(JObject root)
 		{
+			InitializeComponent();
+			if(root == null)
+			{
+				Log.PrintLog("NotFound File.dec_option", "UserControls.ConfigOptions.File.dec_option.dec_option");
+				return;
+			}
+
 			Root = root;
 			DataContext = root;
-			InitializeComponent();
-
 			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
-			this.Loaded += delegate
-			{
-				if(!bInit)
-				{
-					//ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new FileOption());
-					bInit = true;
-				}
-			};
 		}
 
-
-
-		public enum Options
+		public enum Option
 		{
 			input_filter = 0
 			, output_suffix_head
@@ -56,33 +50,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 
 			, Length
 		}
-		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
-		Group[] groups = new Group[]
-		{
-			new Group()
-			{
-				Header = new Label() {Content = "Basic" },
-				Arr = new int[]
-				{
-					(int)Options.input_dir,
-					(int)Options.output_dir,
-					(int)Options.output_extension,
-					(int)Options.output_suffix_head,
-					(int)Options.output_suffix_tail
-				}
-			},
-			new Group()
-			{
-				Header = new Label() {Content = "복호화 대상 규칙" },
-				RadioButtonGroupName = "Input",
-				Arr = new int[]
-				{
-					(int)Options.input_extension,
-					(int)Options.input_filter
-				}
-			}
-		};
-		public static string[] detailOptions = new string[(int)Options.Length]
+		public static string[] detailOptions = new string[(int)Option.Length]
 			{
 				"복호화 대상 파일 필터(정규표현식)"
 				, "복호화 후 파일 저장시 머리말"
@@ -92,31 +60,66 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				, "복호화 할 파일의 확장자"
 				, "복호화 후 덧 붙일 확장자"
 			};
-		static JProperty GetJProperty(Options opt, JObject root)
+
+		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
+		Group[] groups = new Group[]
 		{
-			JProperty retval;
-			if(root[(opt).ToString()] == null)
+			new Group()
 			{
-				object value = "";
-				switch(opt)
+				Header = new Label() {Content = "Basic" },
+				Arr = new int[]
 				{
-					case Options.input_filter:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
-					case Options.input_dir:
-					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
-						value = "";
-						break;
+					(int)Option.input_dir,
+					(int)Option.output_dir,
+					(int)Option.output_extension,
+					(int)Option.output_suffix_head,
+					(int)Option.output_suffix_tail
 				}
-				if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+			},
+			new Group()
+			{
+				Header = new Label() {Content = "복호화 대상 규칙" },
+				RadioButtonGroupName = "Input",
+				Arr = new int[]
 				{
-					JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
-					if(jprop != null)
+					(int)Option.input_extension,
+					(int)Option.input_filter
+				}
+			}
+		};
+		static JProperty GetJProperty(Option opt, JObject root)
+		{
+			JProperty retval = null;
+			try
+			{
+				if(root[(opt).ToString()] == null)
+				{
+					object value = "";
+					switch(opt)
 					{
-						retval = jprop;
-						//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						case Option.input_filter:
+						case Option.output_suffix_head:
+						case Option.output_suffix_tail:
+						case Option.input_dir:
+						case Option.output_dir:
+						case Option.input_extension:
+						case Option.output_extension:
+							value = "";
+							break;
+					}
+					if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+					{
+						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
+						if(jprop != null)
+						{
+							retval = jprop;
+							//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						}
+						else
+						{
+							retval = new JProperty((opt).ToString(), value);
+							root.Add(retval);
+						}
 					}
 					else
 					{
@@ -125,19 +128,17 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					}
 				}
 				else
-				{
-					retval = new JProperty((opt).ToString(), value);
-					root.Add(retval);
-				}
+					retval = root[(opt).ToString()].Parent as JProperty;
 			}
-			else
-				retval = root[(opt).ToString()].Parent as JProperty;
-
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + " (" + opt.ToString() + ")", "UserControls.ConfigOption.File.dec_option.GetJProperty");
+			}
 			return retval;
 		}
 		static FrameworkElement GetUIOptionKey(int opt, JObject root)
 		{
-			Options option = (Options)opt;
+			Option option = (Option)opt;
 			FrameworkElement ret = null;
 			try
 			{
@@ -145,8 +146,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				switch(option)
 				{
 					// Basical
-					case Options.input_dir:
-					case Options.output_dir:
+					case Option.input_dir:
+					case Option.output_dir:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -157,9 +158,9 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						}
 						break;
 					// Optional
-					case Options.output_extension:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
+					case Option.output_extension:
+					case Option.output_suffix_head:
+					case Option.output_suffix_tail:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -185,8 +186,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							ret = sp;
 						}
 						break;
-					case Options.input_extension:
-					case Options.input_filter:
+					case Option.input_extension:
+					case Option.input_filter:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -218,7 +219,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.dec_option.GetUIOptionKey");
 			}
 
 			if(ret != null)
@@ -231,7 +232,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 		}
 		static FrameworkElement GetUIOptionValue(int opt, JObject root)
 		{
-			Options option = (Options)opt;
+			Option option = (Option)opt;
 
 			JProperty jprop = GetJProperty(option, root);
 			FrameworkElement ret = null;
@@ -239,16 +240,16 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			{
 				switch(option)
 				{
-					case Options.input_filter:
-					case Options.output_suffix_head:
-					case Options.output_suffix_tail:
-					case Options.input_dir:
-					case Options.output_dir:
-					case Options.input_extension:
-					case Options.output_extension:
+					case Option.input_filter:
+					case Option.output_suffix_head:
+					case Option.output_suffix_tail:
+					case Option.input_dir:
+					case Option.output_dir:
+					case Option.input_extension:
+					case Option.output_extension:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
-							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb.HorizontalAlignment = HorizontalAlignment.Left;
 							ret = tb;
 
@@ -281,7 +282,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.dec_option.GetUIOptionValue");
 			}
 
 			if(ret != null)

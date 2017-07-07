@@ -23,14 +23,19 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 	/// </summary>
 	public partial class enc_inform_line : UserControl
 	{
-		bool bInit = false;
 		static JObject Root { get; set; }
 		public enc_inform_line(JObject root)
 		{
-			Root = root;
-			DataContext = root;
 			InitializeComponent();
 
+			if(root == null)
+			{
+				Log.PrintLog("NotFound Tail.enc_inform", "UserControls.ConfigOptions.Tail.enc_inform_line.enc_inform_line");
+				return;
+			}
+
+			Root = root;
+			DataContext = root;
 			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
 		}
 
@@ -52,40 +57,8 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					(int)Options.item
 				}
 			}
-			//new Group()
-			//{
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.dir_monitoring_yn
-			//		, (int)Options.dir_monitoring_term
-			//		, (int)Options.verify_yn
-			//		, (int)Options.schedule_time
-			//	}
-			//},
-			//new Group()
-			//{
-			//	Header = new Label() {Content = "Etc" },
-			//	Arr = new int[]
-			//	{
-			//		(int)Options.result_log_yn
-			//		, (int)Options.thread_count
-			//	}
-			//}
 		};
-		//case Options.input_dir:
-		//case Options.input_ext:
-		//case Options.output_dir:
-		//case Options.output_ext:
-		//case Options.sid:
-		//case Options.tail_type:
-		//case Options.interval:
-		//case Options.no_inform:
-		//case Options.input_filter:
-		//case Options.shutdown_time:
-		//case Options.zero_byte_yn:
-		//case Options.no_access_sentence:
-		//case Options.file_reserver_yn:
-		//case Options.reg_yn:
+
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
 			// comm_option
@@ -93,23 +66,31 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
-			JProperty retval;
-			if(root[(opt).ToString()] == null)
+			JProperty retval = null;
+			try
 			{
-				object value = "";
-				switch(opt)
+				if(root[(opt).ToString()] == null)
 				{
-					case Options.item:
-						value = "";
-						break;
-				}
-				if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
-				{
-					JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
-					if(jprop != null)
+					object value = "";
+					switch(opt)
 					{
-						retval = jprop;
-						//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						case Options.item:
+							value = "";
+							break;
+					}
+					if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+					{
+						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
+						if(jprop != null)
+						{
+							retval = jprop;
+							//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						}
+						else
+						{
+							retval = new JProperty((opt).ToString(), value);
+							root.Add(retval);
+						}
 					}
 					else
 					{
@@ -118,14 +99,12 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					}
 				}
 				else
-				{
-					retval = new JProperty((opt).ToString(), value);
-					root.Add(retval);
-				}
+					retval = root[(opt).ToString()].Parent as JProperty;
 			}
-			else
-				retval = root[(opt).ToString()].Parent as JProperty;
-
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + " (" + opt.ToString() + ")", "UserControls.ConfigOption.Tail.enc_inform_line.GetJProperty");
+			}
 			return retval;
 		}
 		static FrameworkElement GetUIOptionKey(int opt, JObject root)
@@ -154,7 +133,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.Tail.enc_inform_line.GetUIOptionKey");
 			}
 
 			if(ret != null)
@@ -178,7 +157,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.item:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
-							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb.HorizontalAlignment = HorizontalAlignment.Left;
 							ret = tb;
 
@@ -210,7 +189,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.Tail.enc_inform_line.GetUIOptionValue");
 			}
 
 			if(ret != null)

@@ -20,14 +20,14 @@
                               ShadowDepth="1" />
 			</Border.Effect>
 			<Grid Background="White" >
-				<!--<Grid.RowDefinitions>
+				<Grid.RowDefinitions>
 					<RowDefinition Height="60"/>
 					<RowDefinition Height="40"/>
-				</Grid.RowDefinitions>-->
+				</Grid.RowDefinitions>
 				<TextBlock x:Name="textBlock" Text="Waiting.." VerticalAlignment="Center" HorizontalAlignment="Center"/>
-				<!--<Controls:ProgressRing Grid.Row="1" ToolTip="Magic happens!"
+				<Controls:ProgressRing Grid.Row="1" ToolTip="Magic happens!"
                                        Width="40"
-                                       Height="40"/>-->
+                                       Height="40"/>
 			</Grid>
 		</Border>
 	</Grid>

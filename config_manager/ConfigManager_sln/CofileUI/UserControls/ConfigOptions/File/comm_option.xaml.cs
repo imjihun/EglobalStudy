@@ -76,31 +76,23 @@ namespace CofileUI.UserControls.ConfigOptions.File
 		//	};
 		//public string[] OptionKeys { get { return _options; } }
 		
-		bool bInit = false;
 		static JObject Root { get; set; }
 		public comm_option(JObject root)
 		{
-			Root = root;
-			DataContext = root;
 			InitializeComponent();
 
-			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
-
-
-			this.Loaded += delegate
+			if(root == null)
 			{
-				if(!bInit)
-				{
-					//ConfigOptionManager.InitCommonOption(grid, DataContext as JProperty, new FileOption());
-					//FileOption.InitCommonOption(grid, DataContext as JProperty);
-					bInit = true;
-				}
-			};
+				Log.PrintLog("NotFound File.comm_option", "UserControls.ConfigOptions.File.comm_option.comm_option");
+				return;
+			}
+
+			Root = root;
+			DataContext = root;
+			ConfigOptionManager.MakeUI(grid, root, detailOptions, groups, GetUIOptionKey, GetUIOptionValue);
 		}
 
-
-
-		public enum Options
+		public enum Option
 		{
 			sid = 0
 			, item
@@ -117,37 +109,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 
 			, Length
 		}
-		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
-		Group[] groups = new Group[]
-		{
-			new Group()
-			{
-				Header = new Label() {Content = "Basic" },
-				Arr = new int[]
-				{
-					(int)Options.sid
-					, (int)Options.item
-					, (int)Options.encode_type
-					, (int)Options.log_console_yn
-					, (int)Options.header_file_save_yn
-					, (int)Options.file_reserver_yn
-					, (int)Options.verify_yn
-					, (int)Options.result_log_yn
-					, (int)Options.thread_count
-				}
-			},
-			new Group()
-			{
-				RadioButtonGroupName = "Monitoring",
-				Arr = new int[]
-				{
-					(int)Options.dir_monitoring_yn
-					, (int)Options.dir_monitoring_term
-					, (int)Options.schedule_time
-				}
-			}
-		};
-		public static string[] detailOptions = new string[(int)Options.Length]
+		public static string[] detailOptions = new string[(int)Option.Length]
 			{
 				// comm_option
 				"DB SID 이름"
@@ -163,40 +125,79 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				, "로그 결과 저장 여부 (True : 저장)"
 				, "쓰레드 개수"
 			};
-		static JProperty GetJProperty(Options opt, JObject root)
+
+		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
+		Group[] groups = new Group[]
 		{
-			JProperty retval;
-			if(root[(opt).ToString()] == null)
+			new Group()
 			{
-				object value = "";
-				switch(opt)
+				Header = new Label() {Content = "Basic" },
+				Arr = new int[]
 				{
-					case Options.sid:
-					case Options.item:
-					case Options.encode_type:
-					case Options.schedule_time:
-						value = "";
-						break;
-					case Options.log_console_yn:
-					case Options.header_file_save_yn:
-					case Options.file_reserver_yn:
-					case Options.dir_monitoring_yn:
-					case Options.verify_yn:
-					case Options.result_log_yn:
-						value = false;
-						break;
-					case Options.dir_monitoring_term:
-					case Options.thread_count:
-						value = (Int64)0;
-						break;
+					(int)Option.sid
+					, (int)Option.item
+					, (int)Option.encode_type
+					, (int)Option.log_console_yn
+					, (int)Option.header_file_save_yn
+					, (int)Option.file_reserver_yn
+					, (int)Option.verify_yn
+					, (int)Option.result_log_yn
+					, (int)Option.thread_count
 				}
-				if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+			},
+			new Group()
+			{
+				RadioButtonGroupName = "Monitoring",
+				Arr = new int[]
 				{
-					JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
-					if(jprop != null)
+					(int)Option.dir_monitoring_yn
+					, (int)Option.dir_monitoring_term
+					, (int)Option.schedule_time
+				}
+			}
+		};
+		static JProperty GetJProperty(Option opt, JObject root)
+		{
+			JProperty retval = null;
+			try
+			{
+				if(root[(opt).ToString()] == null)
+				{
+					object value = "";
+					switch(opt)
 					{
-						retval = jprop;
-						//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						case Option.sid:
+						case Option.item:
+						case Option.encode_type:
+						case Option.schedule_time:
+							value = "";
+							break;
+						case Option.log_console_yn:
+						case Option.header_file_save_yn:
+						case Option.file_reserver_yn:
+						case Option.dir_monitoring_yn:
+						case Option.verify_yn:
+						case Option.result_log_yn:
+							value = false;
+							break;
+						case Option.dir_monitoring_term:
+						case Option.thread_count:
+							value = (Int64)0;
+							break;
+					}
+					if(root[ConfigOptionManager.StartDisableProperty + (opt).ToString()] != null)
+					{
+						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + (opt).ToString()].Parent as JProperty;
+						if(jprop != null)
+						{
+							retval = jprop;
+							//jprop.Replace(new JProperty((opt).ToString(), jprop.Value));
+						}
+						else
+						{
+							retval = new JProperty((opt).ToString(), value);
+							root.Add(retval);
+						}
 					}
 					else
 					{
@@ -205,19 +206,17 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					}
 				}
 				else
-				{
-					retval = new JProperty((opt).ToString(), value);
-					root.Add(retval);
-				}
+					retval = root[(opt).ToString()].Parent as JProperty;
 			}
-			else
-				retval = root[(opt).ToString()].Parent as JProperty;
-
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + " (" + opt.ToString() + ")", "UserControls.ConfigOption.File.comm_option.GetJProperty");
+			}
 			return retval;
 		}
 		static FrameworkElement GetUIOptionKey(int opt, JObject root)
 		{
-			Options option = (Options)opt;
+			Option option = (Option)opt;
 			FrameworkElement ret = null;
 			try
 			{
@@ -225,15 +224,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				switch(option)
 				{
 					// Basical
-					case Options.sid:
-					case Options.item:
-					case Options.encode_type:
-					case Options.log_console_yn:
-					case Options.header_file_save_yn:
-					case Options.file_reserver_yn:
-					case Options.dir_monitoring_yn:
-					case Options.verify_yn:
-					case Options.result_log_yn:
+					case Option.sid:
+					case Option.item:
+					case Option.encode_type:
+					case Option.log_console_yn:
+					case Option.header_file_save_yn:
+					case Option.file_reserver_yn:
+					case Option.dir_monitoring_yn:
+					case Option.verify_yn:
+					case Option.result_log_yn:
 
 						{
 							TextBlock tb = new TextBlock()
@@ -246,7 +245,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						break;
 
 					// Optional
-					case Options.thread_count:
+					case Option.thread_count:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -272,8 +271,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							ret = sp;
 						}
 						break;
-					case Options.schedule_time:
-					case Options.dir_monitoring_term:
+					case Option.schedule_time:
+					case Option.dir_monitoring_term:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -305,7 +304,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.FileOption.GetUIOptionKey");
+				Log.PrintError(e.Message + " (" + option.ToString() + ")", "UserControls.ConfigOption.File.comm_option.GetUIOptionKey");
 			}
 
 			if(ret != null)
@@ -318,7 +317,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 		}
 		static FrameworkElement GetUIOptionValue(int opt, JObject root)
 		{
-			Options option = (Options)opt;
+			Option option = (Option)opt;
 
 			JProperty jprop = GetJProperty(option, root);
 			FrameworkElement ret = null;
@@ -326,7 +325,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			{
 				switch(option)
 				{
-					case Options.encode_type:
+					case Option.encode_type:
 						{
 							Dictionary<string, int> dic = new Dictionary<string, int>()
 							{
@@ -354,12 +353,12 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							ret = cb;
 						}
 						break;
-					case Options.sid:
-					case Options.item:
-					case Options.schedule_time:
+					case Option.sid:
+					case Option.item:
+					case Option.schedule_time:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
-							tb.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb.HorizontalAlignment = HorizontalAlignment.Left;
 							ret = tb;
 
@@ -379,15 +378,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							};
 						}
 						break;
-					case Options.log_console_yn:
-					case Options.header_file_save_yn:
-					case Options.file_reserver_yn:
-					case Options.dir_monitoring_yn:
-					case Options.verify_yn:
-					case Options.result_log_yn:
+					case Option.log_console_yn:
+					case Option.header_file_save_yn:
+					case Option.file_reserver_yn:
+					case Option.dir_monitoring_yn:
+					case Option.verify_yn:
+					case Option.result_log_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
-							ts.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							ts.Width = ConfigOptionSize.WIDTH_VALUE;
 							ts.HorizontalAlignment = HorizontalAlignment.Left;
 
 							ts.FontSize = 13;
@@ -420,11 +419,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							};
 						}
 						break;
-					case Options.dir_monitoring_term:
-					case Options.thread_count:
+					case Option.dir_monitoring_term:
+					case Option.thread_count:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
-							tb_integer.Width = JsonTreeViewItemSize.WIDTH_TEXTBOX;
+							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;
 							tb_integer.HorizontalAlignment = HorizontalAlignment.Left;
 
 							//if(panelDetailOption.RowDefinitions.Count > 0)
@@ -461,7 +460,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.FileOption.GetUIOptionValue");
+				Log.PrintError(e.Message + " (\"" + option.ToString() + "\" : \"" + jprop + "\")", "UserControls.ConfigOption.File.comm_option.GetUIOptionValue");
 			}
 
 			if(ret != null)
@@ -472,132 +471,6 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				ret.HorizontalAlignment = HorizontalAlignment.Left;
 			}
 			return ret;
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		void ReMakeJObjectRoot(JObject root)
-		{
-			for(int i = 0; i < (int)Options.Length; i++)
-			{
-				if(root[((Options)i).ToString()] == null)
-				{
-					object value = "";
-					switch((Options)i)
-					{
-						case Options.sid:
-						case Options.item:
-						case Options.encode_type:
-						case Options.schedule_time:
-							value = "";
-							break;
-						case Options.log_console_yn:
-						case Options.header_file_save_yn:
-						case Options.file_reserver_yn:
-						case Options.dir_monitoring_yn:
-						case Options.verify_yn:
-						case Options.result_log_yn:
-							value = false;
-							break;
-						case Options.dir_monitoring_term:
-						case Options.thread_count:
-							value = (Int64)0;
-							break;
-					}
-					if(root[ConfigOptionManager.StartDisableProperty + ((Options)i).ToString()] != null)
-					{
-						JProperty jprop = root[ConfigOptionManager.StartDisableProperty + ((Options)i).ToString()].Parent as JProperty;
-						if(jprop != null)
-						{
-							jprop.Replace(new JProperty(((Options)i).ToString(), jprop.Value));
-						}
-						else
-						{
-							root.Add(new JProperty(((Options)i).ToString(), value));
-						}
-					}
-					else
-					{
-						root.Add(new JProperty(((Options)i).ToString(), value));
-					}
-				}
-				Console.WriteLine(root[((Options)i).ToString()]);
-			}
-		}
-		void ReBinding()
-		{
-			for(int i = 0; i < (int)Options.Length; i++)
-			{
-				for(int idx = i * 2; idx < i * 2 + 2; idx++)
-				{
-					TextBox tb = grid.Children[idx] as TextBox;
-					if(tb != null && tb.GetBindingExpression(TextBox.TextProperty) == null)
-					{
-						tb.DataContext = this.DataContext;
-						Binding bd = new Binding("Value." + ((Options)idx).ToString());
-						bd.Mode = BindingMode.TwoWay;
-						// TextBox.Text 의 UpdateSourceTrigger 의 기본속성은 LostFocus 이다.
-						bd.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-						tb.SetBinding(TextBox.TextProperty, bd);
-					}
-
-					NumericUpDown nud = grid.Children[idx] as NumericUpDown;
-					if(nud != null && nud.GetBindingExpression(NumericUpDown.ValueProperty) == null)
-					{
-						nud.DataContext = this.DataContext;
-						Binding bd = new Binding("Value." + ((Options)idx).ToString());
-						bd.Mode = BindingMode.TwoWay;
-						bd.Converter = new OnlyInt64Converter();
-						nud.SetBinding(NumericUpDown.ValueProperty, bd);
-					}
-
-					ToggleSwitch ts = grid.Children[idx] as ToggleSwitch;
-					if(ts != null && ts.GetBindingExpression(ToggleSwitch.IsCheckedProperty) == null)
-					{
-						ts.DataContext = this.DataContext;
-						Binding bd = new Binding("Value." + ((Options)idx).ToString());
-						bd.Mode = BindingMode.TwoWay;
-						bd.Converter = new OnlyBooleanConverter();
-						ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
-					}
-
-					CheckBox cb = grid.Children[idx] as CheckBox;
-					if(cb != null && cb.GetBindingExpression(CheckBox.IsCheckedProperty) == null)
-					{
-						ts.DataContext = this.DataContext;
-						Binding bd = new Binding("Value." + ((Options)idx).ToString());
-						bd.Mode = BindingMode.TwoWay;
-						bd.Converter = new StringToInt64Converter();
-						cb.SetBinding(CheckBox.IsCheckedProperty, bd);
-					}
-
-					ComboBox comboBox = grid.Children[idx] as ComboBox;
-					if(comboBox != null && comboBox.GetBindingExpression(ComboBox.SelectedIndexProperty) == null)
-					{
-						ts.DataContext = this.DataContext;
-						Binding bd = new Binding("Value." + ((Options)idx).ToString());
-						bd.Mode = BindingMode.TwoWay;
-						bd.Converter = new StringToInt64Converter();
-						comboBox.SetBinding(ComboBox.SelectedIndexProperty, bd);
-					}
-				}
-			}
 		}
 	}
 }
