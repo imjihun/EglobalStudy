@@ -53,9 +53,8 @@ namespace CofileUI.UserControls
 			InitLinuxDirectory();
 		}
 		#region Common
-
-		static string DIR = @"tmp\";
-		string root_path = AppDomain.CurrentDomain.BaseDirectory + DIR;
+		
+		string root_path = MainSettings.Path.PathDirPreviewFile;
 
 		public int Refresh()
 		{
@@ -337,7 +336,6 @@ namespace CofileUI.UserControls
 			};
 			dt.Start();
 		}
-
 		private int OpenEncryptFile()
 		{
 			if(listView_linux_files.SelectedItems.Count < 1)
@@ -830,7 +828,7 @@ namespace CofileUI.UserControls
 					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
 
 				if(ltvi == null)
-					break;
+					continue;
 
 				if(ltvi.IsDirectory)
 					break;
@@ -851,7 +849,7 @@ namespace CofileUI.UserControls
 					ltvi = llvi.LinuxTVI as LinuxTreeViewItem;
 
 				if(ltvi == null)
-					break;
+					continue;
 
 				str += ltvi.Path + "\n";
 			}
@@ -914,6 +912,31 @@ namespace CofileUI.UserControls
 
 			WindowMain.current.ShowMessageDialog(title, message, dialog_style, affirmative_callback, negative_callback, settings: settings);
 			
+		}
+	}
+
+
+
+
+
+
+
+
+	public class HideStringToDoubleConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType,
+			object parameter, CultureInfo culture)
+		{
+			string str = value.ToString();
+			if(str[0] == '.')
+				return .5;
+			return 1;
+		}
+
+		public object ConvertBack(object value, Type targetType,
+			object parameter, CultureInfo culture)
+		{
+			throw new Exception();
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CofileUI.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,12 +14,6 @@ using System.Windows.Shapes;
 
 namespace CofileUI.Windows
 {
-	public static class MainSettings
-	{
-		private static int sessionTimeOut = 5;
-		public static int SessionTimeOut { get { return sessionTimeOut; } set { sessionTimeOut = value; } }
-
-	}
 	/// <summary>
 	/// Window_Setting.xaml에 대한 상호 작용 논리
 	/// </summary>
@@ -27,16 +22,29 @@ namespace CofileUI.Windows
 		public Window_MainSetting()
 		{
 			InitializeComponent();
+
+
 			numericUpDown_sessionTimeOut.KeyDown += TextBox_KeyDown;
 			numericUpDown_sessionTimeOut.ValueChanged += delegate
 			{
-				if(numericUpDown_sessionTimeOut.Value < 0)
-					numericUpDown_sessionTimeOut.Value = 0;
+				if(numericUpDown_sessionTimeOut.Value < 1)
+					numericUpDown_sessionTimeOut.Value = 1;
 				numericUpDown_sessionTimeOut.Value = Convert.ToInt32(numericUpDown_sessionTimeOut.Value);
 			};
 			numericUpDown_sessionTimeOut.Value = MainSettings.SessionTimeOut;
 			numericUpDown_sessionTimeOut.Focus();
+			
+			this.checkBox.Checked += delegate
+			{
+				MainSettings.IsTimeOut = true;
+			};
+			this.checkBox.Unchecked += delegate
+			{
+				MainSettings.IsTimeOut = false;
+			};
+			this.checkBox.IsChecked = MainSettings.IsTimeOut;
 		}
+
 		private void SaveVariable()
 		{
 			MainSettings.SessionTimeOut = Convert.ToInt32(numericUpDown_sessionTimeOut.Value);

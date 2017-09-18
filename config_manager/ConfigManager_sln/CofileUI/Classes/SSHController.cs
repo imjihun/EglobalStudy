@@ -118,7 +118,7 @@ namespace CofileUI.Classes
 					_path += split[i] + "/";
 					if(!sftp.Exists(_path))
 					{
-						string com = "mkdir " + _path;
+						string com = "mkdir '" + _path + "'";
 						//SendCommand(com);
 						ssh.RunCommand(com);
 					}
@@ -171,7 +171,7 @@ namespace CofileUI.Classes
 
 								// '파일 명'.'연도'.'달'.'날짜'.'시간'.'분'.'초'.backup 형식으로 백업파일 생성
 								string remote_backup_file = remote_backup_dir + fi.Name + dt.ToString(".yyyy.MM.dd.hh.mm.ss") + ".backup";
-								string com = @"cp " + remote_file_path + " " + remote_backup_file;
+								string com = @"cp '" + remote_file_path + "' '" + remote_backup_file + "'";
 								ssh.RunCommand(com);
 								//SendCommand(com);
 							}
@@ -186,7 +186,7 @@ namespace CofileUI.Classes
 
 						//sftp.UploadFile(fs, remote_file_path, true);
 						string str = FileContoller.Read(local_path);
-						string str1 = "echo \'" + str.Replace("\r", "") + "\' > " + remote_file_path;
+						string str1 = "echo '" + str.Replace("\r", "") + "' > '" + remote_file_path + "'";
 						ssh.RunCommand(str1);
 						//SendCommand(str1);
 
@@ -273,7 +273,7 @@ namespace CofileUI.Classes
 					Log.PrintError(remote_path_file + " -> " + local_path_folder, "Classes.SSHController.MoveFileToLocal");
 					return retval;
 				}
-				ssh.RunCommand("rm -rf " + remote_path_file);
+				ssh.RunCommand("rm -rf '" + remote_path_file + "'");
 				//SendCommand("rm -rf " + remote_path_file);
 
 				return true;
@@ -284,7 +284,7 @@ namespace CofileUI.Classes
 				retval = DownloadFile(local_path_folder, remote_path_file, local_file_name, bLog: false);
 				if(retval == true)
 				{
-					ssh.RunCommand("rm -rf " + remote_path_file);
+					ssh.RunCommand("rm -rf '" + remote_path_file + "'");
 				}
 				return retval;
 			}
@@ -478,6 +478,18 @@ namespace CofileUI.Classes
 				WindowMain.current.bUpdateInit(false);
 			}
 
+
+			if(ServerList.selected_serverinfo_panel != null
+				&& ServerList.selected_serverinfo_panel.Serverinfo != null)
+			{
+				ServerList.connected_serverinfo_panel = ServerList.selected_serverinfo_panel;
+				ServerList.connected_serverinfo_panel.IsConnected = true;
+			}
+
+			ConfigOption.CurRootPathLocal = MainSettings.Path.PathDirConfigFile
+												+ ServerList.connected_serverinfo_panel.Serverinfo.name + @"\"
+												+ ServerList.connected_serverinfo_panel.Serverinfo.id + @"\";
+
 			if(LoadEnvCoHome() == ReturnValue.Fail.LOAD_CO_HOME)
 				;//return false;
 
@@ -611,12 +623,8 @@ namespace CofileUI.Classes
 				if(!InitConnected())
 					return false;
 
-				if(ServerList.selected_serverinfo_panel != null
-					&& ServerList.selected_serverinfo_panel.Serverinfo != null)
-				{
-					ServerList.connected_serverinfo_panel = ServerList.selected_serverinfo_panel;
-					ServerList.connected_serverinfo_panel.IsConnected = true;
-				}
+				//LinuxDirectoryViewer w = new LinuxDirectoryViewer(_PullListInDirectory("/home/cofile"));
+				//w.Show();
 			}
 			return true;
 		}
@@ -1012,15 +1020,15 @@ namespace CofileUI.Classes
 			string filename = split[split.Length - 1];
 
 			if(!isDirectory)
-				str += " -f " + filename;
+				str += " -f '" + filename + "'";
 
 			if(configname != null)
-				str += " -c " + configname;
+				str += " -c '" + configname + "'";
 			
 			if(isDirectory)
-				str += " -id " + path;
+				str += " -id '" + path + "'";
 			else
-				str += " -id " + path.Substring(0, path.Length - filename.Length);
+				str += " -id '" + path.Substring(0, path.Length - filename.Length) + "'";
 
 			return str;
 		}
@@ -1032,14 +1040,14 @@ namespace CofileUI.Classes
 			string filename = split[split.Length - 1];
 
 			if(isDirectory)
-				str += " -od " + path;
+				str += " -od '" + path + "'";
 			else
-				str += " -od " + path.Substring(0, path.Length - filename.Length);
+				str += " -od '" + path.Substring(0, path.Length - filename.Length) + "'";
 
 			str += " -oe " + Cofile.PreviewExtension;
 			return str;
 		}
-		public static string ConvertPathLocalToRemote(string local_path_configfile, string cur_local_root_path)
+		public static string ConvertPathLocalToRemoteIfExist(string local_path_configfile, string cur_local_root_path)
 		{
 			if(local_path_configfile == null)
 				return null;
@@ -1047,15 +1055,14 @@ namespace CofileUI.Classes
 			string env_co_home = EnvCoHome;
 			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
 			
-			string path_root = cur_local_root_path;
 			string remote_path_configfile = remote_path_configfile_dir;
 			string retval = null;
 			try
 			{
-				if(local_path_configfile.Length > path_root.Length
-					&& local_path_configfile.Substring(0, path_root.Length) == cur_local_root_path)
+				if(local_path_configfile.Length > cur_local_root_path.Length
+					&& local_path_configfile.Substring(0, cur_local_root_path.Length) == cur_local_root_path)
 				{
-					remote_path_configfile += local_path_configfile.Substring(path_root.Length).Replace('\\', '/');
+					remote_path_configfile += local_path_configfile.Substring(cur_local_root_path.Length).Replace('\\', '/');
 					if(sftp.Exists(remote_path_configfile))
 						retval = remote_path_configfile;
 				}
@@ -1090,7 +1097,7 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
+			string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
 			if(remote_configfile_path == null)
 				return false;
 
@@ -1143,7 +1150,7 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemote(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
+			string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
 			if(remote_configfile_path == null)
 				return false;
 
@@ -1228,7 +1235,7 @@ namespace CofileUI.Classes
 		public static string GetEventLog(int n)
 		{
 			string env_co_home = EnvCoHome;
-			string command = "tail -n" + n + " " + env_co_home + "/var/log/event_log";
+			string command = "tail -n" + n + " '" + env_co_home + "/var/log/event_log'";
 			return SendNReadBlocking(command, n);
 		}
 		#endregion

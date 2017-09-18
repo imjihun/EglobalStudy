@@ -26,9 +26,7 @@ namespace CofileUI.UserControls
 	/// </summary>
 	public class ServerInfo
 	{
-		private static string FILENAME = "serverinfo.json";
-		private static string DIR = @"system\";
-		public static string PATH = AppDomain.CurrentDomain.BaseDirectory + DIR + FILENAME;
+		public static string PATH = MainSettings.Path.PathDirServerInfo + MainSettings.Path.FileNameServerInfo;
 		public static JObject jobj_root = new JObject();
 		
 		public string name;

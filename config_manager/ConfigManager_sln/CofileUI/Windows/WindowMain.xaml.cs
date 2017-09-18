@@ -83,7 +83,7 @@ namespace CofileUI.Windows
 		
 		private void DisconnectTimeout_Tick(object sender, EventArgs e)
 		{
-			if(SSHController.IsConnected
+			if(MainSettings.IsTimeOut && SSHController.IsConnected
 				&& LastInputTime.AddMinutes(MainSettings.SessionTimeOut) < DateTime.Now)
 			//&& LastInputTime.AddSeconds(5) < DateTime.Now)
 			{

@@ -32,15 +32,14 @@ namespace CofileUI.UserControls
 	public class DataBaseInfo
 	{
 		//private const string tmp_filename = "cofile.db";
-		public static string Path = @"D:\git\config_manager\ConfigManager_sln\Manager_proj_4\bin\Debug\system\tmp\cofile.db";
+		public static string Path;
 		//public static string LoadDataBase(string local_file_name)
 		//{
 		//	Path = SSHController.GetDataBase(AppDomain.CurrentDomain.BaseDirectory, local_file_name);
 		//	return Path;
 		//}
-
-		static string DIR = @"system\tmp\";
-		static string path_root = AppDomain.CurrentDomain.BaseDirectory + DIR;
+		
+		static string path_root = MainSettings.Path.PathDirCofileDB;
 		const int MAX_IDX_DB_NAME = 255;
 		static string prev_db_name = "";
 		static int idx_db_name = 0;

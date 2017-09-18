@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CofileUI.Windows"
+        xmlns:classes="clr-namespace:CofileUI.Classes"
 		
         xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" 
 		xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
@@ -26,10 +27,14 @@
 						   HorizontalAlignment="Center"/>
 				</Grid>
 				<Grid Height="35" VerticalAlignment="Center">
-					<Controls:NumericUpDown x:Name="numericUpDown_sessionTimeOut" Background="{x:Null}"
-											Margin="5,5,35,5" VerticalAlignment="Center" Custom:TextBoxHelper.Watermark="Session Time Out Minute"/>
-					<Label Content="Min" 
-						   Margin="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+					<CheckBox x:Name="checkBox" Margin="5,5,5,5" HorizontalAlignment="Left" Content="자동 로그아웃 시간" IsChecked="True"/>
+					<Grid HorizontalAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=checkBox}">
+						<Controls:NumericUpDown x:Name="numericUpDown_sessionTimeOut" Background="{x:Null}"
+												Margin="5,5,35,5" VerticalAlignment="Center" HorizontalAlignment="Right"
+												Custom:TextBoxHelper.Watermark="Minute"/>
+						<Label Content="Min" 
+							   Margin="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+					</Grid>
 				</Grid>
 				<Grid Height="35" VerticalAlignment="Bottom">
 					<Button Content="ok" Background="White"

@@ -49,29 +49,8 @@ namespace CofileUI.UserControls
 		}
 		#endregion
 		#region Json Tree Area
-		static string DIR = @"config\";
-		private static string root_path_local = AppDomain.CurrentDomain.BaseDirectory + DIR;
-		public static string curRootPathLocal = root_path_local;
-		public static string CurRootPathLocal
-		{
-			get
-			{
-				curRootPathLocal = root_path_local;
-				if(ServerList.selected_serverinfo_panel == null
-					|| ServerList.selected_serverinfo_panel.Serverinfo == null)
-				{ }
-				else
-				{
-					if(ServerList.selected_serverinfo_panel.Serverinfo.name != null && ServerList.selected_serverinfo_panel.Serverinfo.name != "")
-						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.name + @"\";
-					if(ServerList.selected_serverinfo_panel.Serverinfo.id != null && ServerList.selected_serverinfo_panel.Serverinfo.id != "")
-						curRootPathLocal += ServerList.selected_serverinfo_panel.Serverinfo.id + @"\";
-				}
-
-				Log.PrintLog("curRootPathLocal = " + curRootPathLocal, "UserControls.ConfigOption.CurRootPathLocal");
-				return curRootPathLocal;
-			}
-		}
+		private static string root_path_local = MainSettings.Path.PathDirConfigFile;
+		public static string CurRootPathLocal = root_path_local;
 		
 		int RemoveConfigFile(string path)
 		{
@@ -193,7 +172,7 @@ namespace CofileUI.UserControls
 		}
 		public void ConfirmSave(WindowMain.CallBack afterSave_callback = null)
 		{
-			if(!CheckJson())
+			if(!CheckSave())
 			{
 				afterSave_callback?.Invoke();
 				return;
@@ -237,7 +216,7 @@ namespace CofileUI.UserControls
 		}
 		private void OnClickButtonOtherSaveJsonFile(object sender, RoutedEventArgs e)
 		{
-			if(!CheckJson())
+			if(!CheckSave())
 				return;
 
 			OtherSaveJsonFile();
@@ -266,7 +245,7 @@ namespace CofileUI.UserControls
 					ConfigOptionManager.Path = sfd.FileName;
 			}
 		}
-		private bool CheckJson()
+		private bool CheckSave()
 		{
 			// 로드된 오브젝트가 없으면 실행 x
 			if(grid.Children.Count < 1)
@@ -276,13 +255,23 @@ namespace CofileUI.UserControls
 		}
 		private int SaveFile(string path_local)
 		{
-			if(!CheckJson())
+			if(!CheckSave())
 				return -1;
-			
+
 			JToken Jtok_root = ConfigOptionManager.Root;
-			if(Jtok_root != null && FileContoller.Write(path_local, Jtok_root.ToString()))
+			if(Jtok_root == null)
+			{
+				Log.PrintError("JsonRoot = " + Jtok_root, "UserControls.ConfigJsonTree.SaveFile");
+				return -2;
+			}
+
+			//if(path_local.Length > CurRootPathLocal.Length
+			//		&& path_local.Substring(0, CurRootPathLocal.Length) == CurRootPathLocal
+			//		&& FileContoller.Write(path_local, Jtok_root.ToString()))
+			if(FileContoller.Write(path_local, Jtok_root.ToString()))
 			{
 				string path_remote;
+
 				if((path_remote = SSHController.SetConfig(path_local, CurRootPathLocal)) == null)
 				{
 					//FileContoller.FileDelete(path_local);
@@ -291,7 +280,7 @@ namespace CofileUI.UserControls
 					string message = "서버 연결 에러";
 					WindowMain.current.ShowMessageDialog(caption, message);
 					Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
-					return -3;
+					return -4;
 				}
 				else
 				{
@@ -309,7 +298,7 @@ namespace CofileUI.UserControls
 				string message = path_local + " 파일을 저장하는데 문제가 생겼습니다.";
 				WindowMain.current.ShowMessageDialog(caption, message);
 				Log.PrintError(message, "UserControls.ConfigJsonTree.SaveFile");
-				return -2;
+				return -3;
 			}
 		}
 		private void OnClickButtonViewJsonFile(object sender, RoutedEventArgs e)

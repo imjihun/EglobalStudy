@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,81 @@ namespace CofileUI.UserControls
 	/// </summary>
 	public partial class LinuxDirectoryViewer : Window
 	{
+		public class LinuxTree
+		{
+			private SftpFile fileinfo;
+			public SftpFile Fileinfo { get { return fileinfo; } set { fileinfo = value; } }
+			private ObservableCollection<LinuxTree> childs = new ObservableCollection<LinuxTree>();
+			public ObservableCollection<LinuxTree> Childs { get { return childs; } set { childs = value; } }
+
+			private ObservableCollection<LinuxTree> dirchilds = new ObservableCollection<LinuxTree>();
+			public ObservableCollection<LinuxTree> DirChilds { get { return dirchilds; } set { dirchilds = value; } }
+
+			private ObservableCollection<LinuxTree> filechilds = new ObservableCollection<LinuxTree>();
+			public ObservableCollection<LinuxTree> FileChilds { get { return filechilds; } set { filechilds = value; } }
+
+			public string Name { get; set; }
+			public bool IsDirectory { get; set; }
+
+			private bool IsLoaded = false;
+
+			// root
+			private LinuxTree()
+			{
+			}
+			public static LinuxTree MakeRoot()
+			{
+				return new LinuxTree() { Name = "/", IsDirectory = true };
+			}
+			public LinuxTree(SftpFile _fileinfo)
+			{
+				Fileinfo = _fileinfo;
+				Name = _fileinfo.Name;
+				IsDirectory = _fileinfo.IsDirectory;
+			}
+			public bool LoadChild()
+			{
+				if(IsLoaded)
+					return true;
+
+				SftpFile[] files;
+
+				if(Fileinfo == null)
+					files = SSHController.PullListInDirectory("/");
+				else
+					files = SSHController.PullListInDirectory(Fileinfo.FullName);
+
+				if(files == null)
+					return false;
+
+				this.Childs.Clear();
+				this.DirChilds.Clear();
+				this.FileChilds.Clear();
+				foreach(var file in files)
+				{
+					LinuxTree lt = new LinuxTree(file);
+					this.Childs.Add(lt);
+					if(lt.IsDirectory)
+						this.DirChilds.Add(lt);
+					else
+						this.FileChilds.Add(lt);
+				}
+
+				IsLoaded = true;
+				return true;
+			}
+			public LinuxTree[] GetChild()
+			{
+				LoadChild();
+				return Childs.ToArray();
+			}
+			public bool ViewUpdate()
+			{
+				LoadChild();
+
+				return true;
+			}
+		}
 		public static LinuxDirectoryViewer current;
 		public delegate void _MouseDoubleClick();
 		public static _MouseDoubleClick FileDoubleClick = null;
@@ -34,7 +110,27 @@ namespace CofileUI.UserControls
 			InitializeComponent();
 			FileDoubleClick = _FileDoubleClick;
 
-			treeView_linux_directory.ItemsSource = files;
+			//ObservableCollection<LinuxTree> l = new ObservableCollection<LinuxTree>();
+			//foreach(var v in files)
+			//{
+			//	if(v.IsDirectory)
+			//		l.Add(new LinuxTree(v));
+			//}
+			LinuxTree lt = LinuxTree.MakeRoot();
+			foreach(var v in files)
+			{
+				if(v.IsDirectory)
+				{
+					LinuxTree _lt = new LinuxTree(v);
+					lt.DirChilds.Add(_lt);
+					_lt.LoadChild();
+				}
+			}
+			ObservableCollection<LinuxTree> l = new ObservableCollection<LinuxTree>();
+			l.Add(lt);
+			lt.LoadChild();
+			treeView_linux_directory.DataContext = l;
+			//l[0].LoadChild();
 		}
 
 		private void OnButtonClickRefresh(object sender, RoutedEventArgs e)
@@ -124,23 +220,24 @@ namespace CofileUI.UserControls
 				}
 			}
 		}
-	}
 
-	public class HideStringToDoubleConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType,
-			object parameter, CultureInfo culture)
+		private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
 		{
-			string str = value.ToString();
-			if(str[0] == '.')
-				return .5;
-			return 1;
-		}
+			Console.WriteLine("sender = " + sender.GetType());
+			Console.WriteLine("e.Source = " + e.Source);
+			Console.WriteLine("e.OriginalSource = " + e.OriginalSource);
+			Console.WriteLine("DataContext = " + ((TreeViewItem)e.OriginalSource).DataContext);
+			Console.WriteLine("DataContext = " + ((LinuxTree)((TreeViewItem)e.OriginalSource).DataContext).Name);
 
-		public object ConvertBack(object value, Type targetType,
-			object parameter, CultureInfo culture)
-		{
-			throw new Exception();
+			TreeViewItem tvi = e.OriginalSource as TreeViewItem;
+			if(tvi == null)
+				return;
+
+			LinuxTree cur = tvi.DataContext as LinuxTree;
+			if(cur == null)
+				return;
+
+			cur.LoadChild();
 		}
 	}
 	public class BoolToColorConverter : IValueConverter
@@ -158,6 +255,22 @@ namespace CofileUI.UserControls
 			object parameter, CultureInfo culture)
 		{
 			throw new Exception();
+		}
+	}
+
+	public class MyConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			if(System.Convert.ToBoolean(value))
+				return Visibility.Visible;
+			else
+				return Visibility.Collapsed;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

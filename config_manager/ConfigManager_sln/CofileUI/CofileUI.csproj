@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8682379-697C-4A25-A387-A03DEBE6B2E1}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CofileUI</RootNamespace>
     <AssemblyName>CofileUI</AssemblyName>
@@ -114,6 +114,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\MainSettings.cs" />
     <Compile Include="Classes\ReturnValue.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -466,8 +467,8 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy $(TargetDir)*.dll $(ProjectDir)\bin\CofileUI\CofileUI\ /y
-xcopy $(TargetDir)$(TargetFileName) $(ProjectDir)\bin\CofileUI\CofileUI\ /y
+    <PostBuildEvent>xcopy $(TargetDir)*.dll $(ProjectDir)\bin\CofileUI\ /y
+xcopy $(TargetDir)$(TargetFileName) $(ProjectDir)\bin\CofileUI\ /y
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

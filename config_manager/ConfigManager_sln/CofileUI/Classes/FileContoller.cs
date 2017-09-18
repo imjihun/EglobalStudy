@@ -19,7 +19,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.CreateDirectory");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.CreateDirectory");
 				return false;
 			}
 			return true;
@@ -32,7 +32,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.DeleteFile");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.DeleteFile");
 			}
 			return 0;
 		}
@@ -44,7 +44,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.DeleteDirectory");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.DeleteDirectory");
 			}
 			return 0;
 		}
@@ -69,7 +69,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.Read");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.Read");
 			}
 
 			return ret_str.ToString();
@@ -103,7 +103,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.Write");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.Write");
 			}
 			return false;
 		}
@@ -118,7 +118,7 @@ namespace CofileUI.Classes
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.FileContoller.LoadFile");
+				Log.PrintError(e.Message + "<path = " + path + ">", "Classes.FileContoller.LoadFile");
 				return null;
 			}
 		}
