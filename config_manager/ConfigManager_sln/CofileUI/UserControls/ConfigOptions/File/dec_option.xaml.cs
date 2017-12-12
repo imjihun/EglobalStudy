@@ -47,6 +47,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			, output_dir
 			, input_extension
 			, output_extension
+			, blacklist_filter
 
 			, Length
 		}
@@ -59,6 +60,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				, "복호화 후 저장될 폴더 경로"
 				, "복호화 할 파일의 확장자"
 				, "복호화 후 덧 붙일 확장자"
+				, "암/복호화 제외 할 파일 패턴 (정규표현식)"
 			};
 
 		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
@@ -73,7 +75,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					(int)Option.output_dir,
 					(int)Option.output_extension,
 					(int)Option.output_suffix_head,
-					(int)Option.output_suffix_tail
+					(int)Option.output_suffix_tail,
+					(int)Option.blacklist_filter
 				}
 			},
 			new Group()
@@ -104,6 +107,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						case Option.output_dir:
 						case Option.input_extension:
 						case Option.output_extension:
+						case Option.blacklist_filter:
 							value = "";
 							break;
 					}
@@ -161,6 +165,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Option.output_extension:
 					case Option.output_suffix_head:
 					case Option.output_suffix_tail:
+					case Option.blacklist_filter:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -247,6 +252,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Option.output_dir:
 					case Option.input_extension:
 					case Option.output_extension:
+					case Option.blacklist_filter:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = ConfigOptionSize.WIDTH_VALUE;

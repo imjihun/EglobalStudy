@@ -51,12 +51,16 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			, interval
 			, no_inform
 			, input_filter
-			, shutdown_time
+			//, shutdown_time
 			, zero_byte_yn
-			, no_access_sentence
+			//, no_access_sentence
 			, file_reserver_yn
-			, reg_yn
+			//, reg_yn
 			, daemon_yn
+			, limit_process
+			, dir_recursive_yn
+			, dir_recursive_max_depth
+			, blacklist_filter
 
 			, Length
 		}
@@ -72,12 +76,16 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				, "폴더의 감시 주기"
 				, "패턴 개수"
 				, "암/복호화 대상 파일 필터 (정규표현식)"
-				, "자식 데몬 자동 종료 시간 (시간)"
+				//, "자식 데몬 자동 종료 시간 (시간)"
 				, "파일 크기가 0인 파일에 대한 암/복호화 유무 (true : 감시)"
-				, "복호화 권한이 없을 때, 출력 문구"
+				//, "복호화 권한이 없을 때, 출력 문구"
 				, "원본 파일 유지 여부 (true : 유지)"
-				, "정규표현식 사용 여부 (true : 사용)"
+				//, "정규 표현식 사용 여부 (true : 사용)"
 				, "데몬 모드 여부 (true : 데몬모드)"
+				, "프로세스 제한"
+				, "하위디렉토리 탐색 여부 (True : 탐색)"
+				, "하위 디렉토리 탐색 깊이"
+				, "암/복호화 제외 할 파일 패턴 (정규표현식)"
 			};
 
 		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
@@ -89,7 +97,6 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				{
 					(int)Options.tail_type
 					,(int)Options.no_inform
-					,(int)Options.reg_yn
 				}
 			},
 			new Group()
@@ -102,8 +109,19 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					,(int)Options.output_dir
 					,(int)Options.output_ext
 					,(int)Options.zero_byte_yn
-					,(int)Options.no_access_sentence
+					//,(int)Options.no_access_sentence
 					,(int)Options.file_reserver_yn
+					//,(int)Options.reg_yn
+					,(int)Options.limit_process
+					,(int)Options.blacklist_filter
+				}
+			},
+			new Group()
+			{
+				Arr = new int[]
+				{
+					(int)Options.dir_recursive_yn
+					,(int)Options.dir_recursive_max_depth
 				}
 			},
 			new Group()
@@ -122,7 +140,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				{
 					(int)Options.daemon_yn
 					,(int)Options.interval
-					,(int)Options.shutdown_time
+					//,(int)Options.shutdown_time
 				}
 			}
 		};
@@ -142,19 +160,23 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 						case Options.output_ext:
 						case Options.sid:
 						case Options.input_filter:
-						case Options.no_access_sentence:
+						//case Options.no_access_sentence:
+						case Options.blacklist_filter:
 							value = "";
 							break;
 						case Options.zero_byte_yn:
 						case Options.file_reserver_yn:
-						case Options.reg_yn:
+						//case Options.reg_yn:
 						case Options.daemon_yn:
+						case Options.dir_recursive_yn:
 							value = false;
 							break;
 						case Options.tail_type:
 						case Options.interval:
 						case Options.no_inform:
-						case Options.shutdown_time:
+						//case Options.shutdown_time:
+						case Options.limit_process:
+						case Options.dir_recursive_max_depth:
 							value = (Int64)0;
 							break;
 					}
@@ -206,8 +228,11 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.no_inform:
 					case Options.zero_byte_yn:
 					case Options.file_reserver_yn:
-					case Options.reg_yn:
+					//case Options.reg_yn:
 					case Options.daemon_yn:
+					case Options.limit_process:
+					case Options.dir_recursive_yn:
+					case Options.dir_recursive_max_depth:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -219,8 +244,9 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 						break;
 
 					// Optional
-					case Options.shutdown_time:
-					case Options.no_access_sentence:
+					//case Options.shutdown_time:
+					//case Options.no_access_sentence:
+					case Options.blacklist_filter:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -334,7 +360,8 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.output_ext:
 					case Options.sid:
 					case Options.input_filter:
-					case Options.no_access_sentence:
+					//case Options.no_access_sentence:
+					case Options.blacklist_filter:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -360,6 +387,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					case Options.zero_byte_yn:
 					case Options.file_reserver_yn:
 					case Options.daemon_yn:
+					case Options.dir_recursive_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
 							ts.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -395,47 +423,49 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 							};
 						}
 						break;
-					case Options.reg_yn:
-						{
-							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
-							ts.Width = ConfigOptionSize.WIDTH_VALUE;
-							ts.HorizontalAlignment = HorizontalAlignment.Left;
+					//case Options.reg_yn:
+					//	{
+					//		ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
+					//		ts.Width = ConfigOptionSize.WIDTH_VALUE;
+					//		ts.HorizontalAlignment = HorizontalAlignment.Left;
 
-							ts.FontSize = 13;
-							ts.OffLabel = "False";
-							ts.OnLabel = "True";
-							ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
+					//		ts.FontSize = 13;
+					//		ts.OffLabel = "False";
+					//		ts.OnLabel = "True";
+					//		ts.Style = (Style)App.Current.Resources["MahApps.Metro.Styles.ToggleSwitch.Win10"];
 
-							//if(panelDetailOption.RowDefinitions.Count > 0)
-							//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
-							//Grid.SetColumn(ts, 1);
-							ret = ts;
+					//		//if(panelDetailOption.RowDefinitions.Count > 0)
+					//		//	Grid.SetRow(ts, panelDetailOption.RowDefinitions.Count - 1);
+					//		//Grid.SetColumn(ts, 1);
+					//		ret = ts;
 
-							ts.DataContext = jprop.Parent;
-							Binding bd = new Binding(option.ToString());
-							bd.Mode = BindingMode.TwoWay;
-							bd.Converter = new OnlyBooleanConverter();
-							ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
+					//		ts.DataContext = jprop.Parent;
+					//		Binding bd = new Binding(option.ToString());
+					//		bd.Mode = BindingMode.TwoWay;
+					//		bd.Converter = new OnlyBooleanConverter();
+					//		ts.SetBinding(ToggleSwitch.IsCheckedProperty, bd);
 
-							ts.IsChecked = Convert.ToBoolean(jprop.Value);
+					//		ts.IsChecked = Convert.ToBoolean(jprop.Value);
 
-							ts.Checked += delegate
-							{
-								//((JValue)optionValue).Value = ts.IsChecked;
-								ConfigOptionManager.bChanged = true;
-								TailOptions.current.ChangeSecondGrid();
-							};
-							ts.Unchecked += delegate
-							{
-								//((JValue)optionValue).Value = ts.IsChecked;
-								ConfigOptionManager.bChanged = true;
-								TailOptions.current.ChangeSecondGrid();
-							};
-						}
-						break;
+					//		ts.Checked += delegate
+					//		{
+					//			//((JValue)optionValue).Value = ts.IsChecked;
+					//			ConfigOptionManager.bChanged = true;
+					//			TailOptions.current.ChangeSecondGrid();
+					//		};
+					//		ts.Unchecked += delegate
+					//		{
+					//			//((JValue)optionValue).Value = ts.IsChecked;
+					//			ConfigOptionManager.bChanged = true;
+					//			TailOptions.current.ChangeSecondGrid();
+					//		};
+					//	}
+					//	break;
 					case Options.interval:
 					case Options.no_inform:
-					case Options.shutdown_time:
+					//case Options.shutdown_time:
+					case Options.limit_process:
+					case Options.dir_recursive_max_depth:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
 							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;

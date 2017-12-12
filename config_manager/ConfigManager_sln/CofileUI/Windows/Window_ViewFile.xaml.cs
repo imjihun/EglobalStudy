@@ -23,7 +23,7 @@ namespace CofileUI.Windows
 		{
 			InitializeComponent();
 			this.Title = title;
-			tblock.Text = text;
+			tbox.Text = text;
 		}
 	}
 }

@@ -1,3 +1,4 @@
+
 { 
   "type": "sam", 
   "comm_option": { 
@@ -18,13 +19,17 @@
 	"dir_monitoring_term": 1, 
 	"file_reserver_yn": true, 
 	"#no_access_sentence":"Encrypted", 
-	"#log_file":"sam_debug.log" 
+	"#log_file":"sam_debug.log", 
+	"dir_recursive_yn": false, 
+	"dir_recursive_max_depth": 10, 
+	"delay_time": "2s", 
+	"#blacklist_filter": "[.](enc)$" 
   }, 
   "col_var": [ 
 	{ 
 	  "item": "AES256", 
 	  "column_pos": 2, 
-	  "wrap_char": "0x22" 
+	  "#wrap_char": "0x22" 
 	}, 
 	{ 
 	  "item": "AES256", 
@@ -46,4 +51,3 @@
 	} 
   ] 
 } 
-

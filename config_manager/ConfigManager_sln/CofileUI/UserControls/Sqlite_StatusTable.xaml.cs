@@ -165,6 +165,8 @@ namespace CofileUI.UserControls
 		}
 		private void DelayRefresh()
 		{
+			SSHController.RunCofileCommand("cofile_monitor");
+			Log.PrintConsole("ssh connected = " + SSHController.ssh.IsConnected.ToString(), "JHLIM_DEBUG");
 			Thread.Sleep(500);
 			UserControls.DataBaseInfo.RefreshUi();
 		}

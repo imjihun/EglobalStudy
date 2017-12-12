@@ -105,7 +105,9 @@ namespace CofileUI.UserControls.ConfigOptions.File
 			, verify_yn
 			, schedule_time
 			, result_log_yn
-			, thread_count
+			, dir_recursive_yn
+			, dir_recursive_max_depth
+			, delay_time
 
 			, Length
 		}
@@ -123,7 +125,9 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				, "암호화후 데이터 검증 여부 (True : 검증)"
 				, "스케쥴 시간 (00:00 ~ 23:59)"
 				, "로그 결과 저장 여부 (True : 저장)"
-				, "쓰레드 개수"
+				, "하위디렉토리 탐색 여부 (True : 탐색)"
+				, "하위 디렉토리 탐색 깊이"
+				, "지연시간 (*d*h*m*s)"
 			};
 
 		// Header 에 UI 를 빼던지, groups 를 static 변수로 선언 안하든지.
@@ -142,7 +146,15 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					, (int)Option.file_reserver_yn
 					, (int)Option.verify_yn
 					, (int)Option.result_log_yn
-					, (int)Option.thread_count
+					, (int)Option.delay_time
+				}
+			},
+			new Group()
+			{
+				Arr = new int[]
+				{
+					(int)Option.dir_recursive_yn
+					, (int)Option.dir_recursive_max_depth
 				}
 			},
 			new Group()
@@ -170,6 +182,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						case Option.item:
 						case Option.encode_type:
 						case Option.schedule_time:
+						case Option.delay_time:
 							value = "";
 							break;
 						case Option.log_console_yn:
@@ -178,10 +191,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						case Option.dir_monitoring_yn:
 						case Option.verify_yn:
 						case Option.result_log_yn:
+						case Option.dir_recursive_yn:
 							value = false;
 							break;
 						case Option.dir_monitoring_term:
-						case Option.thread_count:
+						case Option.dir_recursive_max_depth:
 							value = (Int64)0;
 							break;
 					}
@@ -233,6 +247,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Option.dir_monitoring_yn:
 					case Option.verify_yn:
 					case Option.result_log_yn:
+					case Option.dir_recursive_yn:
+					case Option.dir_recursive_max_depth:
 
 						{
 							TextBlock tb = new TextBlock()
@@ -245,7 +261,8 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						break;
 
 					// Optional
-					case Option.thread_count:
+					//case Option.thread_count:
+					case Option.delay_time:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -276,10 +293,10 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
-							RadioButton cb = new RadioButton();
+							RadioButton rb = new RadioButton();
 							JProperty jprop = GetJProperty(option, root);
-							cb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
-							sp.Children.Add(cb);
+							rb.IsChecked = !(jprop.Name[0] == ConfigOptionManager.StartDisableProperty);
+							sp.Children.Add(rb);
 							TextBlock tb = new TextBlock()
 							{
 								Text = detail
@@ -287,11 +304,11 @@ namespace CofileUI.UserControls.ConfigOptions.File
 							sp.Children.Add(tb);
 
 							// delegate 에 지역변수를 사용하면 지역변수를 메모리에서 계속 잡고있는다. (전역변수 화 (어디 소속으로 전역변수 인지 모르겠다.))
-							cb.Checked += delegate
+							rb.Checked += delegate
 							{
 								ConfigOptionManager.CheckedKey(ref jprop);
 							};
-							cb.Unchecked += delegate
+							rb.Unchecked += delegate
 							{
 								ConfigOptionManager.UncheckedKey(ref jprop);
 							};
@@ -356,6 +373,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Option.sid:
 					case Option.item:
 					case Option.schedule_time:
+					case Option.delay_time:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -384,6 +402,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 					case Option.dir_monitoring_yn:
 					case Option.verify_yn:
 					case Option.result_log_yn:
+					case Option.dir_recursive_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
 							ts.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -420,7 +439,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 						}
 						break;
 					case Option.dir_monitoring_term:
-					case Option.thread_count:
+					case Option.dir_recursive_max_depth:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
 							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;

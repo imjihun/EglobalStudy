@@ -86,23 +86,25 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			}
 			else if(Convert.ToInt64(jval_tail_type.Value) == 2)
 			{
-				JValue jval_reg_yn = jobj["reg_yn"] as JValue;
-				if(jval_reg_yn == null)
-				{
-					Log.PrintLog("NotFound Tail.comm_option.jval_reg_yn", "UserControls.ConfigOptions.Tail.TailOptions.ChangeSecondGrid");
-					return;
-				}
+				//JValue jval_reg_yn = jobj["reg_yn"] as JValue;
+				//if(jval_reg_yn == null)
+				//{
+				//	Log.PrintLog("NotFound Tail.comm_option.jval_reg_yn", "UserControls.ConfigOptions.Tail.TailOptions.ChangeSecondGrid");
+				//	return;
+				//}
 
-				if(Convert.ToBoolean(jval_reg_yn.Value) == true)
-				{
-					ChangeEncOptionProperties(root, false);
-					grid2.Children.Add(new enc_inform_reg() { DataContext = root["enc_inform"].Parent });
-				}
-				else if(Convert.ToBoolean(jval_reg_yn.Value) == false)
-				{
-					ChangeEncOptionProperties(root, true);
-					grid2.Children.Add(new enc_inform() { DataContext = root["enc_inform"].Parent });
-				}
+				//if(Convert.ToBoolean(jval_reg_yn.Value) == true)
+				//{
+				//	ChangeEncOptionProperties(root, false);
+				//	grid2.Children.Add(new enc_inform_reg() { DataContext = root["enc_inform"].Parent });
+				//}
+				//else if(Convert.ToBoolean(jval_reg_yn.Value) == false)
+				//{
+				//	ChangeEncOptionProperties(root, true);
+				//	grid2.Children.Add(new enc_inform() { DataContext = root["enc_inform"].Parent });
+				//}
+				ChangeEncOptionProperties(root, true);
+				grid2.Children.Add(new enc_inform() { DataContext = root["enc_inform"].Parent });
 			}
 		}
 		static void ChangeEncOptionProperties(JObject root, bool benc_inform)

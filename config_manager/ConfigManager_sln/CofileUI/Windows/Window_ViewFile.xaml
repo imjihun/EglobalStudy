@@ -12,6 +12,9 @@
 					  GlowBrush="Black"
 					  TitleCharacterCasing="Normal">
 	<Grid>
-		<TextBlock x:Name="tblock" Background="White"/>
+		<TextBox x:Name="tbox" Background="White" 
+				   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+				   ScrollViewer.VerticalScrollBarVisibility="Auto"
+				   ScrollViewer.CanContentScroll="True" IsReadOnly="True" IsReadOnlyCaretVisible="True"/>
 	</Grid>
 </Controls:MetroWindow>

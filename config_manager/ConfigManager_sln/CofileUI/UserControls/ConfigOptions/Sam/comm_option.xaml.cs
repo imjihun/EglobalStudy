@@ -61,6 +61,10 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 			, file_reserver_yn
 			, no_access_sentence
 			, log_file
+			, dir_recursive_yn
+			, dir_recursive_max_depth
+			, delay_time
+			, blacklist_filter
 
 			, Length
 		}
@@ -74,7 +78,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					(int)Options.sam_type,
 					(int)Options.delimiter
 				}
-			},new Group()
+			},
+			new Group()
 			{
 				Header = new Label() {Content = "Basic" },
 				Arr = new int[]
@@ -90,6 +95,16 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					(int)Options.file_reserver_yn,
 					(int)Options.no_access_sentence,
 					//(int)Options.log_file
+					(int)Options.delay_time,
+					(int)Options.blacklist_filter
+				}
+			},
+			new Group()
+			{
+				Arr = new int[]
+				{
+					(int)Options.dir_recursive_yn,
+					(int)Options.dir_recursive_max_depth
 				}
 			},
 			new Group()
@@ -131,6 +146,10 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				, "원본 파일 유지 여부"
 				, "복호화 권한이 없을 때, 출력 문구"
 				, "log_file"
+				, "하위디렉토리 탐색 여부 (True : 탐색)"
+				, "하위 디렉토리 탐색 깊이"
+				, "지연시간 (*d*h*m*s)"
+				, "암/복호화 제외 할 파일 패턴 (정규표현식)"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -151,10 +170,13 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 						case Options.output_ext:
 						case Options.no_access_sentence:
 						case Options.log_file:
+						case Options.delay_time:
+						case Options.blacklist_filter:
 							value = "";
 							break;
 						case Options.dir_monitoring_yn:
 						case Options.file_reserver_yn:
+						case Options.dir_recursive_yn:
 							value = false;
 							break;
 						case Options.sam_type:
@@ -163,6 +185,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 						case Options.skip_header:
 						case Options.record_len:
 						case Options.dir_monitoring_term:
+						case Options.dir_recursive_max_depth:
 							value = (Int64)0;
 							break;
 					}
@@ -220,6 +243,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.dir_monitoring_yn:
 					case Options.dir_monitoring_term:
 					case Options.file_reserver_yn:
+					case Options.dir_recursive_yn:
+					case Options.dir_recursive_max_depth:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -233,6 +258,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					// Optional
 					case Options.no_access_sentence:
 					case Options.log_file:
+					case Options.delay_time:
+					case Options.blacklist_filter:
 						{
 							StackPanel sp = new StackPanel() {Orientation = Orientation.Horizontal };
 
@@ -379,6 +406,8 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.output_ext:
 					case Options.no_access_sentence:
 					case Options.log_file:
+					case Options.delay_time:
+					case Options.blacklist_filter:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -403,6 +432,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 						break;
 					case Options.dir_monitoring_yn:
 					case Options.file_reserver_yn:
+					case Options.dir_recursive_yn:
 						{
 							ToggleSwitch ts = new ToggleSwitch() { /*IsChecked = (bool)optionValue*/ };
 							ts.Width = ConfigOptionSize.WIDTH_VALUE;
@@ -442,6 +472,7 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 					case Options.skip_header:
 					case Options.record_len:
 					case Options.dir_monitoring_term:
+					case Options.dir_recursive_max_depth:
 						{
 							NumericUpDown tb_integer = new NumericUpDown() {/*Value = (System.Int64)optionValue*/ };
 							tb_integer.Width = ConfigOptionSize.WIDTH_VALUE;

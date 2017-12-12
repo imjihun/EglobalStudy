@@ -416,6 +416,12 @@ namespace CofileUI.UserControls
 			if(jtok == null)
 				return null;
 
+			JValue jval_type = jtok["type"] as JValue;
+			if(jval_type != null && jval_type.Value.ToString() != "file")
+			{
+				Log.ViewMessage("'Preview' only supports 'type=file'", "Not Support", Status.current.richTextBox_status);
+				return null;
+			}
 			if(jtok["dec_option"] == null)
 			{
 				Log.ErrorIntoUI("Check the dec_option.input_extension in Cofile Config file", "Decrypt Failed", Status.current.richTextBox_status);

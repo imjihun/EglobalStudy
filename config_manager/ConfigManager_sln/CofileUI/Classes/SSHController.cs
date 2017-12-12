@@ -186,7 +186,7 @@ namespace CofileUI.Classes
 
 						//sftp.UploadFile(fs, remote_file_path, true);
 						string str = FileContoller.Read(local_path);
-						string str1 = "echo '" + str.Replace("\r", "") + "' > '" + remote_file_path + "'";
+						string str1 = "echo \"" + str.Replace("\r", "").Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("$", "\\$") + "\" > \"" + remote_file_path + "\"";
 						ssh.RunCommand(str1);
 						//SendCommand(str1);
 
@@ -406,14 +406,28 @@ namespace CofileUI.Classes
 						timeout = DateTime.Now.AddSeconds(sec_timeout);
 					}
 				}
-				if(timeout < now)
 				{
 					string[] _split = str_read.Split('\n');
 					if(_split.Length >= 2)
-						return _split[_split.Length - 2];
-					else 
-						return null;
+					{
+						for(int i = 0; i < _split[_split.Length - 2].Length; i++)
+						{
+							Console.Write("{0}", _split[_split.Length - 2][i]);
+						}
+					}
 				}
+				if(timeout < now)
+					Log.PrintError("timeout", "Classes.SSHController.ReadLinesBlocking");
+				//if(timeout < now)
+				//{
+				//	string[] _split = str_read.Split('\n');
+				//	if(_split.Length >= 2)
+				//	{
+				//		return _split[_split.Length - 2];
+				//	}
+				//	else
+				//		return null;
+				//}
 
 				string[] split = str_read.Split('\n');
 
@@ -436,6 +450,7 @@ namespace CofileUI.Classes
 					Log.PrintLog(retval, "Classes.SSHController.ReadLinesBlocking");
 					return retval;
 				}
+				
 				return null;
 
 			}
@@ -520,6 +535,8 @@ namespace CofileUI.Classes
 
 		public static bool ReConnect(int timeout_ms = NO_TIMEOUT)
 		{
+			bool retval = true;
+
 			if(ServerList.selected_serverinfo_panel == null)
 				return false;
 
@@ -616,17 +633,25 @@ namespace CofileUI.Classes
 				};
 				bw_connect.RunWorkerAsync("MyName");
 				resetEvent_connect.WaitOne();
-				th_popup.Abort();
 
-				if(!IsConnected)
-					return false;
-				if(!InitConnected())
-					return false;
+				try
+				{
+					th_popup.Abort();
+				}
+				catch(Exception e)
+				{
+					Log.PrintError("th_popup.Abort() : " + e.Message, "Classes.SSHController.ReConnect");
+				}
+
+				if(!IsConnected || !InitConnected())
+					retval = false;
+				
+				//Log.PrintConsole("Connected", "Classes.SSHController.ReConnect");
 
 				//LinuxDirectoryViewer w = new LinuxDirectoryViewer(_PullListInDirectory("/home/cofile"));
 				//w.Show();
 			}
-			return true;
+			return retval;
 		}
 		public static bool DisConnect()
 		{
@@ -991,7 +1016,7 @@ namespace CofileUI.Classes
 		private static int LoadEnvCoHome()
 		{
 			string command = "echo $CO_HOME";
-			string co_home = SendNReadBlocking(command, 1);
+			string co_home = SendNReadBlocking(command, 1, 10);
 			if(co_home == null || co_home == "")
 			{
 				Log.ErrorIntoUI("not defined $CO_HOME\r", "load $CO_HOME", Status.current.richTextBox_status);

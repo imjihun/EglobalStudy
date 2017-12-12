@@ -34,22 +34,29 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 			sub_left_len,
 			sub_right_len,
 			jumin_check_yn,
+
 			Length
 		}
 		public enum Option
 		{
 			item = 0,
-			enc_pattern,
+			pattern,
 			delimiter,
+			sub_left_len,
+			sub_right_len,
 			jumin_check_yn,
+
 			Length
 		}
 		string[] detail = new string[(int)Option.Length] {
 			"Item명",
-			"패턴(ASCII)",
+			//"패턴(ASCII)",
+			"패턴(reg)",
 			"구분자",
+			"감시한 패턴에서 왼쪽에서 제외할 크기",
+			"감시한 패턴에서 오른쪽에서 제외할 크기",
 			"주민번호 체크 여부" };
-		object[] initvalue = new object[(int)Option.Length] {"", "", "", false};
+		object[] initvalue = new object[(int)Option.Length] {"", "", "", (Int64)0, (Int64)0, false};
 		private void OnClickAdd(object sender, RoutedEventArgs e)
 		{
 			try

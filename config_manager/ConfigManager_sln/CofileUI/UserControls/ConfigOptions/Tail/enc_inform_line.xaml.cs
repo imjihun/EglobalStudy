@@ -43,6 +43,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 		{
 			// comm_option
 			item = 0
+			, delimiter
 
 			, Length
 		}
@@ -54,7 +55,8 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				Header = new Label() {Content = "Basic" },
 				Arr = new int[]
 				{
-					(int)Options.item
+					(int)Options.item,
+					(int)Options.delimiter
 				}
 			}
 		};
@@ -62,7 +64,8 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 		public static string[] detailOptions = new string[(int)Options.Length]
 			{
 			// comm_option
-				"암/복호화에 사용할 ITEM 명"
+				"암/복호화에 사용할 ITEM 명",
+				"구분자"
 			};
 		static JProperty GetJProperty(Options opt, JObject root)
 		{
@@ -75,6 +78,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 					switch(opt)
 					{
 						case Options.item:
+						case Options.delimiter:
 							value = "";
 							break;
 					}
@@ -118,6 +122,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				{
 					// Basical
 					case Options.item:
+					case Options.delimiter:
 						{
 							TextBlock tb = new TextBlock()
 							{
@@ -155,6 +160,7 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				switch(option)
 				{
 					case Options.item:
+					case Options.delimiter:
 						{
 							TextBox tb = new TextBox() {/*Text = optionValue.ToString()*/ };
 							tb.Width = ConfigOptionSize.WIDTH_VALUE;
