@@ -122,5 +122,36 @@ namespace CofileUI.Classes
 				return null;
 			}
 		}
+		public static int DeleteFilesInDirectory(string path_dir)
+		{
+			string[] files;
+
+			DirectoryInfo d = new DirectoryInfo(path_dir);
+			if(!d.Exists)
+				return 0;
+
+			try
+			{
+				files = Directory.GetFiles(path_dir);
+			}
+			catch(Exception e)
+			{
+				Log.PrintError(e.Message + "<path = " + path_dir + ">", "Classes.FileContoller.DeleteFilesInDirectory");
+				return -1;
+			}
+
+			for(int i = 0; i < files.Length; i++)
+			{
+				try
+				{
+					File.Delete(files[i]);
+				}
+				catch(Exception e)
+				{
+					;
+				}
+			}
+			return 0;
+		}
 	}
 }

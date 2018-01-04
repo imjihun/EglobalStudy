@@ -59,6 +59,7 @@ namespace CofileUI.UserControls
 		}
 		public static void RefreshUi(string db_name = "")
 		{
+			FileContoller.DeleteFilesInDirectory(path_root);
 			db_name = db_name + (Idx_db_name++) + ".db";
 			Path = SSHController.GetDataBase(path_root, db_name);
 
@@ -66,7 +67,7 @@ namespace CofileUI.UserControls
 				Sqlite_LogTable.current.Refresh();
 			if(Sqlite_StatusTable.current != null)
 				Sqlite_StatusTable.current.Refresh();
-			//FileContoller.FileDelete(path_root + prev_db_name);
+			//FileContoller.DeleteFile(path_root + prev_db_name);
 			prev_db_name = db_name;
 		}
 	}

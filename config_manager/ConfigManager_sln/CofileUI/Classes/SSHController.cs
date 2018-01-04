@@ -28,10 +28,11 @@ namespace CofileUI.Classes
 		public static DispatcherTimer shell_stream_read_timer;
 
 		#region connect
-		public static bool IsConnected {
+		public static bool IsConnected
+		{
 			get
 			{
-				if(ssh != null && ssh.IsConnected 
+				if(ssh != null && ssh.IsConnected
 					&& sftp != null && sftp.IsConnected)
 					return true;
 				else
@@ -40,6 +41,10 @@ namespace CofileUI.Classes
 		}
 		public static bool CheckConnection(string ip, int port)
 		{
+			if(shell_stream != null)
+				Console.WriteLine(shell_stream.CanRead + " " + shell_stream.CanSeek + " " + shell_stream.CanTimeout + " " + shell_stream.CanWrite + " ");
+			if(ssh != null)
+				Console.WriteLine(ssh.IsConnected + " " + ssh.ConnectionInfo);
 			if(CheckConnection(sftp, ip, port) && CheckConnection(ssh, ip, port))
 				return true;
 
@@ -67,42 +72,111 @@ namespace CofileUI.Classes
 
 		private const int NO_TIMEOUT = -1;
 		private static int timeout_connect_ms = NO_TIMEOUT;
-		private static bool Connect(string ip, int port, string id, string password)
+		private static bool Connect(string ip, int port, int timeout_ms = NO_TIMEOUT)
 		{
+			bool retval = true;
+
+			Window_LogIn wl = new Window_LogIn();
+			if(ServerList.selected_serverinfo_panel != null)
+			{
+				Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
+				wl.Left = pt.X;
+				wl.Top = pt.Y;
+			}
+			if(wl.ShowDialog() != true)
+				return false;
+
+			string id = wl.Id;
+			string password = wl.Password;
+			ServerList.selected_serverinfo_panel.Serverinfo.id = id;
+			timeout_connect_ms = timeout_ms;
+
+			System.Threading.Thread th_popup = new System.Threading.Thread(delegate(object obj)
+					{
+						try
+						{
+							Windows.Window_Waiting ww = new Window_Waiting("연결 중입니다..");
+							double[] arr = obj as double[];
+							if(arr != null && arr.Length >= 2)
+							{
+								ww.Left = arr[0] - ww.Width / 2;
+								ww.Top = arr[1] - ww.Height / 2;
+							}
+							ww.Topmost = true;
+							ww.Show();
+							System.Windows.Threading.Dispatcher.Run();
+						}
+						catch(Exception ex)
+						{
+							Log.PrintError(ex.Message, "Classes.SSHController.Connect.th_popup");
+						}
+					}
+				);
+			th_popup.SetApartmentState(System.Threading.ApartmentState.STA);
+			th_popup.IsBackground = true;
+			Point _pt = WindowMain.current.PointToScreen(new Point(0, 0));
+			th_popup.Start(new double[] { _pt.X + WindowMain.current.ActualWidth / 2, _pt.Y + WindowMain.current.ActualHeight / 2 });
+
+			System.Threading.AutoResetEvent resetEvent_connect = new System.Threading.AutoResetEvent(false);
+			System.ComponentModel.BackgroundWorker bw_connect = new System.ComponentModel.BackgroundWorker();
+			bw_connect.DoWork += delegate (object sender, System.ComponentModel.DoWorkEventArgs e)
+			{
+				try
+				{
+					ssh = new SshClient(ip, port, id, password);
+					if(timeout_connect_ms != NO_TIMEOUT)
+						ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
+					ssh.Connect();
+					sftp = new SftpClient(ip, port, id, password);
+					if(timeout_connect_ms != NO_TIMEOUT)
+						sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
+					sftp.Connect();
+
+					if(ssh.IsConnected)
+					{
+						shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 4096);
+						shell_stream_reader = new StreamReader(shell_stream);
+						shell_stream_writer = new StreamWriter(shell_stream);
+					}
+
+					Log.PrintLog("ip = " + ip + ", port = " + port, "Classes.SSHController.Connect.bw_connect");
+					Log.PrintConsole("id = " + id, "Classes.SSHController.Connect.bw_connect");
+				}
+				catch(Exception ex)
+				{
+					Log.PrintError(ex.Message, "Classes.SSHController.Connect.bw_connect");
+					//Log.ErrorIntoUI(ex.Message, "Connect", Status.current.richTextBox_status);
+					e.Result = ex.Message;
+				}
+				resetEvent_connect.Set();
+				return;
+			};
+			bw_connect.RunWorkerCompleted += delegate (object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+			{
+				if(e.Result as string != null)
+				{
+					Log.ErrorIntoUI(e.Result as string, "Connect", Status.current.richTextBox_status);
+				}
+			};
+			bw_connect.RunWorkerAsync("MyName");
+			resetEvent_connect.WaitOne();
+
 			try
 			{
-				ssh = new SshClient(ip, port, id, password);
-				if(timeout_connect_ms != NO_TIMEOUT)
-					ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
-				ssh.Connect();
-				sftp = new SftpClient(ip, port, id, password);
-				if(timeout_connect_ms != NO_TIMEOUT)
-					sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
-				sftp.Connect();
-
-				if(ssh.IsConnected)
-				{
-					shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 4096);
-					shell_stream_reader = new StreamReader(shell_stream);
-					shell_stream_writer = new StreamWriter(shell_stream);
-				}
-
-				if(shell_stream_read_timer == null)
-				{
-					shell_stream_read_timer = new DispatcherTimer();
-					shell_stream_read_timer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-					shell_stream_read_timer.Tick += Shell_stream_read_timer_Tick;
-				}
-				Log.PrintLog("ip = " + ip + ", port = " + port, "Classes.SSHController.Connect");
-				Log.PrintConsole("id = " + id, "Classes.SSHController.Connect");
+				th_popup.Abort();
 			}
 			catch(Exception e)
 			{
-				Log.PrintError(e.Message, "Classes.SSHController.Connect");
-				Log.ErrorIntoUI(e.Message, "Connect", Status.current.richTextBox_status);
-				return false;
+				Log.PrintError("th_popup.Abort() : " + e.Message, "Classes.SSHController.Connect");
 			}
-			return true;
+
+
+			//Log.PrintConsole("Connected", "Classes.SSHController.ReConnect");
+
+			//LinuxDirectoryViewer w = new LinuxDirectoryViewer(_PullListInDirectory("/home/cofile"));
+			//w.Show();
+
+			return retval;
 		}
 		#endregion
 		#region sftp upload, download
@@ -122,7 +196,7 @@ namespace CofileUI.Classes
 						//SendCommand(com);
 						ssh.RunCommand(com);
 					}
-						//sftp.CreateDirectory(_path);
+					//sftp.CreateDirectory(_path);
 				}
 				return true;
 			}
@@ -139,7 +213,7 @@ namespace CofileUI.Classes
 			//LinuxTreeViewItem.ReConnect();
 			if(!SSHController.ReConnect(timeout_connect_ms))
 				return null;
-			
+
 
 			string remote_file_path = null;
 			try
@@ -239,8 +313,15 @@ namespace CofileUI.Classes
 					return false;
 
 				FileStream fs = new FileStream(local, FileMode.Create);
-				sftp.DownloadFile(remote_path_file, fs);
-				Log.PrintLog(remote_path_file + " => " + local, "Classes.SSHController.DownloadFile");
+				if(sftp.Exists(remote_path_file))
+				{
+					sftp.DownloadFile(remote_path_file, fs);
+					Log.PrintLog(remote_path_file + " => " + local, "Classes.SSHController.DownloadFile");
+				}
+				else
+				{
+					Log.PrintLog("Not found file " + remote_path_file, "Classes.SSHController.DownloadFile");
+				}
 				fs.Close();
 			}
 			catch(Exception e)
@@ -378,6 +459,18 @@ namespace CofileUI.Classes
 			{
 				Log.ErrorIntoUI(ex.Message, "send command", Status.current.richTextBox_status);
 				Log.PrintError(ex.Message, "Classes.SSHController.sendCommand");
+				if(ServerList.selected_serverinfo_panel == null)
+					return false;
+
+				string ip = ServerList.selected_serverinfo_panel.Serverinfo.ip;
+				//string id = ServerList.selected_serverinfo_textblock.serverinfo.id;
+				//string password = ServerList.selected_serverinfo_textblock.serverinfo.password;
+				int port = ServerList.selected_serverinfo_panel.Serverinfo.port;
+
+				//DisConnect();
+				SSHController.Connect(ip, port, timeout_connect_ms);
+				if(IsConnected)
+					readDummyMessageBlocking();
 			}
 			return false;
 		}
@@ -450,7 +543,7 @@ namespace CofileUI.Classes
 					Log.PrintLog(retval, "Classes.SSHController.ReadLinesBlocking");
 					return retval;
 				}
-				
+
 				return null;
 
 			}
@@ -550,106 +643,10 @@ namespace CofileUI.Classes
 				if(!InitConnecting())
 					return false;
 
-				Window_LogIn wl = new Window_LogIn();
-				if(ServerList.selected_serverinfo_panel != null)
-				{
-					Point pt = ServerList.selected_serverinfo_panel.PointToScreen(new Point(0, 0));
-					wl.Left = pt.X;
-					wl.Top = pt.Y;
-				}
-				if(wl.ShowDialog() != true)
-					return false;
-
-				string id = wl.Id;
-				string password = wl.Password;
-				ServerList.selected_serverinfo_panel.Serverinfo.id = id;
-				timeout_connect_ms = timeout_ms;
-				
-				System.Threading.Thread th_popup = new System.Threading.Thread(delegate(object obj)
-				{
-					try
-					{
-						Windows.Window_Waiting ww = new Window_Waiting("연결 중입니다..");
-						double[] arr = obj as double[];
-						if(arr != null && arr.Length >= 2)
-						{
-							ww.Left = arr[0] - ww.Width / 2;
-							ww.Top = arr[1] - ww.Height / 2;
-						}
-						ww.Topmost = true;
-						ww.Show();
-						System.Windows.Threading.Dispatcher.Run();
-					}
-					catch(Exception ex)
-					{
-						Log.PrintError(ex.Message, "Classes.SSHController.ReConnect.th_popup");
-					}
-				}
-				);
-				th_popup.SetApartmentState(System.Threading.ApartmentState.STA);
-				th_popup.IsBackground = true;
-				Point _pt = WindowMain.current.PointToScreen(new Point(0, 0));
-				th_popup.Start(new double[] { _pt.X + WindowMain.current.ActualWidth / 2, _pt.Y + WindowMain.current.ActualHeight / 2 });
-
-				System.Threading.AutoResetEvent resetEvent_connect = new System.Threading.AutoResetEvent(false);
-				System.ComponentModel.BackgroundWorker bw_connect = new System.ComponentModel.BackgroundWorker();
-				bw_connect.DoWork += delegate (object sender, System.ComponentModel.DoWorkEventArgs e) {
-					try
-					{
-						ssh = new SshClient(ip, port, id, password);
-						if(timeout_connect_ms != NO_TIMEOUT)
-							ssh.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
-						ssh.Connect();
-						sftp = new SftpClient(ip, port, id, password);
-						if(timeout_connect_ms != NO_TIMEOUT)
-							sftp.ConnectionInfo.Timeout = new TimeSpan(0, 0, 0, 0, timeout_connect_ms);
-						sftp.Connect();
-
-						if(ssh.IsConnected)
-						{
-							shell_stream = ssh.CreateShellStream("customCommand", 80, 24, 800, 600, 4096);
-							shell_stream_reader = new StreamReader(shell_stream);
-							shell_stream_writer = new StreamWriter(shell_stream);
-						}
-
-						Log.PrintLog("ip = " + ip + ", port = " + port, "Classes.SSHController.ReConnect.bw_connect");
-						Log.PrintConsole("id = " + id, "Classes.SSHController.ReConnect.bw_connect");
-					}
-					catch(Exception ex)
-					{
-						Log.PrintError(ex.Message, "Classes.SSHController.ReConnect.bw_connect");
-						//Log.ErrorIntoUI(ex.Message, "ReConnect", Status.current.richTextBox_status);
-						e.Result = ex.Message;
-					}
-					resetEvent_connect.Set();
-					return;
-				};
-				bw_connect.RunWorkerCompleted += delegate (object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-				{
-					if(e.Result as string != null)
-					{
-						Log.ErrorIntoUI(e.Result as string, "ReConnect", Status.current.richTextBox_status);
-					}
-				};
-				bw_connect.RunWorkerAsync("MyName");
-				resetEvent_connect.WaitOne();
-
-				try
-				{
-					th_popup.Abort();
-				}
-				catch(Exception e)
-				{
-					Log.PrintError("th_popup.Abort() : " + e.Message, "Classes.SSHController.ReConnect");
-				}
+				retval = Connect(ip, port, timeout_ms);
 
 				if(!IsConnected || !InitConnected())
 					retval = false;
-				
-				//Log.PrintConsole("Connected", "Classes.SSHController.ReConnect");
-
-				//LinuxDirectoryViewer w = new LinuxDirectoryViewer(_PullListInDirectory("/home/cofile"));
-				//w.Show();
 			}
 			return retval;
 		}
@@ -662,7 +659,7 @@ namespace CofileUI.Classes
 				sftp.Disconnect();
 			if(WindowMain.current != null)
 				WindowMain.current.Clear();
-			if(ServerList.selected_serverinfo_panel != null 
+			if(ServerList.selected_serverinfo_panel != null
 				&& ServerList.selected_serverinfo_panel.Serverinfo != null)
 				ServerList.connected_serverinfo_panel.IsConnected = false;
 			return true;
@@ -675,7 +672,9 @@ namespace CofileUI.Classes
 		static string[] view_error_start = new string[] {"error" };
 		public static string view_message_caption = "";
 		static bool bstart = false;
-		static bool bStart { get { return bstart; }
+		static bool bStart
+		{
+			get { return bstart; }
 			set
 			{
 				bstart = value;
@@ -734,7 +733,7 @@ namespace CofileUI.Classes
 						//if(line.IndexOf("\r") != line.LastIndexOf("\r") || line.IndexOf("\n") != line.LastIndexOf("\n"))
 						//{ }
 						//else
-							Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
+						Log.ViewMessage(line, view_message_caption, Status.current.richTextBox_status);
 
 
 						Log.PrintConsole(line, "Classes.SSHController.read");
@@ -757,12 +756,12 @@ namespace CofileUI.Classes
 			int size_buffer = 4096;
 			char[] buffer = new char[size_buffer];
 			//shell_stream.Flush();
-			DateTime end = DateTime.Now.AddMilliseconds(200);
+			DateTime end = DateTime.Now.AddMilliseconds(3000);
 			for(int i = 0; /*i < 1000 && */end > DateTime.Now; i++)
 			{
 				int cnt = shell_stream_reader.Read(buffer, 0, size_buffer);
-				if(cnt > 0)
-					end = DateTime.Now.AddMilliseconds(200);
+				//if(cnt > 0)
+				//	end = DateTime.Now.AddMilliseconds(1000);
 			}
 			return;
 
@@ -980,7 +979,8 @@ namespace CofileUI.Classes
 
 			return files.ToArray();
 		}
-		public static string WorkingDirectory {
+		public static string WorkingDirectory
+		{
 			get
 			{
 				if(!SSHController.ReConnect(timeout_connect_ms))
@@ -1001,7 +1001,8 @@ namespace CofileUI.Classes
 
 		#region Excute Cofile Command
 		private static string envCoHome = null;
-		public static string EnvCoHome {
+		public static string EnvCoHome
+		{
 			set
 			{
 				envCoHome = value;
@@ -1049,7 +1050,7 @@ namespace CofileUI.Classes
 
 			if(configname != null)
 				str += " -c '" + configname + "'";
-			
+
 			if(isDirectory)
 				str += " -id '" + path + "'";
 			else
@@ -1060,7 +1061,7 @@ namespace CofileUI.Classes
 		public static string MakeCommandRunCofilePreview(string path_run, CofileType type, bool isEncrypt, string path, string configname, bool isDirectory)
 		{
 			string str = MakeCommandRunCofile(path_run, type, isEncrypt, path, configname, isDirectory);
-			
+
 			string[] split = path.Split('/');
 			string filename = split[split.Length - 1];
 
@@ -1079,7 +1080,7 @@ namespace CofileUI.Classes
 
 			string env_co_home = EnvCoHome;
 			string remote_path_configfile_dir = env_co_home + add_path_config_upload + ServerList.selected_serverinfo_panel.Serverinfo.id + "/";
-			
+
 			string remote_path_configfile = remote_path_configfile_dir;
 			string retval = null;
 			try
@@ -1133,7 +1134,7 @@ namespace CofileUI.Classes
 			string env_co_home = EnvCoHome;
 			List <LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();
 			var enumerator = selected_list.GetEnumerator();
-			for(int i =0; enumerator.MoveNext(); i++)
+			for(int i = 0; enumerator.MoveNext(); i++)
 			{
 				LinuxTreeViewItem ltvi = enumerator.Current as LinuxTreeViewItem;
 
@@ -1151,7 +1152,8 @@ namespace CofileUI.Classes
 				if(!is_tail_deamon)
 					send_cmd += " -1";
 
-				SendCommand(send_cmd);
+				if(!SendCommand(send_cmd))
+					return false;
 				//string ret = readMessageBlocking(send_cmd);
 
 				//string ret = readCofileMessageBlocking();
@@ -1195,7 +1197,8 @@ namespace CofileUI.Classes
 
 				string send_cmd = MakeCommandRunCofilePreview(env_co_home + add_path_run_cofile, Cofile.current.GetSelectedType(), isEncrypt, ltvi.Path, remote_configfile_path, ltvi.IsDirectory);
 
-				SendCommand(send_cmd);
+				if(!SendCommand(send_cmd))
+					return false;
 				//Console.WriteLine();
 				//Console.WriteLine();
 				//Console.WriteLine("read_line_ssh = " + read_line_ssh);
@@ -1230,7 +1233,8 @@ namespace CofileUI.Classes
 		{
 			string env_co_home = EnvCoHome;
 			string path_bin = env_co_home + add_path_bin;
-			SendCommand(path_bin + command);
+			if(!SendCommand(command))
+				return false;
 			//ssh.RunCommand(path_bin + command);
 			return true;
 		}
@@ -1249,6 +1253,8 @@ namespace CofileUI.Classes
 			string remote_path_file = remote_directory + add_path_database;
 			if(DownloadFile(local_folder, remote_path_file, local_file, db_name))
 			{
+				DownloadFile(local_folder, remote_path_file + "-shm", local_file + "-shm", db_name + "-shm");
+				DownloadFile(local_folder, remote_path_file + "-wal", local_file + "-wal", db_name + "-wal");
 				return local_folder + local_file;
 			}
 			return null;
