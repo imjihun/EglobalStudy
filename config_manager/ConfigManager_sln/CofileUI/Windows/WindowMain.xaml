@@ -71,7 +71,6 @@
 		<Grid Grid.Row="0" Grid.RowSpan="3">
 			<Controls:MetroAnimatedTabControl x:Name="tabControl" Grid.ColumnSpan = "2" Background="{x:Null}" 
 											  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-											  SelectionChanged="TabControl_SelectionChanged"
 											  Controls:TabControlHelper.IsUnderlined="True" Controls:TabControlHelper.Underlined="TabPanel">
 				<!--<TabItem Header="Test">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">

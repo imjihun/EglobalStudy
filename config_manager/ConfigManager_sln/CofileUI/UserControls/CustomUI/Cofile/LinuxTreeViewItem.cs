@@ -1,25 +1,14 @@
 ﻿using MahApps.Metro.IconPacks;
 using CofileUI.Classes;
-using CofileUI.UserControls;
-using CofileUI;
-using Renci.SshNet;
 using Renci.SshNet.Sftp;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Threading;
 using CofileUI.Windows;
 using System.Windows.Media.Imaging;
 
@@ -32,8 +21,6 @@ namespace CofileUI.UserControls
 
 	public class LinuxTree
 	{
-		public static LinuxTree Root;
-
 		private SftpFile fileinfo;
 		public SftpFile Fileinfo { get { return fileinfo; } set { fileinfo = value; } }
 		private List<LinuxTree> childs = new List<LinuxTree>();
@@ -51,7 +38,7 @@ namespace CofileUI.UserControls
 				return true;
 
 			SftpFile[] files;
-			
+
 			files = SSHController.PullListInDirectory(Fileinfo.FullName);
 			if(files == null)
 				return false;
@@ -75,6 +62,8 @@ namespace CofileUI.UserControls
 			return true;
 		}
 	}
+
+	
 	public class LinuxTreeViewItem : TreeViewItem
 	{
 		public static class _Color
@@ -95,7 +84,6 @@ namespace CofileUI.UserControls
 		}
 
 		static string[] IGNORE_FILENAME = new string[] {".", ".."};
-		public static LinuxTreeViewItem root;
 
 		private string path;
 		public string Path
@@ -104,7 +92,7 @@ namespace CofileUI.UserControls
 			set
 			{
 				path = value;
-				if(this == LinuxTreeViewItem.root)
+				if(value == "/")
 					this.Header.Text = value;
 			}
 		}
@@ -129,8 +117,6 @@ namespace CofileUI.UserControls
 				}
 			}
 		}
-		//public string bindingName = "";
-		//public string BindingName { get { return bindingName; } set { bindingName = value; } }
 
 		private SftpFile fileInfo;
 		public SftpFile FileInfo { get { return fileInfo; } set { fileInfo = value; } }
@@ -233,6 +219,12 @@ namespace CofileUI.UserControls
 				// 임시
 				Label dummy = new Label();
 				this.Items.Add(dummy);
+				TextBlock tb = this.Header.Tb_name as TextBlock;
+				if(tb == null)
+					return;
+
+				tb.FontWeight = FontWeights.Bold;
+				tb.Foreground = _Color.Folder_foreground;
 			}
 
 			if(this.Header.Text != null && this.Header.Text.Length > 0 && this.Header.Text[0] == '.')
@@ -383,13 +375,8 @@ namespace CofileUI.UserControls
 			e.Handled = true;
 		}
 		#endregion
-
-		// 외부에서 수정 불가 이벤트로만 수정
+		
 		protected override void OnMouseMove(MouseEventArgs e)
-		{
-			PublicMouseMove(e);
-		}
-		public void PublicMouseMove(MouseEventArgs e)
 		{
 			//Log.Print(linked_jtoken);
 			base.OnMouseMove(e);
@@ -403,7 +390,6 @@ namespace CofileUI.UserControls
 
 			//e.Handled = true;
 		}
-
 
 		#region Load Directory And Refresh View
 		protected override void OnExpanded(RoutedEventArgs e)
@@ -429,7 +415,7 @@ namespace CofileUI.UserControls
 			//	((FrameworkElement)child).BringIntoView();
 			//}
 		}
-		//private bool flag_expanded_via_screen = true;
+		//private bool flag_expanded_via_screen = true; 
 		public new bool IsExpanded { get { return base.IsExpanded; }
 			set
 			{
@@ -438,12 +424,12 @@ namespace CofileUI.UserControls
 				//flag_expanded_via_screen = true;
 			}
 		}
-		public static void Clear()
+		public static void Clear(LinuxTreeViewItem root)
 		{
-			if(LinuxTreeViewItem.root != null)
+			if(root != null)
 			{
-				LinuxTreeViewItem.root.Items.Clear();
-				LinuxTreeViewItem.root = null;
+				root.Items.Clear();
+				root = null;
 			}
 		}
 		public static LinuxTreeViewItem Last_Refresh = null;
@@ -584,17 +570,17 @@ namespace CofileUI.UserControls
 			}
 		}
 
-		public static int ChangeColor(string _path, string config_path)
+		public static int ChangeColor(LinuxTreeViewItem root, string _path, string config_path)
 		{
 			if(_path == null
 				|| _path.Length <= 0
 				|| _path[0] != '/'
-				|| LinuxTreeViewItem.root == null)
+				|| root == null)
 				return -1;
 
 			string[] arr_path = _path.Trim('/').Split('/');
 
-			LinuxTreeViewItem cur = LinuxTreeViewItem.root;
+			LinuxTreeViewItem cur = root;
 			for(int i = 0; i < arr_path.Length; i++)
 			{
 				Console.WriteLine("JHLIM_DEBUG : " + cur.FileInfo?.Name + " / " + arr_path[i]);

@@ -6,7 +6,7 @@
 	
 	<system:String x:Key="AppName">CubeOne™ API For File</system:String>
 
-	<system:String x:Key="MainTab.Cofile">Cofile</system:String>
+	<system:String x:Key="MainTab.Cofile">Encrypt</system:String>
 	<system:String x:Key="MainTab.Decrypt">Decrypt</system:String>
 	<system:String x:Key="MainTab.Config">Config</system:String>
 	<system:String x:Key="MainTab.Log">Log</system:String>

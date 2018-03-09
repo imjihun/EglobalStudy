@@ -135,7 +135,7 @@ namespace CofileUI.UserControls
 
 		private void OnButtonClickRefresh(object sender, RoutedEventArgs e)
 		{
-			LinuxTreeViewItem.root.RefreshChild(LinuxTreeViewItem.Last_Refresh.Path, false);
+			//LinuxTreeViewItem.root.RefreshChild(LinuxTreeViewItem.Last_Refresh.Path, false);
 			RefreshListView(LinuxTreeViewItem.Last_Refresh);
 		}
 		private void OnCheckBoxCheckedFileDetail(object sender, RoutedEventArgs e)

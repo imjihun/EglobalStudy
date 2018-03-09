@@ -84,6 +84,8 @@ namespace CofileUI.UserControls.ConfigOptions
 		public TextBlock tb;
 		public PackIconModern icon;
 
+		public ConfigMenuButton bnt_parent;
+
 		private void CreateMember()
 		{
 			sp = new StackPanel();
@@ -124,14 +126,14 @@ namespace CofileUI.UserControls.ConfigOptions
 				try
 				{
 					string work_group_name = wms.textBox_name.Text;
-					if(ConfigMenuButton.selected == null
-					|| ConfigMenuButton.selected.Root["work_group"] as JObject == null)
+					if(this.bnt_parent?.pan_parent?.btn_selected == null
+					|| this.root["work_group"] as JObject == null)
 						return;
-					(ConfigMenuButton.selected.Root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
+					(this.root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
 
-					ConfigInfoPanel ui_config_group = new ConfigInfoPanel(ConfigMenuButton.selected.Root, work_group_name);
+					ConfigInfoPanel ui_config_group = new ConfigInfoPanel(this.bnt_parent, this.root, work_group_name);
 					ui_config_group.IsExpanded = true;
-					ConfigMenuButton.selected.child.Items.Add(ui_config_group);
+					this.bnt_parent?.pan_parent?.btn_selected.child.Items.Add(ui_config_group);
 				}
 				catch(Exception ex)
 				{
@@ -152,12 +154,14 @@ namespace CofileUI.UserControls.ConfigOptions
 					try
 					{
 						this.root["work_group"]?[work_name]?.Parent?.Remove();
-						for(int i = 0; i < ConfigMenuButton.selected.child.Items.Count; i++)
+						int? _cnt = this.bnt_parent?.pan_parent?.btn_selected.child.Items.Count;
+						int cnt = _cnt == null ? 0 : _cnt.Value;
+						for(int i = 0; i < cnt; i++)
 						{
 							if(work_name != null
-							&& (ConfigMenuButton.selected.child.Items[i] as ConfigInfoPanel)?.tb.Text == work_name)
+							&& (this.bnt_parent?.pan_parent?.btn_selected.child.Items[i] as ConfigInfoPanel)?.tb.Text == work_name)
 							{
-								ConfigMenuButton.selected.child.Items.RemoveAt(i);
+								this.bnt_parent?.pan_parent?.btn_selected.child.Items.RemoveAt(i);
 								break;
 							}
 						}
@@ -170,10 +174,10 @@ namespace CofileUI.UserControls.ConfigOptions
 				});
 		}
 
-		public ConfigInfoPanel(JObject _root, string _work_name, string _index = null, string _path = null)
+		public ConfigInfoPanel(ConfigMenuButton _bnt_parent, JObject _root, string _work_name, string _index = null, string _path = null)
 		{
 			CreateMember();
-
+			this.bnt_parent = _bnt_parent;
 			this.root = _root;
 			this.work_name = _work_name;
 			this.index = _index;
@@ -269,7 +273,7 @@ namespace CofileUI.UserControls.ConfigOptions
 									if(ltvi.IsDirectory)
 									{
 										(this.root?["work_group"]?[work_name]?["processes"] as JArray)?.Add(jobj);
-										this.Items.Add(new ConfigInfoPanel(this.root, this.work_name, tmp_index, ltvi.Path));
+										this.Items.Add(new ConfigInfoPanel(this.bnt_parent, this.root, this.work_name, tmp_index, ltvi.Path));
 									}
 									/* 암호화 */
 									Console.WriteLine("JHLIM_DEBUG : Encrypt {0} {1} {2} [{3}]", this.root["type"], this.work_name, tmp_index, ltvi.Path);
@@ -337,11 +341,10 @@ namespace CofileUI.UserControls.ConfigOptions
 	public class ConfigMenuButton : ToggleButton
 	{
 		public JObject Root = null;
-		public static List<ConfigMenuButton> group = new List<ConfigMenuButton>();
 		const double HEIGHT = 30;
 		const double FONTSIZE = 13;
 		public ConfigList child;
-		public static ConfigMenuButton selected = null;
+		public ConfigPanel pan_parent = null;
 		private void InitStyle()
 		{
 			Style style = new Style(typeof(ConfigMenuButton), (Style)App.Current.Resources["MetroToggleButton"]);
@@ -371,14 +374,14 @@ namespace CofileUI.UserControls.ConfigOptions
 				try
 				{
 					string work_group_name = wms.textBox_name.Text;
-					if(ConfigMenuButton.selected == null
-					|| ConfigMenuButton.selected.Root["work_group"] as JObject == null)
+					if(this.pan_parent?.btn_selected == null
+					|| this.pan_parent?.btn_selected.Root["work_group"] as JObject == null)
 						return;
-					(ConfigMenuButton.selected.Root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
+					(this.pan_parent?.btn_selected.Root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
 
-					ConfigInfoPanel ui_config_group = new ConfigInfoPanel(ConfigMenuButton.selected.Root, work_group_name);
+					ConfigInfoPanel ui_config_group = new ConfigInfoPanel(this, this.pan_parent?.btn_selected.Root, work_group_name);
 					ui_config_group.IsExpanded = true;
-					ConfigMenuButton.selected.child.Items.Add(ui_config_group);
+					this.pan_parent?.btn_selected.child.Items.Add(ui_config_group);
 				}
 				catch(Exception ex)
 				{
@@ -387,8 +390,9 @@ namespace CofileUI.UserControls.ConfigOptions
 				}
 			}
 		}
-		public ConfigMenuButton(JObject _Root, string header)
+		public ConfigMenuButton(ConfigPanel _pan_parent, JObject _Root, string header)
 		{
+			this.pan_parent = _pan_parent;
 			Root = _Root;
 			this.InitStyle();
 
@@ -404,10 +408,13 @@ namespace CofileUI.UserControls.ConfigOptions
 			this.child.VerticalAlignment = VerticalAlignment.Top;
 			this.child.parent = this;
 
-			group.Add(this);
-			for(int i = 0; i < group.Count; i++)
+			this.pan_parent?.btn_group.Add(this);
+			if(this.pan_parent != null)
 			{
-				group[i].Margin = new Thickness(0, i * HEIGHT, 0, (group.Count - (i + 1)) * HEIGHT);
+				for(int i = 0; i < this.pan_parent.btn_group.Count; i++)
+				{
+					this.pan_parent.btn_group[i].Margin = new Thickness(0, i * HEIGHT, 0, (this.pan_parent.btn_group.Count - (i + 1)) * HEIGHT);
+				}
 			}
 
 			AddConfigWorkGroupCommand = new RelayCommand(AddConfigWorkGroup);
@@ -428,9 +435,12 @@ namespace CofileUI.UserControls.ConfigOptions
 
 		protected override void OnToggle()
 		{
-			for(int i = 0; i < group.Count; i++)
+			if(this.pan_parent != null)
 			{
-				group[i].IsChecked = false;
+				for(int i = 0; i < this.pan_parent.btn_group.Count; i++)
+				{
+					this.pan_parent.btn_group[i].IsChecked = false;
+				}
 			}
 			base.OnToggle();
 		}
@@ -444,21 +454,26 @@ namespace CofileUI.UserControls.ConfigOptions
 		protected override void OnChecked(RoutedEventArgs e)
 		{
 			base.OnChecked(e);
-			int idx = group.IndexOf(this);
+			if(this.pan_parent == null)
+				return;
+
+			int idx = this.pan_parent.btn_group.IndexOf(this);
 
 			int i;
 			for(i = 0; i <= idx; i++)
 			{
-				group[i].VerticalAlignment = VerticalAlignment.Top;
+				this.pan_parent.btn_group[i].VerticalAlignment = VerticalAlignment.Top;
 			}
-			for(; i < group.Count; i++)
+			for(; i < this.pan_parent.btn_group.Count; i++)
 			{
-				group[i].VerticalAlignment = VerticalAlignment.Bottom;
+				this.pan_parent.btn_group[i].VerticalAlignment = VerticalAlignment.Bottom;
 			}
 
-			ConfigPanel.SubPanel.Margin = new Thickness(0, HEIGHT * (idx + 1), 0, HEIGHT * (group.Count - (idx + 1)));
+			if(this.pan_parent != null)
+				this.pan_parent.SubPanel.Margin = new Thickness(0, HEIGHT * (idx + 1), 0, HEIGHT * (this.pan_parent.btn_group.Count - (idx + 1)));
 			this.child.Visibility = Visibility.Visible;
-			ConfigMenuButton.selected = this;
+			if(this.pan_parent != null)
+				this.pan_parent.btn_selected = this;
 		}
 		protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
 		{
@@ -486,12 +501,15 @@ namespace CofileUI.UserControls.ConfigOptions
 
 	public class ConfigPanel : Grid
 	{
-		public static ConfigPanel current;
+		public ConfigMenuButton btn_selected = null;
+		public List<ConfigMenuButton> btn_group = new List<ConfigMenuButton>();
 
 		#region ServerInfoPanel
 		public class ServerInfoPanel : Grid
 		{
+			ConfigPanel pan_parent = null;
 			RelayCommand AddConfigWorkGroupCommand;
+
 			void AddConfigWorkGroup(object parameter)
 			{
 				Window_AddConfigWorkGroup wms = new Window_AddConfigWorkGroup();
@@ -503,14 +521,14 @@ namespace CofileUI.UserControls.ConfigOptions
 					try
 					{
 						string work_group_name = wms.textBox_name.Text;
-						if(ConfigMenuButton.selected == null
-						|| ConfigMenuButton.selected.Root["work_group"] as JObject == null)
+						if(this.pan_parent?.btn_selected == null
+						|| this.pan_parent?.btn_selected.Root["work_group"] as JObject == null)
 							return;
-						(ConfigMenuButton.selected.Root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
+						(this.pan_parent?.btn_selected.Root["work_group"] as JObject).Add(new JProperty(work_group_name, new JObject(new JProperty("processes", new JArray()))));
 
-						ConfigInfoPanel ui_config_group = new ConfigInfoPanel(ConfigMenuButton.selected.Root, work_group_name);
+						ConfigInfoPanel ui_config_group = new ConfigInfoPanel(this.pan_parent?.btn_selected, this.pan_parent?.btn_selected.Root, work_group_name);
 						ui_config_group.IsExpanded = true;
-						ConfigMenuButton.selected.child.Items.Add(ui_config_group);
+						this.pan_parent?.btn_selected.child.Items.Add(ui_config_group);
 					}
 					catch(Exception ex)
 					{
@@ -519,8 +537,9 @@ namespace CofileUI.UserControls.ConfigOptions
 					}
 				}
 			}
-			public ServerInfoPanel()
+			public ServerInfoPanel(ConfigPanel _pan_parent)
 			{
+				this.pan_parent = _pan_parent;
 				this.Background = Brushes.White;
 				AddConfigWorkGroupCommand = new RelayCommand(AddConfigWorkGroup);
 				this.ContextMenu = new ContextMenu();
@@ -538,15 +557,14 @@ namespace CofileUI.UserControls.ConfigOptions
 				this.ContextMenu.Items.Add(item);
 			}
 		}
-		public static ServerInfoPanel SubPanel;
+		public ServerInfoPanel SubPanel;
 		#endregion
 
 		public ConfigPanel()
 		{
-			current = this;
 			this.Background = null;
 
-			SubPanel = new ServerInfoPanel();
+			SubPanel = new ServerInfoPanel(this);
 			this.Children.Add(SubPanel);
 		}
 	}

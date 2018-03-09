@@ -47,9 +47,11 @@ namespace CofileUI.UserControls
 	{
 		public static Cofile current;
 		public bool bUpdated = false;
+		static LinuxTreeViewItem root;
 
 		public Cofile()
 		{
+			DataContext = root;
 			current = this;
 			InitializeComponent();
 			InitLinuxDirectory();
@@ -76,7 +78,8 @@ namespace CofileUI.UserControls
 			// 삭제
 			//treeView_linux_directory.Items.Clear();
 			//listView_linux_files.Items.Clear();
-			LinuxTreeViewItem.Clear();
+			root?.Items.Clear();
+			root = null;
 			treeView_linux_directory.Items.Clear();
 			listView_linux_files.Items.Clear();
 
@@ -87,9 +90,9 @@ namespace CofileUI.UserControls
 			if(working_dir == null)
 				return -1;
 
-			LinuxTreeViewItem.root = new LinuxTreeViewItem("/", null, "/", true, null);
-			treeView_linux_directory.Items.Add(LinuxTreeViewItem.root);
-			LinuxTreeViewItem.root.RefreshChild(working_dir, false);
+			root = new LinuxTreeViewItem("/", null, "/", true, null);
+			treeView_linux_directory.Items.Add(root);
+			root.RefreshChild(working_dir, false);
 			Cofile.current.RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			Log.PrintLog("[refresh]", "UserControls.Cofile.Refresh");
 
@@ -100,7 +103,8 @@ namespace CofileUI.UserControls
 		}
 		public void Clear()
 		{
-			LinuxTreeViewItem.Clear();
+			root?.Items.Clear();
+			root = null;
 			treeView_linux_directory.Items.Clear();
 			listView_linux_files.Items.Clear();
 			SelectedConfigLocalPath = "Not Selected";
@@ -210,7 +214,7 @@ namespace CofileUI.UserControls
 			set
 			{
 				bool_show_hidden = value;
-				LinuxTreeViewItem.Filter(LinuxTreeViewItem.root, Filter_string, bool_show_hidden);
+				LinuxTreeViewItem.Filter(root, Filter_string, bool_show_hidden);
 			}
 		}
 		static string filter_string = "";
@@ -221,7 +225,7 @@ namespace CofileUI.UserControls
 			{
 				filter_string = value;
 
-				LinuxTreeViewItem.Filter(LinuxTreeViewItem.root, filter_string, Bool_show_hidden);
+				LinuxTreeViewItem.Filter(root, filter_string, Bool_show_hidden);
 			}
 		}
 
@@ -476,17 +480,17 @@ namespace CofileUI.UserControls
 		{
 			if(e.Key == Key.Enter)
 			{
-				LinuxTreeViewItem.root.RefreshChild(comboBox_listView_linuxpath.Text, false);
+				root.RefreshChild(comboBox_listView_linuxpath.Text, false);
 				RefreshListView(LinuxTreeViewItem.Last_Refresh);
 			}
 		}
 
 		private void OnClickRefresh(object sender, RoutedEventArgs e)
 		{
-			if(LinuxTreeViewItem.root == null)
+			if(root == null)
 				Refresh();
 
-			else if(LinuxTreeViewItem.root != null)
+			else if(root != null)
 			{
 				string path = null;
 				if(LinuxTreeViewItem.Last_Refresh == null)
@@ -496,7 +500,7 @@ namespace CofileUI.UserControls
 
 				if(path != null)
 				{
-					LinuxTreeViewItem.root.RefreshChild(path, false);
+					root.RefreshChild(path, false);
 					RefreshListView(LinuxTreeViewItem.Last_Refresh);
 				}
 			}

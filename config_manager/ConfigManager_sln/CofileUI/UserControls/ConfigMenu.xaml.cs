@@ -26,18 +26,22 @@ namespace CofileUI.UserControls
 	/// </summary>
 	public partial class ConfigMenu : UserControl
 	{
+		LinuxTreeViewItem root = null;
+		ConfigPanel servergrid = null;
+
 		public ConfigMenu()
 		{
 			InitializeComponent();
+			root = (DataContext as LinuxTreeViewItem);
 			InitConfigTab();
 		}
 		#region Config Menu Class
-		public static ConfigPanel ConvertFromJson(JObject jobj_root)
+		public ConfigPanel ConvertFromJson(JObject jobj_root)
 		{
 			if(jobj_root == null)
 				return null;
 
-			ConfigPanel servergrid = new ConfigPanel();
+			servergrid = new ConfigPanel();
 			try
 			{
 				foreach(var v in jobj_root.Properties())
@@ -46,9 +50,9 @@ namespace CofileUI.UserControls
 					if(jobj_config_root == null)
 						continue;
 
-					ConfigMenuButton smbtn = new ConfigMenuButton(jobj_config_root, v.Name);
+					ConfigMenuButton smbtn = new ConfigMenuButton(servergrid, jobj_config_root, v.Name);
 					servergrid.Children.Add(smbtn);
-					ConfigPanel.SubPanel.Children.Add(smbtn.child);
+					servergrid.SubPanel.Children.Add(smbtn.child);
 
 					JObject jobj_work_group_root = jobj_config_root.GetValue("work_group") as JObject;
 					if(jobj_work_group_root == null)
@@ -60,7 +64,7 @@ namespace CofileUI.UserControls
 						if(jobj_server_menu == null)
 							continue;
 
-						ConfigInfoPanel ui_config_group = new ConfigInfoPanel(jobj_config_root, work.Name);
+						ConfigInfoPanel ui_config_group = new ConfigInfoPanel(smbtn, jobj_config_root, work.Name);
 						ui_config_group.IsExpanded = true;
 						smbtn.child.Items.Add(ui_config_group);
 
@@ -79,7 +83,7 @@ namespace CofileUI.UserControls
 								dir = (jobj_process_info.GetValue("enc_option") as JObject)?.GetValue("input_dir")?.ToString();
 							else
 								dir = (jobj_process_info.GetValue("comm_option") as JObject)?.GetValue("input_dir")?.ToString();
-							ui_config_group.Items.Add(new ConfigInfoPanel(jobj_config_root, work.Name, i.ToString(), dir));
+							ui_config_group.Items.Add(new ConfigInfoPanel(smbtn, jobj_config_root, work.Name, i.ToString(), dir));
 
 							string daemon_keyword = "dir_monitoring_yn";
 							if(jobj_config_root.GetValue("type").ToString() == "tail")
@@ -98,7 +102,7 @@ namespace CofileUI.UserControls
 
 							if(daemon_yn == "True")
 							{
-								LinuxTreeViewItem.ChangeColor(dir, jobj_config_root["type"] + "-" + work.Name + "-" + i);
+								LinuxTreeViewItem.ChangeColor(root, dir, jobj_config_root["type"] + "-" + work.Name + "-" + i);
 							}
 							i++;
 						}
@@ -126,23 +130,23 @@ namespace CofileUI.UserControls
 			{
 				Log.PrintError(e.Message, "UserControls.ConfigMenu.InitConfigtab");
 			}
-			if(ConfigMenuButton.group.Count > 0)
-				ConfigMenuButton.group[0].IsChecked = true;
+			if(servergrid.btn_group.Count > 0)
+				servergrid.btn_group[0].IsChecked = true;
 		}
 
 		protected override void OnMouseDown(MouseButtonEventArgs e)
 		{
 			base.OnMouseDown(e);
-			Console.WriteLine("JHLIM_DEBUG : " + ConfigMenuButton.group[0]?.Root["work_group"]?["test3"]);
+			Console.WriteLine("JHLIM_DEBUG : " + servergrid.btn_group[0]?.Root["work_group"]?["test3"]);
 
-			JObject root = JObject.Parse("{ \"File Config\" : " + ConfigMenuButton.group[0].Root + ", \"Sam Config\" : " + ConfigMenuButton.group[1].Root + ", \"Tail Config\" : " + ConfigMenuButton.group[2].Root + " }");
-			ConfigMenuButton.group.Clear();
+			JObject root = JObject.Parse("{ \"File Config\" : " + servergrid.btn_group[0].Root + ", \"Sam Config\" : " + servergrid.btn_group[1].Root + ", \"Tail Config\" : " + servergrid.btn_group[2].Root + " }");
+			servergrid.btn_group.Clear();
 			ConfigPanel panel_server = ConvertFromJson(root);
 
 			grid.Children.Clear();
 			grid.Children.Add(panel_server);
-			if(ConfigMenuButton.group.Count > 0)
-				ConfigMenuButton.group[0].IsChecked = true;
+			if(servergrid.btn_group.Count > 0)
+				servergrid.btn_group[0].IsChecked = true;
 		}
 
 		#endregion
