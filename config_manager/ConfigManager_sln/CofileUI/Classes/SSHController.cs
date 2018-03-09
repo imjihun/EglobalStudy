@@ -41,10 +41,6 @@ namespace CofileUI.Classes
 		}
 		public static bool CheckConnection(string ip, int port)
 		{
-			if(shell_stream != null)
-				Console.WriteLine(shell_stream.CanRead + " " + shell_stream.CanSeek + " " + shell_stream.CanTimeout + " " + shell_stream.CanWrite + " ");
-			if(ssh != null)
-				Console.WriteLine(ssh.IsConnected + " " + ssh.ConnectionInfo);
 			if(CheckConnection(sftp, ip, port) && CheckConnection(ssh, ip, port))
 				return true;
 
@@ -497,16 +493,6 @@ namespace CofileUI.Classes
 						string _read = new string(buffer, 0, cnt);
 						str_read += _read;
 						timeout = DateTime.Now.AddSeconds(sec_timeout);
-					}
-				}
-				{
-					string[] _split = str_read.Split('\n');
-					if(_split.Length >= 2)
-					{
-						for(int i = 0; i < _split[_split.Length - 2].Length; i++)
-						{
-							Console.Write("{0}", _split[_split.Length - 2][i]);
-						}
 					}
 				}
 				if(timeout < now)
@@ -1199,20 +1185,10 @@ namespace CofileUI.Classes
 
 				if(!SendCommand(send_cmd))
 					return false;
-				//Console.WriteLine();
-				//Console.WriteLine();
-				//Console.WriteLine("read_line_ssh = " + read_line_ssh);
-				//Console.WriteLine();
-				//Console.WriteLine();
 				//read_line_ssh = "";
 				//DateTime dt = DateTime.Now.AddSeconds(5);
 				//while(dt > DateTime.Now && read_line_ssh.Length <= 0)
 				//	yield return null;
-				//Console.WriteLine();
-				//Console.WriteLine();
-				//Console.WriteLine("read_line_ssh = " + read_line_ssh);
-				//Console.WriteLine();
-				//Console.WriteLine();
 
 
 				//string ret = readCofileMessageBlocking();

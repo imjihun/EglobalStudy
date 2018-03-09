@@ -221,5 +221,13 @@ namespace CofileUI.UserControls.ConfigOptions.Tail
 				Log.PrintError(ex.Message, "UserControls.ConfigOptions.Tail.TailOptions.ChangeEncOptionProperties");
 			}
 		}
+		private void TitleMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if(e.ChangedButton == MouseButton.Left)
+			{
+				Window parentWindow = Window.GetWindow(this);
+				parentWindow.DragMove();
+			}
+		}
 	}
 }

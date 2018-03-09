@@ -47,5 +47,14 @@ namespace CofileUI.UserControls.ConfigOptions.File
 				bInit = true;
 			}
 		}
+
+		private void TitleMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if(e.ChangedButton == MouseButton.Left)
+			{
+				Window parentWindow = Window.GetWindow(this);
+				parentWindow.DragMove();
+			}
+		}
 	}
 }

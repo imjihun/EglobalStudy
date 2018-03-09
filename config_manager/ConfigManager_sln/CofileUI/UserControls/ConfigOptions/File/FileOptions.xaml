@@ -14,48 +14,52 @@
 			<Setter Property="Controls:ControlsHelper.HeaderFontSize" Value="15"></Setter>
 		</Style>
 	</UserControl.Resources>
-	<Border BorderBrush="LightGray" BorderThickness="2">
-		<Grid Margin="2">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="30"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<TextBlock x:Name="textBlock" Text="File" VerticalAlignment="Center"/>
-				<Border BorderBrush="LightGray" BorderThickness="0,0,0,2"/>
+	<!--<Border BorderBrush="LightGray" BorderThickness="2">-->
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="30"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Grid Grid.Row="0" Background="{DynamicResource AccentColorBrush}" MouseDown="TitleMouseDown">
+			<Grid Margin="2, 2, 2, 0">
+				<TextBlock x:Name="textBlock" Text="File" VerticalAlignment="Center" FontWeight="Bold"/>
 			</Grid>
-			<Grid Grid.Row="1">
-				<TabControl x:Name="tabControl" Grid.ColumnSpan = "2" Background="{x:Null}"
+		</Grid>
+		<Grid Grid.Row="1">
+			<Border BorderBrush="LightGray" BorderThickness="2">
+				<Grid Margin="2, 0, 2, 2">
+					<TabControl x:Name="tabControl" Grid.ColumnSpan = "2" Background="{x:Null}"
 										  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
 										  Controls:TabControlHelper.IsUnderlined="True" 
 										  Controls:TabControlHelper.Underlined="TabPanel"
 										  TabStripPlacement="Left">
 
-					<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
-						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-							<Grid x:Name="grid1">
-								<!--<local:comm_option DataContext="{Binding comm_option.Parent}"/>-->
-							</Grid>
+						<TabItem Header="Common" Style="{StaticResource StyleTabItem}">
+							<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+								<Grid x:Name="grid1">
+									<!--<local:comm_option DataContext="{Binding comm_option.Parent}"/>-->
+								</Grid>
 
-						</ScrollViewer>
-					</TabItem>
-					<TabItem Header="Encrypt" Style="{StaticResource StyleTabItem}">
-						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-							<Grid x:Name="grid2">
-								<!--<local:enc_option DataContext="{Binding enc_option.Parent}"/>-->
-							</Grid>
+							</ScrollViewer>
+						</TabItem>
+						<TabItem Header="Encrypt" Style="{StaticResource StyleTabItem}">
+							<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+								<Grid x:Name="grid2">
+									<!--<local:enc_option DataContext="{Binding enc_option.Parent}"/>-->
+								</Grid>
 
-						</ScrollViewer>
-					</TabItem>
-					<TabItem Header="Decrypt" Style="{StaticResource StyleTabItem}">
-						<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-							<Grid x:Name="grid3">
-								<!--<local:dec_option DataContext="{Binding dec_option.Parent}"/>-->
-							</Grid>
-						</ScrollViewer>
-					</TabItem>
-				</TabControl>
-			</Grid>
+							</ScrollViewer>
+						</TabItem>
+						<TabItem Header="Decrypt" Style="{StaticResource StyleTabItem}">
+							<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+								<Grid x:Name="grid3">
+									<!--<local:dec_option DataContext="{Binding dec_option.Parent}"/>-->
+								</Grid>
+							</ScrollViewer>
+						</TabItem>
+					</TabControl>
+				</Grid>
+			</Border>
 		</Grid>
-	</Border>
+	</Grid>
 </UserControl>

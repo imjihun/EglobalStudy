@@ -105,5 +105,13 @@ namespace CofileUI.UserControls.ConfigOptions.Sam
 				ConfigOptionManager.bChanged = true;
 			}
 		}
+		private void TitleMouseDown(object sender, MouseButtonEventArgs e)
+		{
+			if(e.ChangedButton == MouseButton.Left)
+			{
+				Window parentWindow = Window.GetWindow(this);
+				parentWindow.DragMove();
+			}
+		}
 	}
 }

@@ -36,7 +36,7 @@
 			</Grid.ColumnDefinitions>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*"/>
-				<RowDefinition Height="200"/>
+				<RowDefinition Height="0"/>
 			</Grid.RowDefinitions>
 			<Grid Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Stretch">
 				<UserControls:ServerMenu DataContext="{Binding}"/>
@@ -97,9 +97,9 @@
 						<UserControls:Cofile DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
-				<TabItem x:Name="tabItem_Config" Header="{StaticResource MainTab.Config}">
+				<TabItem x:Name="tabItem_Config" Header="{StaticResource MainTab.Decrypt}">
 					<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="{Binding ActualWidth, ElementName=grid_root_view, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=grid_root_view, Mode=OneWay}">
-						<UserControls:ConfigOption DataContext="{Binding}"/>
+						<UserControls:Decrypt DataContext="{Binding}"/>
 					</Grid>
 				</TabItem>
 				<TabItem Header="{StaticResource MainTab.Log}">

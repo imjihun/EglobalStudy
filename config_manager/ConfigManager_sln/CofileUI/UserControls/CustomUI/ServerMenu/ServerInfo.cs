@@ -214,10 +214,11 @@ namespace CofileUI.UserControls
 		#endregion
 	}
 
-	public class ServerInfoPanel : StackPanel
+	public class ServerInfoPanel : ListBoxItem
 	{
 		private ServerInfo serverinfo;
 		public ServerInfo Serverinfo { get { return serverinfo; } set { serverinfo = value; } }
+		public StackPanel sp;
 		public TextBlock tb;
 		public PackIconModern icon;
 		//public ServerInfoTextBlock(string _name, string _ip, string _id, string _pass)
@@ -254,9 +255,10 @@ namespace CofileUI.UserControls
 		//public bool IsConnected { get { return SSHController.CheckConnection(serverinfo.ip, serverinfo.port); } }
 		private void CreateMember()
 		{
+			sp = new StackPanel();
 			list_total_serverinfo.Add(this);
 
-			this.Orientation = Orientation.Horizontal;
+			sp.Orientation = Orientation.Horizontal;
 			icon = new PackIconModern()
 			{
 				Kind = PackIconModernKind.Connect,
@@ -264,7 +266,7 @@ namespace CofileUI.UserControls
 				HorizontalAlignment = HorizontalAlignment.Center
 			};
 			icon.Margin = new Thickness(2, 0, 3, 0);
-			this.Children.Add(icon);
+			sp.Children.Add(icon);
 
 			//Binding binding = new Binding("IsConnected");
 			//binding.Mode = BindingMode.OneWay;
@@ -274,15 +276,14 @@ namespace CofileUI.UserControls
 			icon.Visibility = Visibility.Hidden;
 
 			tb = new TextBlock();
-			this.Children.Add(tb);
+			tb.Foreground = Brushes.Black;
+			sp.Children.Add(tb);
+
+			this.Content = sp;
 		}
 		public ServerInfoPanel(string _name, string _ip, int _port)
+			: this(new ServerInfo(_name, _ip, _port))
 		{
-			CreateMember();
-
-			Serverinfo = new ServerInfo(_name, _ip, _port);
-			this.HorizontalAlignment = HorizontalAlignment.Stretch;
-			this.Text = _name;
 		}
 		public ServerInfoPanel(ServerInfo si)
 		{

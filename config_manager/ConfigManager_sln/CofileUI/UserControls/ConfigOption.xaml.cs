@@ -34,6 +34,9 @@ namespace CofileUI.UserControls
 		{
 			current = this;
 			InitializeComponent();
+			this.Loaded += (sender, e) => {
+				Console.WriteLine("JHLIM_DEBUG : loaded");
+			};
 		}
 		#region
 		

@@ -39,20 +39,31 @@ namespace CofileUI.UserControls.ConfigOptions
 	{
 		public static char StartDisableProperty = '#';
 		public static JToken Root;
+		private static JToken CurRoot;
+		private static string work_name;
+		private static string index;
+
 		private static UserControl current;
 		private static string path;
-		public static string Path { get { return path; }
-			set {
-				path = value;
-				if(current as ConfigOptions.File.FileOptions != null)
-					((ConfigOptions.File.FileOptions)current).textBlock.Text = "File [ " + FileName + " ]";
-				if(current as ConfigOptions.Sam.SamOptions != null)
-					((ConfigOptions.Sam.SamOptions)current).textBlock.Text = "Sam [ " + FileName + " ]";
-				if(current as ConfigOptions.Tail.TailOptions != null)
-					((ConfigOptions.Tail.TailOptions)current).textBlock.Text = "Tail [ " + FileName + " ]";
+		public static string Path
+		{
+			get { return path; }
+			set
+			{
+				if(value != null)
+				{
+					path = value;
+					if(current as ConfigOptions.File.FileOptions != null)
+						((ConfigOptions.File.FileOptions)current).textBlock.Text = "File [ " + path + " ]";
+					if(current as ConfigOptions.Sam.SamOptions != null)
+						((ConfigOptions.Sam.SamOptions)current).textBlock.Text = "Sam [ " + path + " ]";
+					if(current as ConfigOptions.Tail.TailOptions != null)
+						((ConfigOptions.Tail.TailOptions)current).textBlock.Text = "Tail [ " + path + " ]";
+				}
 			}
 		}
-		private static string FileName {
+		private static string FileName
+		{
 			get
 			{
 				string[] split = path.Split('\\');
@@ -70,8 +81,6 @@ namespace CofileUI.UserControls.ConfigOptions
 					WindowMain.current.tabItem_Config.Header = "*" + Application.Current.FindResource("MainTab.Config") as string;
 				else
 					WindowMain.current.tabItem_Config.Header = Application.Current.FindResource("MainTab.Config") as string;
-
-				Console.WriteLine(Root);
 			}
 		}
 		public static void Clear()
@@ -81,30 +90,306 @@ namespace CofileUI.UserControls.ConfigOptions
 			Path = null;
 			bChanged = false;
 		}
-		public static UserControl CreateOption(JToken token)
+		private static UserControl CreateOption(string type, JToken token)
 		{
-			if(token["type"] == null)
+			if(type == null)
 			{
 				Log.PrintError("type = " + "empty", "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
 				WindowMain.current.ShowMessageDialog("Config", "type을 확인 할 수 없습니다.\ntype = " + "empty", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 				return null;
 			}
-			else if(token["type"].ToString() == "file")
+			else if(type == "file")
 				current = new ConfigOptions.File.FileOptions() { DataContext = token };
-			else if(token["type"].ToString() == "sam")
+			else if(type == "sam")
 				current = new ConfigOptions.Sam.SamOptions() { DataContext = token };
-			else if(token["type"].ToString() == "tail")
+			else if(type == "tail")
 				current = new ConfigOptions.Tail.TailOptions() { DataContext = token };
 			else
 			{
-				Log.PrintError("type = " + token["type"].ToString(), "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
-				WindowMain.current.ShowMessageDialog("Config", "type을 확인 할 수 없습니다.\ntype = " + token["type"].ToString(), MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
+				Log.PrintError("type = " + type, "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
+				WindowMain.current.ShowMessageDialog("Config", "type을 확인 할 수 없습니다.\ntype = " + type, MahApps.Metro.Controls.Dialogs.MessageDialogStyle.Affirmative);
 				return null;
 			}
 
-			Root = token;
-			Log.PrintLog("type = " + Root["type"].ToString() , "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
+			CurRoot = token;
+			CurRoot["work_group"]?.Parent.Remove();
+			CurRoot["processes"]?.Parent.Remove();
+			CurRoot["type"]?.Parent.Remove();
+			Log.PrintLog("type = " + type, "UserControls.ConfigOptions.ConfigOptionManager.CreateOption");
 			return current;
+		}
+		public static UserControl CreateOption(JToken token, string _work_name = null, string _index = null)
+		{
+			Root = token;
+			work_name = _work_name;
+			index = _index;
+
+			JObject new_root = token.DeepClone() as JObject;
+			if(_work_name != null)
+			{
+				JObject jobj_work = ((token as JObject)?.GetValue("work_group") as JObject)?.GetValue(_work_name) as JObject;
+				foreach(var v in jobj_work.Properties())
+				{
+					if(v.Value as JArray == null)
+					{
+						JObject jobj_cur = new_root.GetValue(v.Name) as JObject;
+						if(jobj_cur == null)
+							continue;
+						foreach(var prop in (v.Value as JObject)?.Properties())
+						{
+							jobj_cur[prop.Name] = prop.Value;
+							if(prop.Name[0] == '#')
+								jobj_cur[prop.Name.Substring(1)]?.Parent?.Remove();
+							else
+								jobj_cur['#' + prop.Name]?.Parent?.Remove();
+						}
+					}
+					else
+					{
+						JArray jarr_cur = new_root.GetValue(v.Name) as JArray;
+						if(jarr_cur == null)
+							continue;
+						int idx = 0;
+						foreach(var jobj in (v.Value as JArray))
+						{
+							foreach(var prop in (jobj as JObject)?.Properties())
+							{
+								jarr_cur[idx][prop.Name] = prop.Value;
+								if(prop.Name[0] == '#')
+									jarr_cur[idx][prop.Name.Substring(1)]?.Parent?.Remove();
+								else
+									jarr_cur[idx]['#' + prop.Name]?.Parent?.Remove();
+							}
+							idx++;
+						}
+					}
+				}
+			}
+			if(_index != null)
+			{
+				JObject jobj_process = ((((token as JObject)?.GetValue("work_group") as JObject)?.GetValue(_work_name) as JObject)?.GetValue("processes") as JArray)?[Int32.Parse(_index)] as JObject;
+				foreach(var v in jobj_process.Properties())
+				{
+					if(v.Value as JArray == null)
+					{
+						JObject jobj_cur = new_root.GetValue(v.Name) as JObject;
+						if(jobj_cur == null)
+							continue;
+						foreach(var prop in (v.Value as JObject)?.Properties())
+						{
+							jobj_cur[prop.Name] = prop.Value;
+							if(prop.Name[0] == '#')
+								jobj_cur[prop.Name.Substring(1)]?.Parent?.Remove();
+							else
+								jobj_cur['#' + prop.Name]?.Parent?.Remove();
+						}
+					}
+					else
+					{
+						JArray jarr_cur = new_root.GetValue(v.Name) as JArray;
+						if(jarr_cur == null)
+							continue;
+						int idx = 0;
+						foreach(var jobj in (v.Value as JArray))
+						{
+							foreach(var prop in (jobj as JObject)?.Properties())
+							{
+								jarr_cur[idx][prop.Name] = prop.Value;
+								if(prop.Name[0] == '#')
+									jarr_cur[idx][prop.Name.Substring(1)]?.Parent?.Remove();
+								else
+									jarr_cur[idx]['#' + prop.Name]?.Parent?.Remove();
+							}
+							idx++;
+						}
+					}
+				}
+			}
+
+			current = CreateOption(token["type"]?.ToString(), new_root);
+			return current;
+		}
+
+		static string[] arr_json_keyword = { "comm_option", "enc_option", "dec_option", "col_var", "col_fix", "enc_inform", "work_group", "processes" };
+		public static int SaveOption()
+		{
+			if(Root == null
+				|| CurRoot == null)
+				return -1;
+			JObject jobj_cur_data = null;
+			JObject jobj_par_data = null;
+
+			if(work_name != null && index == null)
+			{
+				jobj_cur_data = ((Root as JObject)?.GetValue("work_group") as JObject)?.GetValue(work_name) as JObject;
+				jobj_par_data = Root.DeepClone() as JObject;
+			}
+			else if(work_name != null && index != null)
+			{
+				jobj_cur_data = ((((Root as JObject)?.GetValue("work_group") as JObject)?.GetValue(work_name) as JObject)?.GetValue("processes") as JArray)?[Int32.Parse(index)] as JObject;
+				jobj_par_data = Root.DeepClone() as JObject;
+				JObject jobj_work = ((Root as JObject)?.GetValue("work_group") as JObject)?.GetValue(work_name) as JObject;
+				foreach(var v in jobj_work.Properties())
+				{
+					if(v.Value as JArray == null)
+					{
+						JObject jobj_cur = jobj_par_data.GetValue(v.Name) as JObject;
+						if(jobj_cur == null)
+							continue;
+						foreach(var prop in (v.Value as JObject)?.Properties())
+						{
+							jobj_cur[prop.Name] = prop.Value;
+						}
+					}
+					else
+					{
+						JArray jarr_cur = jobj_par_data.GetValue(v.Name) as JArray;
+						if(jarr_cur == null)
+						{
+							jobj_par_data.Add(v.Name, new JArray());
+							int i = 0;
+							foreach(var jobj in (v.Value as JArray))
+							{
+								(jobj_par_data[v.Name] as JArray)?.Add(new JObject());
+								foreach(var prop in (jobj as JObject)?.Properties())
+								{
+									(jobj_par_data[v.Name]?[i] as JObject)?.Add(prop.Name, prop.Value);
+								}
+								i++;
+							}
+							continue;
+						}
+						int idx = 0;
+						foreach(var jobj in (v.Value as JArray))
+						{
+							foreach(var prop in (jobj as JObject)?.Properties())
+							{
+								jarr_cur[idx][prop.Name] = prop.Value;
+							}
+							idx++;
+						}
+					}
+				}
+			}
+			else if(work_name == null && index == null)
+			{
+				jobj_cur_data = Root as JObject;
+			}
+
+			if(jobj_cur_data == null)
+				return -1;
+			
+			foreach(var jprop_section in (CurRoot as JObject)?.Properties())
+			{
+				int idx_keyword;
+				for(idx_keyword = 0; idx_keyword < arr_json_keyword.Length; idx_keyword++)
+				{
+					if(arr_json_keyword[idx_keyword] == jprop_section.Name)
+						break;
+				}
+				if(idx_keyword == arr_json_keyword.Length)
+					continue;
+
+				if(jprop_section.Value as JArray == null)
+				{
+					foreach(var jprop_changed in (jprop_section.Value as JObject)?.Properties())
+					{
+						if(jobj_par_data != null
+							&& (jobj_par_data[jprop_section.Name]?[jprop_changed.Name] as JValue)?.Value != null
+							&& (jobj_par_data[jprop_section.Name]?[jprop_changed.Name] as JValue)?.Value.Equals((jprop_changed.Value as JValue)?.Value) == true)
+						{
+							jobj_cur_data[jprop_section.Name]?[jprop_changed.Name]?.Parent.Remove();
+							if(jprop_changed.Name[0] == '#')
+								jobj_cur_data[jprop_section.Name]?[jprop_changed.Name.Substring(1)]?.Parent?.Remove();
+							else
+								jobj_cur_data[jprop_section.Name]?['#' + jprop_changed.Name]?.Parent?.Remove();
+
+							if(jobj_cur_data[jprop_section.Name]?.LongCount() == 0)
+								jobj_cur_data[jprop_section.Name]?.Parent.Remove();
+						}
+						else if(jobj_cur_data[jprop_section.Name] == null)
+						{
+							if(jobj_cur_data["processes"] != null)
+								jobj_cur_data["processes"]?.Parent?.AddBeforeSelf(new JProperty(jprop_section.Name, new JObject()));
+							else
+								(jobj_cur_data as JObject)?.Add(jprop_section.Name, new JObject());
+							(jobj_cur_data[jprop_section.Name] as JObject)?.Add(jprop_changed.Name, jprop_changed.Value);
+						}
+						else if(jobj_cur_data[jprop_section.Name][jprop_changed.Name] == null)
+						{
+							(jobj_cur_data[jprop_section.Name] as JObject)?.Add(jprop_changed.Name, jprop_changed.Value);
+							if(jprop_changed.Name[0] == '#')
+								jobj_cur_data[jprop_section.Name][jprop_changed.Name.Substring(1)]?.Parent?.Remove();
+							else
+								jobj_cur_data[jprop_section.Name]['#' + jprop_changed.Name]?.Parent?.Remove();
+						}
+						else
+							jobj_cur_data[jprop_section.Name][jprop_changed.Name] = jprop_changed.Value;
+					}
+				}
+				else
+				{
+					int idx = 0;
+					foreach(var jarr_changed in jprop_section.Value as JArray)
+					{
+						foreach(var jprop_changed in (jarr_changed as JObject)?.Properties())
+						{
+							if(jobj_par_data != null
+								&& (jobj_par_data[jprop_section.Name]?[idx]?[jprop_changed.Name] as JValue)?.Value != null
+								&& (jobj_par_data[jprop_section.Name]?[idx]?[jprop_changed.Name] as JValue)?.Value.Equals((jprop_changed.Value as JValue)?.Value) == true)
+							{
+								jobj_cur_data[jprop_section.Name]?[idx]?[jprop_changed.Name]?.Parent.Remove();
+								if(jprop_changed.Name[0] == '#')
+									jobj_cur_data[jprop_section.Name]?[idx]?[jprop_changed.Name.Substring(1)]?.Parent?.Remove();
+								else
+									jobj_cur_data[jprop_section.Name]?[idx]?['#' + jprop_changed.Name]?.Parent?.Remove();
+								int i;
+								if(jobj_cur_data[jprop_section.Name]?.LongCount() != null)
+								{
+									for(i = 0; i < jobj_cur_data[jprop_section.Name].LongCount(); i++)
+									{
+										if(jobj_cur_data[jprop_section.Name]?[idx]?.LongCount() > 0)
+											break;
+									}
+									if(jobj_cur_data[jprop_section.Name].LongCount() == i)
+										jobj_cur_data[jprop_section.Name]?.Parent.Remove();
+								}
+							}
+							else if(jobj_cur_data[jprop_section.Name] == null)
+							{
+								if(jobj_cur_data["processes"] != null)
+									jobj_cur_data["processes"]?.Parent?.AddBeforeSelf(new JProperty(jprop_section.Name, new JArray()));
+								else
+									(jobj_cur_data as JObject)?.Add(jprop_section.Name, new JArray());
+								while((jobj_cur_data[jprop_section.Name] as JArray)?.Count < idx + 1)
+									(jobj_cur_data[jprop_section.Name] as JArray)?.Add(new JObject());
+								(jobj_cur_data[jprop_section.Name]?[idx] as JObject)?.Add(jprop_changed.Name, jprop_changed.Value);
+							}
+							else if((jobj_cur_data[jprop_section.Name] as JArray)?.Count < idx + 1)
+							{
+								while((jobj_cur_data[jprop_section.Name] as JArray)?.Count < idx + 1)
+									(jobj_cur_data[jprop_section.Name] as JArray)?.Add(new JObject());
+								(jobj_cur_data[jprop_section.Name]?[idx] as JObject)?.Add(jprop_changed.Name, jprop_changed.Value);
+							}
+							else if(jobj_cur_data[jprop_section.Name][idx][jprop_changed.Name] == null)
+							{
+								(jobj_cur_data[jprop_section.Name]?[idx] as JObject)?.Add(jprop_changed.Name, jprop_changed.Value);
+								if(jprop_changed.Name[0] == '#')
+									jobj_cur_data[jprop_section.Name][idx][jprop_changed.Name.Substring(1)]?.Parent?.Remove();
+								else
+									jobj_cur_data[jprop_section.Name][idx]['#' + jprop_changed.Name]?.Parent?.Remove();
+							}
+							else
+								jobj_cur_data[jprop_section.Name][idx][jprop_changed.Name] = jprop_changed.Value;
+						}
+						idx++;
+					}
+				}
+			}
+
+			//Console.WriteLine("JHLIM_DEBUG : jobj_cur_data\n" + jobj_cur_data["comm_option"]);
+
+			return 0;
 		}
 
 		public class Group
@@ -118,7 +403,7 @@ namespace CofileUI.UserControls.ConfigOptions
 			public string RadioButtonGroupName { get; set; }
 		}
 
-		private static T Find<T>(FrameworkElement ui) where T: FrameworkElement
+		private static T Find<T>(FrameworkElement ui) where T : FrameworkElement
 		{
 			T retval = ui as T;
 			if(retval == null)
@@ -205,7 +490,7 @@ namespace CofileUI.UserControls.ConfigOptions
 
 				grid_group.Children.Add(grid_group_body);
 				Grid.SetRow(grid_group_body, 1);
-				
+
 				for(int j = 0; j < groups[i].Arr.Length; j++)
 				{
 					try
@@ -284,8 +569,13 @@ namespace CofileUI.UserControls.ConfigOptions
 							ComboBox cb = ui_value as ComboBox;
 							if(cb != null)
 							{
-								Binding _bd = new Binding("SelectedIndex") { Source = cb, Mode = BindingMode.OneWay, Converter = new Int32ToBooleanConverter(),
-									ConverterParameter = Root };
+								Binding _bd = new Binding("SelectedIndex")
+								{
+									Source = cb,
+									Mode = BindingMode.OneWay,
+									Converter = new Int32ToBooleanConverter(),
+									ConverterParameter = Root
+								};
 								grid_group_body.SetBinding(Grid.IsEnabledProperty, _bd);
 							}
 						}
@@ -461,4 +751,5 @@ namespace CofileUI.UserControls.ConfigOptions
 		}
 	}
 	#endregion
+
 }

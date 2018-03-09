@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CofileUI"
              xmlns:UserControls="clr-namespace:CofileUI.UserControls"
+             xmlns:ConfigOptions="clr-namespace:CofileUI.UserControls.ConfigOptions"
 			 
              StartupUri="Windows/WindowMain.xaml">
 	<Application.Resources>
@@ -32,7 +33,10 @@
 
 			<!--<Style TargetType="UserControls:ServerInfoPanel" BasedOn="{StaticResource MetroTextBlock}" />-->
 			<Style TargetType="UserControls:ServerList" BasedOn="{StaticResource MetroListBox}" />
+			<Style TargetType="UserControls:ServerInfoPanel" BasedOn="{StaticResource MetroListBoxItem}" />
 			<Style TargetType="UserControls:ServerMenuButton" BasedOn="{StaticResource MetroToggleButton}" />
+			<Style TargetType="ConfigOptions:ConfigList" BasedOn="{StaticResource MetroTreeView}" />
+			<Style TargetType="ConfigOptions:ConfigInfoPanel" BasedOn="{StaticResource MetroTreeViewItem}" />
 
 			<Style TargetType="Window" BasedOn="{StaticResource MetroWindow}" />
 

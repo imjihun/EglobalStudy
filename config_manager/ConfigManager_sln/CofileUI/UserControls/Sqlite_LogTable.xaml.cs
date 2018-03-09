@@ -38,7 +38,8 @@ namespace CofileUI.UserControls
 		//	Path = SSHController.GetDataBase(AppDomain.CurrentDomain.BaseDirectory, local_file_name);
 		//	return Path;
 		//}
-		
+		public static bool bUpdated = false;
+
 		static string path_root = MainSettings.Path.PathDirCofileDB;
 		const int MAX_IDX_DB_NAME = 255;
 		static string prev_db_name = "";
@@ -69,12 +70,14 @@ namespace CofileUI.UserControls
 				Sqlite_StatusTable.current.Refresh();
 			//FileContoller.DeleteFile(path_root + prev_db_name);
 			prev_db_name = db_name;
+			bUpdated = true;
 		}
 	}
 
 	public partial class Sqlite_LogTable : UserControl
 	{
 		public static Sqlite_LogTable current;
+
 		public Sqlite_LogTable()
 		{
 			current = this;
@@ -101,6 +104,12 @@ namespace CofileUI.UserControls
 			comboBox_change_count_page.ItemsSource = arr_cnt_page;
 			comboBox_change_count_page.SelectedIndex = 0;
 			comboBox_change_count_page.SelectionChanged += ComboBox_change_count_page_SelectionChanged;
+
+			this.Loaded += (sender, e) => {
+				Console.WriteLine("JHLIM_DEBUG : loaded");
+				if(!DataBaseInfo.bUpdated)
+					DataBaseInfo.RefreshUi();
+			};
 		}
 
 		DataTable current_table;

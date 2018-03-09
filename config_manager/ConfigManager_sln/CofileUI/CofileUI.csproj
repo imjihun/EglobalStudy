@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8682379-697C-4A25-A387-A03DEBE6B2E1}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CofileUI</RootNamespace>
     <AssemblyName>CofileUI</AssemblyName>
@@ -123,6 +123,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Resources\Class1.cs" />
+    <Compile Include="UserControls\Decrypt.xaml.cs">
+      <DependentUpon>Decrypt.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\Cofile.xaml.cs">
       <DependentUpon>Cofile.xaml</DependentUpon>
     </Compile>
@@ -153,6 +156,7 @@
     <Compile Include="UserControls\ConfigOptions\Sam\SamOptions.xaml.cs">
       <DependentUpon>SamOptions.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\ConfigOptions\ConfigUI.cs" />
     <Compile Include="UserControls\ConfigOptions\Tail\comm_option.xaml.cs">
       <DependentUpon>comm_option.xaml</DependentUpon>
     </Compile>
@@ -178,6 +182,9 @@
     <Compile Include="UserControls\LinuxDirectoryViewer.xaml.cs">
       <DependentUpon>LinuxDirectoryViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserControls\ConfigMenu.xaml.cs">
+      <DependentUpon>ConfigMenu.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserControls\ServerMenu.xaml.cs">
       <DependentUpon>ServerMenu.xaml</DependentUpon>
     </Compile>
@@ -201,6 +208,9 @@
     </Compile>
     <Compile Include="Windows\Window_AddServer.xaml.cs">
       <DependentUpon>Window_AddServer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Window_AddConfigWorkGroup.xaml.cs">
+      <DependentUpon>Window_AddConfigWorkGroup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Window_AddServerMenu.xaml.cs">
       <DependentUpon>Window_AddServerMenu.xaml</DependentUpon>
@@ -238,6 +248,9 @@
     <Compile Include="Windows\Window_ViewImage.xaml.cs">
       <DependentUpon>Window_ViewImage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\Window_Config.xaml.cs">
+      <DependentUpon>Window_Config.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\Window_Waiting.xaml.cs">
       <DependentUpon>Window_Waiting.xaml</DependentUpon>
     </Compile>
@@ -252,6 +265,10 @@
     <Page Include="Resources\StringResources\StringResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserControls\Decrypt.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="UserControls\Cofile.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -321,6 +338,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UserControls\ConfigMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UserControls\ServerMenu.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -350,6 +371,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Window_AddServer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Window_AddConfigWorkGroup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -388,6 +413,10 @@
     <Page Include="Windows\Window_ViewImage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Window_Config.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Window_Waiting.xaml">
       <SubType>Designer</SubType>

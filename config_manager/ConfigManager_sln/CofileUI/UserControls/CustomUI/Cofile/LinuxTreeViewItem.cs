@@ -117,7 +117,7 @@ namespace CofileUI.UserControls
 				isDirectory = value;
 				if(value)
 				{
-					TextBlock tb = this.Header.Children[1] as TextBlock;
+					TextBlock tb = this.Header.Tb_name as TextBlock;
 					if(tb == null)
 						return;
 
@@ -135,32 +135,34 @@ namespace CofileUI.UserControls
 		private SftpFile fileInfo;
 		public SftpFile FileInfo { get { return fileInfo; } set { fileInfo = value; } }
 		#region header
-		public class Grid_Header : StackPanel
+		public class Grid_Header : DockPanel
 		{
+			private TextBlock tb_name;
+			public TextBlock Tb_name { get { return tb_name; } }
 			//const int HEIGHT = 30;
 			public string Text
 			{
 				get
 				{
-					TextBlock tb = this.Children[1] as TextBlock;
-					if(tb == null)
+					if(tb_name == null)
 						return null;
-					return tb.Text;
+					return tb_name.Text;
 					//tb.Text = newText;
 				}
 				set
 				{
-					TextBlock tb = this.Children[1] as TextBlock;
-					if(tb == null)
+					if(tb_name == null)
 						return;
-					tb.Text = value;
+					tb_name.Text = value;
 				}
 			}
+
+			public TextBlock tb_config_path;
 
 			public Grid_Header(string header, bool isDirectory)
 			{
 				//this.Height = HEIGHT;
-				this.Orientation = Orientation.Horizontal;
+				//this.Orientation = Orientation.Horizontal;
 				Image img = new Image();
 				if(isDirectory)
 					img.Source = new BitmapImage(new System.Uri("/CofileUI;component/Resources/directory.png", System.UriKind.Relative));
@@ -169,12 +171,22 @@ namespace CofileUI.UserControls
 					img.Source = new BitmapImage(new System.Uri("/CofileUI;component/Resources/file.png", System.UriKind.Relative));
 					//img.Source = BitmapToImageSource(Properties.Resources.file);
 				img.Height = img.Width = 20;
+				DockPanel.SetDock(img, Dock.Left);
 				this.Children.Add(img);
 
-				TextBlock tb = new TextBlock();
-				tb.Text = header;
-				tb.VerticalAlignment = VerticalAlignment.Center;
-				this.Children.Add(tb);
+				tb_name = new TextBlock();
+				tb_name.Text = header;
+				tb_name.VerticalAlignment = VerticalAlignment.Center;
+				DockPanel.SetDock(tb_name, Dock.Left);
+				this.Children.Add(tb_name);
+
+				tb_config_path = new TextBlock();
+				tb_config_path.VerticalAlignment = VerticalAlignment.Center;
+				tb_config_path.HorizontalAlignment = HorizontalAlignment.Right;
+				tb_config_path.Text = "";
+				tb_config_path.Margin = new Thickness(0, 0, 5, 0);
+				DockPanel.SetDock(tb_config_path, Dock.Right);
+				this.Children.Add(tb_config_path);
 			}
 			BitmapImage BitmapToImageSource(System.Drawing.Bitmap bitmap)
 			{
@@ -223,7 +235,7 @@ namespace CofileUI.UserControls
 				this.Items.Add(dummy);
 			}
 
-			if(this.Header.Text.Length > 0 && this.Header.Text[0] == '.')
+			if(this.Header.Text != null && this.Header.Text.Length > 0 && this.Header.Text[0] == '.')
 			{
 				this.Header.Opacity = .5;
 			}
@@ -389,7 +401,7 @@ namespace CofileUI.UserControls
 				DragDrop.DoDragDrop(this, data, DragDropEffects.Copy);
 			}
 
-			e.Handled = true;
+			//e.Handled = true;
 		}
 
 
@@ -570,6 +582,44 @@ namespace CofileUI.UserControls
 				if(child.IsDirectory)
 					filter_recursive(child, filter_string, bShow_hidden);
 			}
+		}
+
+		public static int ChangeColor(string _path, string config_path)
+		{
+			if(_path == null
+				|| _path.Length <= 0
+				|| _path[0] != '/'
+				|| LinuxTreeViewItem.root == null)
+				return -1;
+
+			string[] arr_path = _path.Trim('/').Split('/');
+
+			LinuxTreeViewItem cur = LinuxTreeViewItem.root;
+			for(int i = 0; i < arr_path.Length; i++)
+			{
+				Console.WriteLine("JHLIM_DEBUG : " + cur.FileInfo?.Name + " / " + arr_path[i]);
+				int j;
+				int count = cur.Items.Count;
+				for(j = 0; j < count; j++)
+				{
+					if((cur.Items[j] as LinuxTreeViewItem)?.FileInfo.Name == arr_path[i])
+					{
+						if(i == arr_path.Length - 1)
+						{
+							(cur.Items[j] as LinuxTreeViewItem).Header.Tb_name.Background = Brushes.LightGreen;
+							(cur.Items[j] as LinuxTreeViewItem).Header.tb_config_path.Text = config_path;
+						}
+						else
+							(cur.Items[j] as LinuxTreeViewItem).Header.Tb_name.Background = Brushes.LightCyan;
+						cur = (cur.Items[j] as LinuxTreeViewItem);
+						break;
+					}
+				}
+				if(j == count)
+					break;
+			}
+
+			return 0;
 		}
 		#endregion
 	}

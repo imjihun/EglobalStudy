@@ -23,59 +23,7 @@ namespace CofileUI.UserControls.ConfigOptions.File
 	/// comm_option.xaml에 대한 상호 작용 논리
 	/// </summary>
 	public partial class comm_option : UserControl
-	{
-		//public enum Options
-		//{
-		//	// comm_option
-		//	sid = 0
-		//	, item
-		//	, encode_type
-		//	, log_console_yn
-		//	, header_file_save_yn
-		//	, file_reserver_yn
-		//	, dir_monitoring_yn
-		//	, dir_monitoring_term
-		//	, verify_yn
-		//	, schedule_time
-		//	, result_log_yn
-		//	, thread_count
-			
-		//	, Length
-		//}
-		//public static string[] detailOptions = new string[(int)Options.Length]
-		//	{
-		//		// comm_option
-		//		"DB SID 이름"
-		//		, "암/복호화에 사용할 Item 명"
-		//		, "암호화 인코딩 타입"
-		//		, "암/복호화 진행사항을 화면에 출력"
-		//		, "암호화에 관련된 Header 정보를 파일로 저장"
-		//		, "암호화시 원본 파일 유지"
-		//		, "폴더 감시 모드 (daemon)"
-		//		, "폴더 감시 모드 주기"
-		//		, "verify_yn"
-		//		, "schedule_time"
-		//		, "result_log_yn"
-		//		, "thread_count"
-		//	};
-		//string[] _options = new string[]
-		//	{
-		//		// comm_option
-		//		"sid"
-		//		, "item"
-		//		, "encode_type"
-		//		, "log_console_yn"
-		//		, "header_file_save_yn"
-		//		, "file_reserver_yn"
-		//		, "dir_monitoring_yn"
-		//		, "dir_monitoring_term"
-		//		, "verify_yn"
-		//		, "schedule_time"
-		//		, "result_log_yn"
-		//		, "thread_count"
-		//	};
-		//public string[] OptionKeys { get { return _options; } }
-		
+	{		
 		static JObject Root { get; set; }
 		public comm_option(JObject root)
 		{

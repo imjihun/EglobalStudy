@@ -36,31 +36,26 @@ namespace CofileUI.UserControls
 	/// <summary>
 	/// Cofile.xaml에 대한 상호 작용 논리
 	/// </summary>
-	public enum CofileType
+
+	public partial class Decrypt : UserControl
 	{
-		undefined = 0
-		, file
-		, sam
-		, tail
-	}
-	public partial class Cofile : UserControl
-	{
-		public static Cofile current;
+		public static Decrypt current;
 		public bool bUpdated = false;
 
-		public Cofile()
+		public Decrypt()
 		{
 			current = this;
 			InitializeComponent();
 			InitLinuxDirectory();
 			this.Loaded += (sender, e) => {
-				Console.WriteLine("JHLIM_DEBUG : loaded bUpdated = " + bUpdated);
+				Console.WriteLine("JHLIM_DEBUG : loaded");
 				if(!bUpdated)
-					Cofile.current.Refresh();
+					Decrypt.current.Refresh();
 			};
 		}
+
 		#region Common
-		
+
 		string root_path = MainSettings.Path.PathDirPreviewFile;
 
 		public int Refresh()
@@ -822,25 +817,5 @@ namespace CofileUI.UserControls
 
 
 
-
-	public class HideStringToDoubleConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType,
-			object parameter, CultureInfo culture)
-		{
-			if(value == null)
-				return null;
-
-			string str = value.ToString();
-			if(str[0] == '.')
-				return .5;
-			return 1;
-		}
-
-		public object ConvertBack(object value, Type targetType,
-			object parameter, CultureInfo culture)
-		{
-			throw new Exception();
-		}
-	}
+	
 }

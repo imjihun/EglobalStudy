@@ -65,8 +65,7 @@ namespace CofileUI.Windows
 			DisconnectTimeout.Tick += DisconnectTimeout_Tick;
 			DisconnectTimeout.Start();
 		}
-
-
+		
 		static DateTime LastInputTime = DateTime.Now;
 		private void WindowMain_PreviewKeyDown(object sender, KeyEventArgs e)
 		{
@@ -122,27 +121,11 @@ namespace CofileUI.Windows
 
 
 		#region View Update
-		bool bUpdateDataBase = true;
-		bool bUpdateLinuxTree = true;
-		bool bUpdateConfigFile = true;
 		public void bUpdateInit(bool val)
 		{
-			bUpdateDataBase = val;
-			bUpdateLinuxTree = val;
-			bUpdateConfigFile = val;
-			switch(tabControl.SelectedIndex)
-			{
-				case 1:
-					bUpdateConfigFile = true;
-					break;
-				//case 0:
-				//	bUpdateLinuxTree = true;
-				//	break;
-				//case 2:
-				//case 3:
-				//	bUpdateDataBase = true;
-				//	break;
-			}
+			Cofile.current.bUpdated = val;
+			Decrypt.current.bUpdated = val;
+			DataBaseInfo.bUpdated = val;
 		}
 		string changed_server_name = "";
 		public string Changed_server_name { get { return changed_server_name; }
@@ -160,87 +143,17 @@ namespace CofileUI.Windows
 				}
 			}
 		}
-
-		// 상단 탭이 바뀌었을때 작동
-		int idx_tab_before_change = 0;
-		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
-			if(e.Source != tabControl)
-				return;
-
-			if(idx_tab_before_change == 1 && tabControl.SelectedIndex != 1)
-				UserControls.ConfigOption.current.ConfirmSave();
-			//Console.WriteLine("tabControl.SelectedIndex = " + tabControl.SelectedIndex);
-			//Console.WriteLine("\te.OriginalSource = " + e.OriginalSource);
-			//if(tabControl.SelectedIndex != 1)
-			//{
-			//	UserControls.ConfigOption.current.ConfirmSave();
-			//	if(UserControls.ConfigOptions.ConfigOptions.bChanged)
-			//	{
-			//		tabControl.SelectedIndex = idx_tab_before_change;
-			//		return;
-			//	}
-			//}
-
-			TabUpdate();
-			idx_tab_before_change = tabControl.SelectedIndex;
-		}
-		private void TabUpdate()
-		{
-			SSHController.ReConnect();
-			if(SSHController.IsConnected)
-			{
-				if(!bUpdateLinuxTree && UserControls.Cofile.current != null && tabControl.SelectedIndex == 0)
-				{
-					UserControls.Cofile.current.Refresh();
-					bUpdateLinuxTree = true;
-				}
-				if(!bUpdateDataBase && (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
-				//&& idx_tab_before_change != 2 && idx_tab_before_change != 3
-				//&& (tabControl.SelectedIndex == 2 || tabControl.SelectedIndex == 3))
-				{
-					//UserControls.DataBaseInfo.RefreshUi(Changed_server_name);
-					UserControls.DataBaseInfo.RefreshUi();
-					bUpdateDataBase = true;
-				}
-				if(!bUpdateConfigFile && UserControls.ConfigOption.current != null && tabControl.SelectedIndex == 1)
-				{
-					UserControls.ConfigOption.current.Clear();
-					bUpdateConfigFile = true;
-				}
-			}
-		}
-
+		
 		// 서버메뉴리스트에서 서버를 컨넥팅 동작을 할 때 작동
 		public void Refresh(string _changed_server_name)
 		{
-			TabUpdate();
+			if(tabControl.SelectedIndex == 0) Cofile.current.Refresh();
+			else if(tabControl.SelectedIndex == 1) Decrypt.current.Refresh();
+			else if(tabControl.SelectedIndex == 2) DataBaseInfo.RefreshUi();
+			else if(tabControl.SelectedIndex == 3) DataBaseInfo.RefreshUi();
+
 			if(!SSHController.IsConnected)
 				bUpdateInit(true);
-			//switch(tabControl.SelectedIndex)
-			//{
-			//	case 0:
-			//		if(UserControls.Cofile.current != null)
-			//		{
-			//			UserControls.Cofile.current.Refresh();
-			//			//bUpdateLinuxTree = true;
-			//		}
-			//		break;
-			//	case 1:
-			//		if(UserControls.ConfigJsonTree.current != null)
-			//		{
-			//			UserControls.ConfigJsonTree.current.Refresh();
-			//			//bUpdateConfigFile = true;
-			//		}
-			//		break;
-			//	case 2:
-			//	case 3:
-			//		//UserControls.DataBaseInfo.RefreshUi(_changed_server_name);
-			//		UserControls.DataBaseInfo.RefreshUi();
-			//		//bUpdateDataBase = true;
-			//		break;
-			//}
-			//Changed_server_name = _changed_server_name;
 		}
 		public void Clear()
 		{

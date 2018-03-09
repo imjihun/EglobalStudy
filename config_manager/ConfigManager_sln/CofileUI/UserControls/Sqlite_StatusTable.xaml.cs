@@ -26,10 +26,17 @@ namespace CofileUI.UserControls
 	public partial class Sqlite_StatusTable : UserControl
 	{
 		public static Sqlite_StatusTable current;
+
 		public Sqlite_StatusTable()
 		{
 			current = this;
 			InitializeComponent();
+
+			this.Loaded += (sender, e) => {
+				Console.WriteLine("JHLIM_DEBUG : loaded");
+				if(!DataBaseInfo.bUpdated)
+					DataBaseInfo.RefreshUi();
+			};
 		}
 		public void Refresh()
 		{
@@ -57,7 +64,7 @@ namespace CofileUI.UserControls
 			}
 			
 		}
-
+		
 		public void Clear()
 		{
 			dataGrid.ItemsSource = new DataTable().DefaultView;
@@ -93,7 +100,7 @@ namespace CofileUI.UserControls
 		{
 			// 열안에 데이터가 있으면 타입 변경 안됨.
 			//table.Columns["type"].DataType = typeof(string)
-
+			
 			// 새로운 열을 추가하는 방식
 			// 맨 앞 밑 줄은 DataGrid Column명에 표시 X
 			string add_column_name = "_" + column_name;
