@@ -127,6 +127,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Resources\Class1.cs" />
+    <Compile Include="UserControls\CustomUI\Cofile\Behaviours.cs" />
     <Compile Include="UserControls\CustomUI\Cofile\LinuxFileModel.cs" />
     <Compile Include="UserControls\CustomUI\Cofile\LinuxFileViewModel.cs" />
     <Compile Include="UserControls\CustomUI\Cofile\RelayCommand.cs" />
@@ -136,9 +137,6 @@
     </Compile>
     <Compile Include="UserControls\Cofile.xaml.cs">
       <DependentUpon>Cofile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UserControls\ConfigJsonTree.xaml.cs">
-      <DependentUpon>ConfigJsonTree.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ConfigOptions\File\comm_option.xaml.cs">
       <DependentUpon>comm_option.xaml</DependentUpon>
@@ -184,12 +182,6 @@
     <Compile Include="UserControls\CustomUI\Cofile\LinuxTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ConfigJsonTree\JsonTreeViewItem.cs" />
     <Compile Include="UserControls\CustomUI\ServerMenu\ServerInfo.cs" />
-    <Compile Include="UserControls\ConfigOption.xaml.cs">
-      <DependentUpon>ConfigOption.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UserControls\LinuxDirectoryViewer.xaml.cs">
-      <DependentUpon>LinuxDirectoryViewer.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UserControls\ConfigMenu.xaml.cs">
       <DependentUpon>ConfigMenu.xaml</DependentUpon>
     </Compile>
@@ -282,10 +274,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserControls\ConfigJsonTree.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UserControls\ConfigOptions\File\comm_option.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -326,10 +314,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserControls\ConfigOption.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UserControls\ConfigOptions\Tail\enc_inform_line.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -339,10 +323,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserControls\ConfigOptions\Tail\TailOptions.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UserControls\LinuxDirectoryViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

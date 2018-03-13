@@ -200,7 +200,7 @@
 							  HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="2"/>
 			</Grid>
 			<Grid Grid.Column="1">
-				<UserControls:ConfigMenu DataContext="{Binding}"/>
+				<UserControls:ConfigMenu DataContext="{Binding DataContext}"/>
 			</Grid>
 
 			<GridSplitter Background="Gray"

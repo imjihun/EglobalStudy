@@ -580,10 +580,7 @@ namespace CofileUI.Classes
 				ServerList.connected_serverinfo_panel.IsConnected = true;
 			}
 
-			ConfigOption.CurRootPathLocal = MainSettings.Path.PathDirConfigFile
-												+ ServerList.connected_serverinfo_panel.Serverinfo.name + @"\"
-												+ ServerList.connected_serverinfo_panel.Serverinfo.id + @"\";
-
+			
 			if(LoadEnvCoHome() == ReturnValue.Fail.LOAD_CO_HOME)
 				;//return false;
 
@@ -1109,9 +1106,10 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
-			if(remote_configfile_path == null)
-				return false;
+			string remote_configfile_path = "";
+			//string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
+			//if(remote_configfile_path == null)
+			//	return false;
 
 			//string remote_file_path = UploadFile(Cofile.current.Selected_config_file_path, remote_directory);
 			//if(remote_file_path == null)
@@ -1163,9 +1161,10 @@ namespace CofileUI.Classes
 			if(Cofile.current.SelectedConfigLocalPath == null)
 				return false;
 
-			string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
-			if(remote_configfile_path == null)
-				return false;
+			string remote_configfile_path = "";
+			//string remote_configfile_path = ConvertPathLocalToRemoteIfExist(Cofile.current.SelectedConfigLocalPath, ConfigOption.CurRootPathLocal);
+			//if(remote_configfile_path == null)
+			//	return false;
 
 			string env_co_home = EnvCoHome;
 			List <LinuxTreeViewItem> parents = new List<LinuxTreeViewItem>();

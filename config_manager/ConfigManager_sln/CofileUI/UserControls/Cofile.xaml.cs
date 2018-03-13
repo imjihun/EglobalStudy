@@ -174,33 +174,33 @@ namespace CofileUI.UserControls
 		}
 		private void OnClickSelectConfigFile(object sender, EventArgs e)
 		{
-			//SftpFileTree root = SSHController.GetListConfigFile();
-			//if(root == null)
+			////SftpFileTree root = SSHController.GetListConfigFile();
+			////if(root == null)
+			////	return;
+
+			////Window_SelectJsonFile ws = new Window_SelectJsonFile(root);
+			////if(ws.ShowDialog() == true)
+			////	Selected_config_file_path = ws.FilePathRemote;
+
+			//if(ConfigOption.current.InitOpenFile() != 0)
 			//	return;
 
-			//Window_SelectJsonFile ws = new Window_SelectJsonFile(root);
-			//if(ws.ShowDialog() == true)
-			//	Selected_config_file_path = ws.FilePathRemote;
+			//OpenFileDialog ofd = new OpenFileDialog();
+			//// 초기경로 지정
+			//ofd.InitialDirectory = ConfigOption.CurRootPathLocal;
 
-			if(ConfigOption.current.InitOpenFile() != 0)
-				return;
+			//if(ConfigOptionManager.Path != null)
+			//{
+			//	string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
+			//	DirectoryInfo d = new DirectoryInfo(dir_path);
+			//	if(d.Exists)
+			//		ofd.InitialDirectory = dir_path;
+			//}
 
-			OpenFileDialog ofd = new OpenFileDialog();
-			// 초기경로 지정
-			ofd.InitialDirectory = ConfigOption.CurRootPathLocal;
-
-			if(ConfigOptionManager.Path != null)
-			{
-				string dir_path = ConfigOptionManager.Path.Substring(0, ConfigOptionManager.Path.LastIndexOf('\\') + 1);
-				DirectoryInfo d = new DirectoryInfo(dir_path);
-				if(d.Exists)
-					ofd.InitialDirectory = dir_path;
-			}
-
-			// 파일 열기
-			ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
-			if(ofd.ShowDialog() == true)
-				SelectedConfigLocalPath = ofd.FileName;
+			//// 파일 열기
+			//ofd.Filter = "JSon Files (.json)|*.json|All Files (*.*)|*.*";
+			//if(ofd.ShowDialog() == true)
+			//	SelectedConfigLocalPath = ofd.FileName;
 		}
 
 		#endregion

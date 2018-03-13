@@ -159,8 +159,6 @@ namespace CofileUI.Windows
 		{
 			if(Cofile.current != null)
 				Cofile.current.Clear();
-			if(ConfigOption.current != null)
-				ConfigOption.current.Clear();
 			if(Sqlite_LogTable.current != null)
 				Sqlite_LogTable.current.Clear();
 			if(Sqlite_StatusTable.current != null)
